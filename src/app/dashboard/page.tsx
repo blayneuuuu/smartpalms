@@ -3,7 +3,7 @@
 import {useState, useEffect} from "react";
 import {useRouter} from "next/navigation";
 import {getCurrentUser} from "@/lib/auth";
-import {lockers, transactions} from "@/lib/mockData";
+import {lockers} from "@/lib/mockData";
 import {Button} from "@/components/ui/button";
 import {Card, CardHeader, CardTitle, CardContent} from "@/components/ui/card";
 
@@ -12,10 +12,6 @@ export default function Dashboard() {
   const [otp, setOtp] = useState<string | null>(null);
   const user = getCurrentUser();
   const userLocker = lockers.find((locker) => locker.rentedBy === user?.id);
-  const userTransaction = transactions.find(
-    (transaction) =>
-      transaction.userId === user?.id && transaction.status === "approved"
-  );
 
   useEffect(() => {
     if (!userLocker) {
