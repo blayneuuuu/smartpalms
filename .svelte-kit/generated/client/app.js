@@ -1,6 +1,3 @@
-import * as client_hooks from '../../../src/hooks.client.ts';
-
-
 export { matchers } from './matchers.js';
 
 export const nodes = [
@@ -20,8 +17,8 @@ export const dictionary = {
 	};
 
 export const hooks = {
-	handleError: client_hooks.handleError || (({ error }) => { console.error(error) }),
-	init: client_hooks.init,
+	handleError: (({ error }) => { console.error(error) }),
+	
 	reroute: (() => {}),
 	transport: {}
 };

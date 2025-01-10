@@ -1,6 +1,6 @@
 <script lang="ts">
-	import UserProfile from 'clerk-sveltekit/client/UserProfile.svelte'
-	import UserButton from 'clerk-sveltekit/client/UserButton.svelte'
+	import {UserProfile} from 'svelte-clerk'
+	import {UserButton} from 'svelte-clerk'
     export let data;
 
     console.log(data.user);

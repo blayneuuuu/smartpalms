@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SignIn from 'clerk-sveltekit/client/SignIn.svelte'
+	import {SignIn} from 'svelte-clerk'
 </script>
 
 <div class="w-screen h-screen flex flex-col justify-center items-center"> 
