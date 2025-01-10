@@ -3,19 +3,14 @@
 	import {UserButton} from 'svelte-clerk'
     import { useClerkContext } from 'svelte-clerk';
 
-    let id = $state("");
-    let email = $state("");
-    let fullName = $state("");
 
 // Do not destructure context or you'll lose reactivity!
     const ctx = useClerkContext();
     const data = $derived(ctx);
     
-    if (data.user){
-    id = data.user.id;
-    email = data?.user.emailAddresses[0].emailAddress;
-    fullName = data?.user.fullName || "User";
-    }
+    const id = $derived(data?.user?.id);
+    const email = $derived(data?.user?.emailAddresses[0].emailAddress);
+    const fullName = $derived(data?.user?.fullName || "User");
 </script>
 
 <div>
