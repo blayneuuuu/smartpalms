@@ -1,4 +1,5 @@
 import {sql} from "drizzle-orm";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {sqliteTable, text, integer, primaryKey} from "drizzle-orm/sqlite-core";
 
 // Users table

@@ -3,5 +3,8 @@
 	"/api/register": [
 		"src/routes/api/register/+server.ts"
 	],
+	"/dashboard": [
+		"src/routes/dashboard/+page.server.ts"
+	],
 	"/register": []
 }

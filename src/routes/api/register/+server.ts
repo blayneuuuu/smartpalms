@@ -60,6 +60,7 @@ export const POST: RequestHandler = async ({request}) => {
       .get();
 
     // Remove password from response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {password: _, ...userWithoutPassword} = newUser;
 
     return json(
