@@ -1,10 +1,16 @@
 {
 	"/": [],
+	"/api/locker": [
+		"src/routes/api/locker/+server.ts"
+	],
 	"/api/register": [
 		"src/routes/api/register/+server.ts"
 	],
 	"/dashboard": [
 		"src/routes/dashboard/+page.server.ts"
+	],
+	"/lockers": [
+		"src/routes/lockers/+page.server.ts"
 	],
 	"/register": []
 }

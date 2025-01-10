@@ -1,24 +1,17 @@
 import {sql} from "drizzle-orm";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {sqliteTable, text, integer, primaryKey} from "drizzle-orm/sqlite-core";
+import {sqliteTable, text, integer} from "drizzle-orm/sqlite-core";
 
-// Users table
-export const users = sqliteTable("users", {
+// Admin table
+export const admins = sqliteTable("admins", {
   id: text("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  fullname: text("fullname"),
-  address: text("address"),
-  type: text("type").notNull(),
+  userId: text("user_id").notNull(),
 });
 
 // Subscriptions table
 export const subscriptions = sqliteTable("subscriptions", {
   id: text("id").primaryKey(),
   status: text("status").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id),
+  userId: text("user_id").notNull(),
   lockerId: text("locker_id")
     .notNull()
     .references(() => lockers.id),
@@ -33,9 +26,7 @@ export const lockers = sqliteTable("lockers", {
   id: text("id").primaryKey(),
   number: text("number").notNull(),
   size: text("size").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id),
+  userId: text("user_id").notNull(),
   otp: text("otp"),
 });
 
@@ -49,8 +40,8 @@ export const transactions = sqliteTable("transactions", {
 });
 
 // Types for your entities
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
+export type Admin = typeof admins.$inferSelect;
+export type NewAdmin = typeof admins.$inferInsert;
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
