@@ -6,7 +6,7 @@ declare global {
     // interface Error {}
     interface Locals {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      session?: any;
+      auth: import("svelte-clerk/server").Auth;
     }
     // interface PageData {}
     // interface PageState {}

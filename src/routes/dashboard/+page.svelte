@@ -1,37 +1,60 @@
 <script lang="ts">
-	import {UserProfile} from 'svelte-clerk'
-	import {UserButton} from 'svelte-clerk'
+    import AdminDashboard from './AdminDashboard.svelte';
+    import UserDashboard from './UserDashboard.svelte';
     import { useClerkContext } from 'svelte-clerk';
+    let loading = $state(true);
+    let admin = $state(null);
+    let userData = $state({
+        email: "",
+        fullName: "",
+        imageUrl: ""});
 
-
-// Do not destructure context or you'll lose reactivity!
     const ctx = useClerkContext();
     const data = $derived(ctx);
     
     const id = $derived(data?.user?.id);
     const email = $derived(data?.user?.emailAddresses[0].emailAddress);
-    const fullName = $derived(data?.user?.fullName || "User");
+    const fullName = $derived(data?.user?.fullName);
     const imageUrl = $derived(data?.user?.imageUrl);
+
+    userData = {
+        email: email || "", 
+        fullName: fullName || "",
+        imageUrl: imageUrl || ""
+    }
+
+
+    const authenticate = async () => {
+                
+               try {
+                const adminResponse = await fetch(`/api/admin/${id}`);
+                const adminCheck = await adminResponse.json();
+                if (adminCheck && adminResponse) {
+                    admin = adminCheck.authenticated;
+                }
+               } catch (error) {
+               if (error) {
+                   console.log(error);
+               }
+               } finally {
+                   loading = false;
+               }
+            }
+
+    $effect(() => {
+       if (id) {
+        authenticate();
+       }
+
+    });
 </script>
 
-<div>
-    <div class="flex flex-row justify-between py-2 px-20 items-center">
-        <h1 class="text-2xl font-extrabold">Dashboard</h1>
-        <div class="flex flex-row items-center space-x-4">
-            <h1 class="text-lg font-semibold">{fullName}</h1>
-            <UserButton afterSignOutUrl="/"/>
-        </div>
-    </div>
-
-    <!-- Nav menu  -->
-
-    <div class="flex flex-col justify-center space-y-2 items-center bg-gray-100 py-2 mx-10 mt-10 rounded-sm">
-        <div class="border rounded-lg w-3/4 h-96 flex flex-col space-y-2 px-2">
-            <h1 class="text-xl text-gray-500">Rented Lockers: <span class="text-black">0</span></h1>
-            <a href="/lockers" class="bg-blue-500 hover:bg-blue-700 text-white text-xl w-48 py-2 px-4 rounded text-center self-center">Rent a Locker</a>
-        </div>
-        
-    </div>
-
-    
-</div>
+{#if loading}
+    <p>Loading...</p>
+{:else}
+    {#if admin === true}
+    <AdminDashboard data={userData}/>
+    {:else if admin === false}
+    <UserDashboard data={userData}/>
+    {/if}
+{/if}
