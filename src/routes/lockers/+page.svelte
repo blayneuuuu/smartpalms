@@ -43,10 +43,13 @@
                         <div class="text-sm text-gray-600 mt-1">Size: {locker.size}</div>
                         <div class="text-sm mt-2 {locker.isAvailable ? 'text-green-600' : 'text-red-600'}">
                             {locker.isAvailable ? 'Available' : 'Occupied'}
+                            
                         </div>
                     </div>
                 {/each}
             </div>
+            
         </div>
     {/each}
+    <a href="/dashboard">Back to Dashboard</a>
 </div>

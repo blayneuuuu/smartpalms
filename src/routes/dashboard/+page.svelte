@@ -28,7 +28,7 @@
     <div class="flex flex-col justify-center space-y-2 items-center bg-gray-100 py-2 mx-10 mt-10 rounded-sm">
         <div class="border rounded-lg w-3/4 h-96 flex flex-col space-y-2 px-2">
             <h1 class="text-xl text-gray-500">Rented Lockers: <span class="text-black">0</span></h1>
-            <a href="/lockers">Rent a Locker Bitch</a>
+            <a href="/lockers" class="bg-blue-500 hover:bg-blue-700 text-white text-xl w-48 py-2 px-4 rounded text-center self-center">Rent a Locker</a>
         </div>
         
     </div>
