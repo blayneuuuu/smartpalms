@@ -1,5 +1,5 @@
-import {sql} from "drizzle-orm";
-import {sqliteTable, text, integer} from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 // Admin table
 export const admins = sqliteTable("admins", {
@@ -15,7 +15,7 @@ export const subscriptions = sqliteTable("subscriptions", {
   lockerId: text("locker_id")
     .notNull()
     .references(() => lockers.id),
-  createdAt: integer("created_at", {mode: "timestamp"})
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   expiresAt: text("expires_at").notNull(),
@@ -34,7 +34,7 @@ export const lockers = sqliteTable("lockers", {
 export const transactions = sqliteTable("transactions", {
   id: text("id").primaryKey(),
   amount: text("amount").notNull(),
-  createdAt: integer("created_at", {mode: "timestamp"})
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });

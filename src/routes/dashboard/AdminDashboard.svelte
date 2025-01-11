@@ -1,6 +1,8 @@
 <script lang="ts" >
-	import {UserButton} from 'svelte-clerk'
+    import {UserButton} from 'svelte-clerk'
+    import Request from './dashboardComponents/Request.svelte';
     export let data = {};
+    let index = 0
 </script>
 
 <div>
@@ -13,8 +15,9 @@
     </div>
 
     <!-- Nav menu  -->
-
-  
-
+    <div class="flex flex-row space-x-6 ml-10 mt-10">
+    </div>
+    <Request />
+    
     
 </div>

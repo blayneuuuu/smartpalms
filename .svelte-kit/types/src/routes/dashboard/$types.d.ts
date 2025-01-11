@@ -14,4 +14,4 @@ export type Snapshot<T = any> = Kit.Snapshot<T>;
 type PageParentData = EnsureDefined<import('../$types.js').LayoutData>;
 
 export type PageServerData = null;
-export type PageData = Expand<PageParentData>;./User
+export type PageData = Expand<PageParentData>;
