@@ -27,7 +27,7 @@ import {
   ab as U,
   ae as M,
 } from "./index-client.CvPjOW-w.js";
-import { i as q, p as Z, r as L, c as Q } from "./props.HYy-qROY.js";
+import {i as q, p as Z, r as L, c as Q} from "./props.HYy-qROY.js";
 function _(e, r, ...n) {
   var t = e,
     s = K,
@@ -42,7 +42,7 @@ const O = "$$_clerk",
     const e = g(O);
     if (!e)
       throw new Error(
-        "No Clerk data was found in Svelte context. Did you forget to wrap your component with ClerkProvider?",
+        "No Clerk data was found in Svelte context. Did you forget to wrap your component with ClerkProvider?"
       );
     return e;
   },
@@ -61,7 +61,7 @@ function ee(e, r) {
       _(
         l,
         () => r.children,
-        () => n.clerk,
+        () => n.clerk
       ),
         p(o, c);
     };
@@ -100,7 +100,7 @@ function ne(e, r) {
       f(t) &&
         o.clerk &&
         (f(s)
-          ? o.clerk.__unstable__updateProps({ node: f(t), props: a })
+          ? o.clerk.__unstable__updateProps({node: f(t), props: a})
           : (o.clerk.mountUserButton(f(t), n), C(s, !0)));
     }),
     G(() => {
@@ -115,11 +115,11 @@ function ne(e, r) {
       Q(
         x,
         (F) => C(t, F),
-        () => f(t),
+        () => f(t)
       ),
         p(d, x);
     },
-    $$slots: { default: !0 },
+    $$slots: {default: !0},
   });
   var u = X(l, 2);
   _(u, () => r.children ?? K), p(e, c), h();
@@ -132,37 +132,37 @@ function P(e, r) {
 }
 function ae(e, r) {
   m(r, !0);
-  const { addCustomMenuItem: n } = g("$$_userButtonMenuItems"),
+  const {addCustomMenuItem: n} = g("$$_userButtonMenuItems"),
     t = L(r, ["$$slots", "$$events", "$$legacy"]);
   M(() => {
     if (r.label === "manageAccount" || r.label === "signOut") {
-      n("action", { label: r.label });
+      n("action", {label: r.label});
       return;
     }
-    const { label: s, onclick: a, open: o, labelIcon: c } = t;
+    const {label: s, onclick: a, open: o, labelIcon: c} = t;
     let l;
     n("action", {
       label: s,
       mountIcon(u) {
-        l = y(P, { target: u, props: { children: c } });
+        l = y(P, {target: u, props: {children: c}});
       },
       unmountIcon() {
         l && k(l);
       },
-      ...(a ? { onClick: a } : { open: o.startsWith("/") ? o : `/${o}` }),
+      ...(a ? {onClick: a} : {open: o.startsWith("/") ? o : `/${o}`}),
     });
   }),
     h();
 }
 function se(e, r) {
   m(r, !0);
-  const { addCustomMenuItem: n } = g("$$_userButtonMenuItems");
+  const {addCustomMenuItem: n} = g("$$_userButtonMenuItems");
   M(() => {
     let t;
     n("link", {
       label: r.label,
       mountIcon(s) {
-        t = y(P, { target: s, props: { children: r.labelIcon } });
+        t = y(P, {target: s, props: {children: r.labelIcon}});
       },
       unmountIcon() {
         t && k(t);
@@ -182,20 +182,20 @@ function oe(e, r) {
 }
 function ie(e, r) {
   m(r, !0);
-  const { addCustomPage: n } = g("$$_userButton");
+  const {addCustomPage: n} = g("$$_userButton");
   M(() => {
     let t, s;
     n({
       label: r.label,
       url: r.url,
       mountIcon(a) {
-        t = y(P, { target: a, props: { children: r.labelIcon } });
+        t = y(P, {target: a, props: {children: r.labelIcon}});
       },
       unmountIcon() {
         t && k(t);
       },
       mount(a) {
-        s = y(P, { target: a, props: { children: r.children } });
+        s = y(P, {target: a, props: {children: r.children}});
       },
       unmount() {
         s && k(s);
@@ -287,8 +287,8 @@ var be = {
         firstDelay: s,
         maxDelay: a,
         timeMultiple: o,
-      } = { ...be, ...r },
-      c = ve({ firstDelay: s, maxDelay: a, timeMultiple: o });
+      } = {...be, ...r},
+      c = ve({firstDelay: s, maxDelay: a, timeMultiple: o});
     for (;;)
       try {
         return await e();
@@ -300,7 +300,7 @@ var be = {
   ke = "loadScript cannot be called when document does not exist",
   Pe = "loadScript cannot be called without a src";
 async function _e(e = "", r) {
-  const { async: n, defer: t, beforeLoad: s, crossOrigin: a, nonce: o } = r;
+  const {async: n, defer: t, beforeLoad: s, crossOrigin: a, nonce: o} = r;
   return ye(
     () =>
       new Promise((l, u) => {
@@ -320,7 +320,7 @@ async function _e(e = "", r) {
           s == null || s(i),
           document.body.appendChild(i);
       }),
-    { shouldRetry: (l, u) => u < 5 },
+    {shouldRetry: (l, u) => u < 5}
   );
 }
 var we = Object.freeze({
@@ -335,9 +335,9 @@ var we = Object.freeze({
   MissingClerkProvider:
     "{{source}} can only be used within the <ClerkProvider /> component. Learn more: https://clerk.com/docs/components/clerk-provider",
 });
-function Ee({ packageName: e, customMessages: r }) {
+function Ee({packageName: e, customMessages: r}) {
   let n = e;
-  const t = { ...we, ...r };
+  const t = {...we, ...r};
   function s(a, o) {
     if (!o) return `${n}: ${a}`;
     let c = a;
@@ -349,10 +349,10 @@ function Ee({ packageName: e, customMessages: r }) {
     return `${n}: ${c}`;
   }
   return {
-    setPackageName({ packageName: a }) {
+    setPackageName({packageName: a}) {
       return typeof a == "string" && (n = a), this;
     },
-    setMessages({ customMessages: a }) {
+    setMessages({customMessages: a}) {
       return Object.assign(t, a || {}), this;
     },
     throwInvalidPublishableKeyError(a) {
@@ -387,9 +387,14 @@ function I(e, r = {}) {
   if (((e = e || ""), !e || !S(e))) {
     if (r.fatal && !e)
       throw new Error(
-        "Publishable key is missing. Ensure that your publishable key is correctly configured. Double-check your environment configuration for your keys, or access them here: https://dashboard.clerk.com/last-active?path=api-keys",
+        "Publishable key is missing. Ensure that your publishable key is correctly configured. Double-check your environment configuration for your keys, or access them here: https://dashboard.clerk.com/last-active?path=api-keys"
       );
-    if (r.fatal && !S(e)) throw new Error("Publishable key not valid.");
+    if (r.fatal && !S(e))
+      throw new Error(
+        "Publishable key not valid: " +
+          e +
+          "You should see the key before this message."
+      );
     return null;
   }
   const n = e.startsWith(T) ? "production" : "development";
@@ -399,7 +404,7 @@ function I(e, r = {}) {
     r.proxyUrl
       ? (t = r.proxyUrl)
       : n !== "development" && r.domain && (t = `clerk.${r.domain}`),
-    { instanceType: n, frontendApi: t }
+    {instanceType: n, frontendApi: t}
   );
 }
 function S(e) {
@@ -422,10 +427,10 @@ function xe() {
   };
 }
 var A = "Clerk: Failed to load Clerk",
-  { isDevOrStagingUrl: Ce } = xe(),
-  N = Ee({ packageName: "@clerk/shared" });
+  {isDevOrStagingUrl: Ce} = xe(),
+  N = Ee({packageName: "@clerk/shared"});
 function Be(e) {
-  N.setPackageName({ packageName: e });
+  N.setPackageName({packageName: e});
 }
 var De = async (e) => {
     const r = document.querySelector("script[data-clerk-js-script]");
@@ -486,4 +491,4 @@ var De = async (e) => {
     const n = Ie(e);
     for (const t in n) r.setAttribute(t, n[t]);
   };
-export { ee as C, Oe as U, _ as a, Be as b, De as l, Le as s, B as u };
+export {ee as C, Oe as U, _ as a, Be as b, De as l, Le as s, B as u};
