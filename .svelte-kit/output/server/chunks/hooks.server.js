@@ -1,14 +1,14 @@
-import {webcrypto} from "node:crypto";
+import { webcrypto } from "node:crypto";
 import {
   b as buildErrorThrower,
   C as ClerkAPIResponseError,
   p as parseError,
 } from "./chunk-DL452J2I.js";
 import snakecaseKeys from "snakecase-keys";
-import {parse as parse$1} from "cookie";
+import { parse as parse$1 } from "cookie";
 import "./index.js";
-import {e as envPublic} from "./public.js";
-import {parse as parse$2} from "set-cookie-parser";
+import { e as envPublic } from "./public.js";
+import { parse as parse$2 } from "set-cookie-parser";
 var __typeError = (msg) => {
   throw TypeError(msg);
 };
@@ -55,7 +55,7 @@ function parsePublishableKey(key, options = {}) {
   if (!key || !isPublishableKey(key)) {
     if (options.fatal && !key) {
       throw new Error(
-        "Publishable key is missing. Ensure that your publishable key is correctly configured. Double-check your environment configuration for your keys, or access them here: https://dashboard.clerk.com/last-active?path=api-keys"
+        "Publishable key is missing. Ensure that your publishable key is correctly configured. Double-check your environment configuration for your keys, or access them here: https://dashboard.clerk.com/last-active?path=api-keys",
       );
     }
     if (options.fatal && !isPublishableKey(key)) {
@@ -84,7 +84,7 @@ function isPublishableKey(key) {
     key.startsWith(PUBLISHABLE_KEY_LIVE_PREFIX) ||
     key.startsWith(PUBLISHABLE_KEY_TEST_PREFIX);
   const hasValidFrontendApiPostfix = isomorphicAtob(
-    key.split("_")[2] || ""
+    key.split("_")[2] || "",
   ).endsWith("$");
   return hasValidPrefix && hasValidFrontendApiPostfix;
 }
@@ -93,7 +93,7 @@ function isDevelopmentFromSecretKey(apiKey) {
 }
 async function getCookieSuffix(
   publishableKey,
-  subtle = globalThis.crypto.subtle
+  subtle = globalThis.crypto.subtle,
 ) {
   const data = new TextEncoder().encode(publishableKey);
   const digest = await subtle.digest("sha-1", data);
@@ -135,7 +135,7 @@ var TokenVerificationErrorAction = {
     "Make sure your system clock is in sync (e.g. turn off and on automatic time synchronization).",
 };
 var TokenVerificationError = class _TokenVerificationError extends Error {
-  constructor({action, message, reason}) {
+  constructor({ action, message, reason }) {
     super(message);
     Object.setPrototypeOf(this, _TokenVerificationError.prototype);
     this.reason = reason;
@@ -210,7 +210,7 @@ function parse(string, encoding, opts = {}) {
   return out;
 }
 function stringify(data, encoding, opts = {}) {
-  const {pad = true} = opts;
+  const { pad = true } = opts;
   const mask = (1 << encoding.bits) - 1;
   let out = "";
   let bits = 0;
@@ -250,11 +250,11 @@ function getCryptoAlgorithm(algorithmName) {
   const name = jwksAlgToCryptoAlg[algorithmName];
   if (!hash || !name) {
     throw new Error(
-      `Unsupported algorithm ${algorithmName}, expected one of ${algs.join(",")}.`
+      `Unsupported algorithm ${algorithmName}, expected one of ${algs.join(",")}.`,
     );
   }
   return {
-    hash: {name: algToHash[algorithmName]},
+    hash: { name: algToHash[algorithmName] },
     name: jwksAlgToCryptoAlg[algorithmName],
   };
 }
@@ -276,7 +276,7 @@ var assertAudienceClaim = (aud, audience) => {
         action: TokenVerificationErrorAction.EnsureClerkJWT,
         reason: TokenVerificationErrorReason.TokenVerificationFailed,
         message: `Invalid JWT audience claim (aud) ${JSON.stringify(aud)}. Is not included in "${JSON.stringify(
-          audienceList
+          audienceList,
         )}".`,
       });
     }
@@ -286,7 +286,7 @@ var assertAudienceClaim = (aud, audience) => {
         action: TokenVerificationErrorAction.EnsureClerkJWT,
         reason: TokenVerificationErrorReason.TokenVerificationFailed,
         message: `Invalid JWT audience claim array (aud) ${JSON.stringify(aud)}. Is not included in "${JSON.stringify(
-          audienceList
+          audienceList,
         )}".`,
       });
     }
@@ -424,7 +424,7 @@ function importKey(key, algorithm, keyUsage) {
 }
 var DEFAULT_CLOCK_SKEW_IN_SECONDS = 5 * 1e3;
 async function hasValidSignature(jwt, key) {
-  const {header, signature, raw} = jwt;
+  const { header, signature, raw } = jwt;
   const encoder = new TextEncoder();
   const data = encoder.encode([raw.header, raw.payload].join("."));
   const algorithm = getCryptoAlgorithm(header.alg);
@@ -434,9 +434,9 @@ async function hasValidSignature(jwt, key) {
       algorithm.name,
       cryptoKey,
       signature,
-      data
+      data,
     );
-    return {data: verified};
+    return { data: verified };
   } catch (error) {
     return {
       errors: [
@@ -463,12 +463,12 @@ function decodeJwt(token) {
   const [rawHeader, rawPayload, rawSignature] = tokenParts;
   const decoder = new TextDecoder();
   const header = JSON.parse(
-    decoder.decode(base64url.parse(rawHeader, {loose: true}))
+    decoder.decode(base64url.parse(rawHeader, { loose: true })),
   );
   const payload = JSON.parse(
-    decoder.decode(base64url.parse(rawPayload, {loose: true}))
+    decoder.decode(base64url.parse(rawPayload, { loose: true })),
   );
-  const signature = base64url.parse(rawSignature, {loose: true});
+  const signature = base64url.parse(rawSignature, { loose: true });
   const data = {
     header,
     payload,
@@ -480,21 +480,21 @@ function decodeJwt(token) {
       text: token,
     },
   };
-  return {data};
+  return { data };
 }
 async function verifyJwt(token, options) {
-  const {audience, authorizedParties, clockSkewInMs, key} = options;
+  const { audience, authorizedParties, clockSkewInMs, key } = options;
   const clockSkew = clockSkewInMs || DEFAULT_CLOCK_SKEW_IN_SECONDS;
-  const {data: decoded, errors} = decodeJwt(token);
+  const { data: decoded, errors } = decodeJwt(token);
   if (errors) {
-    return {errors};
+    return { errors };
   }
-  const {header, payload} = decoded;
+  const { header, payload } = decoded;
   try {
-    const {typ, alg} = header;
+    const { typ, alg } = header;
     assertHeaderType(typ);
     assertHeaderAlgorithm(alg);
-    const {azp, sub, aud, iat, exp, nbf} = payload;
+    const { azp, sub, aud, iat, exp, nbf } = payload;
     assertSubClaim(sub);
     assertAudienceClaim([aud], [audience]);
     assertAuthorizedPartiesClaim(azp, authorizedParties);
@@ -502,9 +502,9 @@ async function verifyJwt(token, options) {
     assertActivationClaim(nbf, clockSkew);
     assertIssuedAtClaim(iat, clockSkew);
   } catch (err) {
-    return {errors: [err]};
+    return { errors: [err] };
   }
-  const {data: signatureValid, errors: signatureErrors} =
+  const { data: signatureValid, errors: signatureErrors } =
     await hasValidSignature(decoded, key);
   if (signatureErrors) {
     return {
@@ -527,7 +527,7 @@ async function verifyJwt(token, options) {
       ],
     };
   }
-  return {data: payload};
+  return { data: payload };
 }
 function wait(ms) {
   return new Promise((res) => setTimeout(res, ms));
@@ -536,7 +536,7 @@ var MAX_NUMBER_OF_RETRIES = 5;
 async function callWithRetry(
   fn,
   attempt = 1,
-  maxAttempts = MAX_NUMBER_OF_RETRIES
+  maxAttempts = MAX_NUMBER_OF_RETRIES,
 ) {
   try {
     return await fn();
@@ -581,7 +581,7 @@ var isValidMaxAge = (maxAge) => typeof maxAge === "number" && maxAge > 0;
 var isValidLevel = (level) => ALLOWED_LEVELS.has(level);
 var isValidVerificationType = (type) => ALLOWED_TYPES.has(type);
 var checkOrgAuthorization = (params, options) => {
-  const {orgId, orgRole, orgPermissions} = options;
+  const { orgId, orgRole, orgPermissions } = options;
   if (!params.role && !params.permission) {
     return null;
   }
@@ -617,17 +617,17 @@ var validateReverificationConfig = (config) => {
   }
   return false;
 };
-var checkStepUpAuthorization = (params, {factorVerificationAge}) => {
+var checkStepUpAuthorization = (params, { factorVerificationAge }) => {
   if (!params.reverification || !factorVerificationAge) {
     return null;
   }
   const isValidReverification = validateReverificationConfig(
-    params.reverification
+    params.reverification,
   );
   if (!isValidReverification) {
     return null;
   }
-  const {level, afterMinutes} = isValidReverification();
+  const { level, afterMinutes } = isValidReverification();
   const [factor1Age, factor2Age] = factorVerificationAge;
   const isValidFactor1 = factor1Age !== -1 ? afterMinutes > factor1Age : null;
   const isValidFactor2 = factor2Age !== -1 ? afterMinutes > factor2Age : null;
@@ -780,7 +780,7 @@ function F(r, n) {
           N = E.type,
           S = E.index;
         throw new TypeError(
-          "Unexpected ".concat(N, " at ").concat(S, ", expected ").concat(l)
+          "Unexpected ".concat(N, " at ").concat(S, ", expected ").concat(l),
         );
       },
       d = function () {
@@ -801,8 +801,8 @@ function F(r, n) {
           throw new TypeError(
             'Must have text between two parameters, missing text after "'.concat(
               v.name,
-              '"'
-            )
+              '"',
+            ),
           );
         return !E || M(E)
           ? "[^".concat(s(c), "]+?")
@@ -977,7 +977,10 @@ function U(r, n, e) {
         else {
           if (i.modifier === "+" || i.modifier === "*")
             throw new TypeError(
-              'Can not repeat "'.concat(i.name, '" without a prefix and suffix')
+              'Can not repeat "'.concat(
+                i.name,
+                '" without a prefix and suffix',
+              ),
             );
           x += "(".concat(i.pattern, ")").concat(i.modifier);
         }
@@ -1008,7 +1011,7 @@ function match(str, options) {
   } catch (e) {
     throw new Error(
       `Invalid path and options: Consult the documentation of path-to-regexp here: https://github.com/pillarjs/path-to-regexp/tree/6.x
-${e.message}`
+${e.message}`,
     );
   }
 }
@@ -1112,7 +1115,7 @@ var AllowlistIdentifierAPI = class extends AbstractAPI {
     return this.request({
       method: "GET",
       path: basePath2,
-      queryParams: {paginated: true},
+      queryParams: { paginated: true },
     });
   }
   async createAllowlistIdentifier(params) {
@@ -1136,7 +1139,7 @@ var ClientAPI = class extends AbstractAPI {
     return this.request({
       method: "GET",
       path: basePath3,
-      queryParams: {...params, paginated: true},
+      queryParams: { ...params, paginated: true },
     });
   }
   async getClient(clientId) {
@@ -1150,7 +1153,7 @@ var ClientAPI = class extends AbstractAPI {
     return this.request({
       method: "POST",
       path: joinPaths(basePath3, "verify"),
-      bodyParams: {token},
+      bodyParams: { token },
     });
   }
 };
@@ -1201,7 +1204,7 @@ var InvitationAPI = class extends AbstractAPI {
     return this.request({
       method: "GET",
       path: basePath6,
-      queryParams: {...params, paginated: true},
+      queryParams: { ...params, paginated: true },
     });
   }
   async createInvitation(params) {
@@ -1236,7 +1239,7 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async getOrganization(params) {
-    const {includeMembersCount} = params;
+    const { includeMembersCount } = params;
     const organizationIdOrSlug =
       "organizationId" in params ? params.organizationId : params.slug;
     this.requireId(organizationIdOrSlug);
@@ -1291,16 +1294,16 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async getOrganizationMembershipList(params) {
-    const {organizationId, limit, offset} = params;
+    const { organizationId, limit, offset } = params;
     this.requireId(organizationId);
     return this.request({
       method: "GET",
       path: joinPaths(basePath7, organizationId, "memberships"),
-      queryParams: {limit, offset},
+      queryParams: { limit, offset },
     });
   }
   async createOrganizationMembership(params) {
-    const {organizationId, userId, role} = params;
+    const { organizationId, userId, role } = params;
     this.requireId(organizationId);
     return this.request({
       method: "POST",
@@ -1312,7 +1315,7 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async updateOrganizationMembership(params) {
-    const {organizationId, userId, role} = params;
+    const { organizationId, userId, role } = params;
     this.requireId(organizationId);
     return this.request({
       method: "PATCH",
@@ -1323,7 +1326,7 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async updateOrganizationMembershipMetadata(params) {
-    const {organizationId, userId, publicMetadata, privateMetadata} = params;
+    const { organizationId, userId, publicMetadata, privateMetadata } = params;
     return this.request({
       method: "PATCH",
       path: joinPaths(
@@ -1331,7 +1334,7 @@ var OrganizationAPI = class extends AbstractAPI {
         organizationId,
         "memberships",
         userId,
-        "metadata"
+        "metadata",
       ),
       bodyParams: {
         publicMetadata,
@@ -1340,7 +1343,7 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async deleteOrganizationMembership(params) {
-    const {organizationId, userId} = params;
+    const { organizationId, userId } = params;
     this.requireId(organizationId);
     return this.request({
       method: "DELETE",
@@ -1348,25 +1351,25 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async getOrganizationInvitationList(params) {
-    const {organizationId, status, limit, offset} = params;
+    const { organizationId, status, limit, offset } = params;
     this.requireId(organizationId);
     return this.request({
       method: "GET",
       path: joinPaths(basePath7, organizationId, "invitations"),
-      queryParams: {status, limit, offset},
+      queryParams: { status, limit, offset },
     });
   }
   async createOrganizationInvitation(params) {
-    const {organizationId, ...bodyParams} = params;
+    const { organizationId, ...bodyParams } = params;
     this.requireId(organizationId);
     return this.request({
       method: "POST",
       path: joinPaths(basePath7, organizationId, "invitations"),
-      bodyParams: {...bodyParams},
+      bodyParams: { ...bodyParams },
     });
   }
   async getOrganizationInvitation(params) {
-    const {organizationId, invitationId} = params;
+    const { organizationId, invitationId } = params;
     this.requireId(organizationId);
     this.requireId(invitationId);
     return this.request({
@@ -1375,7 +1378,7 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async revokeOrganizationInvitation(params) {
-    const {organizationId, invitationId, requestingUserId} = params;
+    const { organizationId, invitationId, requestingUserId } = params;
     this.requireId(organizationId);
     return this.request({
       method: "POST",
@@ -1384,7 +1387,7 @@ var OrganizationAPI = class extends AbstractAPI {
         organizationId,
         "invitations",
         invitationId,
-        "revoke"
+        "revoke",
       ),
       bodyParams: {
         requestingUserId,
@@ -1392,16 +1395,16 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async getOrganizationDomainList(params) {
-    const {organizationId, limit, offset} = params;
+    const { organizationId, limit, offset } = params;
     this.requireId(organizationId);
     return this.request({
       method: "GET",
       path: joinPaths(basePath7, organizationId, "domains"),
-      queryParams: {limit, offset},
+      queryParams: { limit, offset },
     });
   }
   async createOrganizationDomain(params) {
-    const {organizationId, name, enrollmentMode, verified = true} = params;
+    const { organizationId, name, enrollmentMode, verified = true } = params;
     this.requireId(organizationId);
     return this.request({
       method: "POST",
@@ -1414,7 +1417,7 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async updateOrganizationDomain(params) {
-    const {organizationId, domainId, ...bodyParams} = params;
+    const { organizationId, domainId, ...bodyParams } = params;
     this.requireId(organizationId);
     this.requireId(domainId);
     return this.request({
@@ -1424,7 +1427,7 @@ var OrganizationAPI = class extends AbstractAPI {
     });
   }
   async deleteOrganizationDomain(params) {
-    const {organizationId, domainId} = params;
+    const { organizationId, domainId } = params;
     this.requireId(organizationId);
     this.requireId(domainId);
     return this.request({
@@ -1471,7 +1474,7 @@ var RedirectUrlAPI = class extends AbstractAPI {
     return this.request({
       method: "GET",
       path: basePath9,
-      queryParams: {paginated: true},
+      queryParams: { paginated: true },
     });
   }
   async getRedirectUrl(redirectUrlId) {
@@ -1502,7 +1505,7 @@ var SessionAPI = class extends AbstractAPI {
     return this.request({
       method: "GET",
       path: basePath10,
-      queryParams: {...params, paginated: true},
+      queryParams: { ...params, paginated: true },
     });
   }
   async getSession(sessionId) {
@@ -1524,7 +1527,7 @@ var SessionAPI = class extends AbstractAPI {
     return this.request({
       method: "POST",
       path: joinPaths(basePath10, sessionId, "verify"),
-      bodyParams: {token},
+      bodyParams: { token },
     });
   }
   async getToken(sessionId, template) {
@@ -1563,7 +1566,7 @@ var SignInTokenAPI = class extends AbstractAPI {
 var basePath12 = "/users";
 var UserAPI = class extends AbstractAPI {
   async getUserList(params = {}) {
-    const {limit, offset, orderBy, ...userCountParams} = params;
+    const { limit, offset, orderBy, ...userCountParams } = params;
     const [data, totalCount] = await Promise.all([
       this.request({
         method: "GET",
@@ -1572,7 +1575,7 @@ var UserAPI = class extends AbstractAPI {
       }),
       this.getCount(userCountParams),
     ]);
-    return {data, totalCount};
+    return { data, totalCount };
   }
   async getUser(userId) {
     this.requireId(userId);
@@ -1633,7 +1636,7 @@ var UserAPI = class extends AbstractAPI {
     return this.request({
       method: "GET",
       path: joinPaths(basePath12, userId, "oauth_access_tokens", provider),
-      queryParams: {paginated: true},
+      queryParams: { paginated: true },
     });
   }
   async disableUserMFA(userId) {
@@ -1644,30 +1647,30 @@ var UserAPI = class extends AbstractAPI {
     });
   }
   async getOrganizationMembershipList(params) {
-    const {userId, limit, offset} = params;
+    const { userId, limit, offset } = params;
     this.requireId(userId);
     return this.request({
       method: "GET",
       path: joinPaths(basePath12, userId, "organization_memberships"),
-      queryParams: {limit, offset},
+      queryParams: { limit, offset },
     });
   }
   async verifyPassword(params) {
-    const {userId, password} = params;
+    const { userId, password } = params;
     this.requireId(userId);
     return this.request({
       method: "POST",
       path: joinPaths(basePath12, userId, "verify_password"),
-      bodyParams: {password},
+      bodyParams: { password },
     });
   }
   async verifyTOTP(params) {
-    const {userId, code} = params;
+    const { userId, code } = params;
     this.requireId(userId);
     return this.request({
       method: "POST",
       path: joinPaths(basePath12, userId, "verify_totp"),
-      bodyParams: {code},
+      bodyParams: { code },
     });
   }
   async banUser(userId) {
@@ -1754,16 +1757,16 @@ var TestingTokenAPI = class extends AbstractAPI {
     });
   }
 };
-buildErrorThrower({packageName: "@clerk/backend"});
+buildErrorThrower({ packageName: "@clerk/backend" });
 function assertValidSecretKey(val) {
   if (!val || typeof val !== "string") {
     throw Error(
-      "Missing Clerk Secret Key. Go to https://dashboard.clerk.com and get your key for your instance."
+      "Missing Clerk Secret Key. Go to https://dashboard.clerk.com and get your key for your instance.",
     );
   }
 }
 function assertValidPublishableKey(val) {
-  parsePublishableKey(val, {fatal: true});
+  parsePublishableKey(val, { fatal: true });
 }
 var AccountlessApplication = class _AccountlessApplication {
   constructor(publishableKey, secretKey, claimUrl, apiKeysUrl) {
@@ -1777,7 +1780,7 @@ var AccountlessApplication = class _AccountlessApplication {
       data.publishable_key,
       data.secret_key,
       data.claim_url,
-      data.api_keys_url
+      data.api_keys_url,
     );
   }
 };
@@ -1795,7 +1798,7 @@ var AllowlistIdentifier = class _AllowlistIdentifier {
       data.identifier,
       data.created_at,
       data.updated_at,
-      data.invitation_id
+      data.invitation_id,
     );
   }
 };
@@ -1809,7 +1812,7 @@ var Session = class _Session {
     expireAt,
     abandonAt,
     createdAt,
-    updatedAt
+    updatedAt,
   ) {
     this.id = id;
     this.clientId = clientId;
@@ -1831,7 +1834,7 @@ var Session = class _Session {
       data.expire_at,
       data.abandon_at,
       data.created_at,
-      data.updated_at
+      data.updated_at,
     );
   }
 };
@@ -1844,7 +1847,7 @@ var Client = class _Client {
     signUpId,
     lastActiveSessionId,
     createdAt,
-    updatedAt
+    updatedAt,
   ) {
     this.id = id;
     this.sessionIds = sessionIds;
@@ -1864,7 +1867,7 @@ var Client = class _Client {
       data.sign_up_id,
       data.last_active_session_id,
       data.created_at,
-      data.updated_at
+      data.updated_at,
     );
   }
 };
@@ -1880,7 +1883,7 @@ var DeletedObject = class _DeletedObject {
       data.object,
       data.id || null,
       data.slug || null,
-      data.deleted
+      data.deleted,
     );
   }
 };
@@ -1896,7 +1899,7 @@ var Email = class _Email {
     status,
     slug,
     data,
-    deliveredByClerk
+    deliveredByClerk,
   ) {
     this.id = id;
     this.fromEmailName = fromEmailName;
@@ -1922,7 +1925,7 @@ var Email = class _Email {
       data.status,
       data.slug,
       data.data,
-      data.delivered_by_clerk
+      data.delivered_by_clerk,
     );
   }
 };
@@ -1943,7 +1946,7 @@ var Verification = class _Verification {
     attempts = null,
     expireAt = null,
     nonce = null,
-    message = null
+    message = null,
   ) {
     this.status = status;
     this.strategy = strategy;
@@ -1962,7 +1965,7 @@ var Verification = class _Verification {
         : null,
       data.attempts,
       data.expire_at,
-      data.nonce
+      data.nonce,
     );
   }
 };
@@ -1978,7 +1981,7 @@ var EmailAddress = class _EmailAddress {
       data.id,
       data.email_address,
       data.verification && Verification.fromJSON(data.verification),
-      data.linked_to.map((link) => IdentificationLink.fromJSON(link))
+      data.linked_to.map((link) => IdentificationLink.fromJSON(link)),
     );
   }
 };
@@ -1996,7 +1999,7 @@ var ExternalAccount = class _ExternalAccount {
     username,
     publicMetadata = {},
     label,
-    verification
+    verification,
   ) {
     this.id = id;
     this.provider = provider;
@@ -2026,7 +2029,7 @@ var ExternalAccount = class _ExternalAccount {
       data.username,
       data.public_metadata,
       data.label,
-      data.verification && Verification.fromJSON(data.verification)
+      data.verification && Verification.fromJSON(data.verification),
     );
   }
 };
@@ -2039,7 +2042,7 @@ var Invitation = class _Invitation {
     updatedAt,
     status,
     url,
-    revoked
+    revoked,
   ) {
     this.id = id;
     this.emailAddress = emailAddress;
@@ -2059,7 +2062,7 @@ var Invitation = class _Invitation {
       data.updated_at,
       data.status,
       data.url,
-      data.revoked
+      data.revoked,
     );
   }
 };
@@ -2101,7 +2104,7 @@ var OauthAccessToken = class _OauthAccessToken {
     publicMetadata = {},
     label,
     scopes,
-    tokenSecret
+    tokenSecret,
   ) {
     this.externalAccountId = externalAccountId;
     this.provider = provider;
@@ -2119,7 +2122,7 @@ var OauthAccessToken = class _OauthAccessToken {
       data.public_metadata,
       data.label || "",
       data.scopes,
-      data.token_secret
+      data.token_secret,
     );
   }
 };
@@ -2137,7 +2140,7 @@ var Organization = class _Organization {
     maxAllowedMemberships,
     adminDeleteEnabled,
     membersCount,
-    createdBy
+    createdBy,
   ) {
     this.id = id;
     this.name = name;
@@ -2167,7 +2170,7 @@ var Organization = class _Organization {
       data.max_allowed_memberships,
       data.admin_delete_enabled,
       data.members_count,
-      data.created_by
+      data.created_by,
     );
   }
 };
@@ -2181,7 +2184,7 @@ var OrganizationInvitation = class _OrganizationInvitation {
     updatedAt,
     status,
     publicMetadata = {},
-    privateMetadata = {}
+    privateMetadata = {},
   ) {
     this.id = id;
     this.emailAddress = emailAddress;
@@ -2203,7 +2206,7 @@ var OrganizationInvitation = class _OrganizationInvitation {
       data.updated_at,
       data.status,
       data.public_metadata,
-      data.private_metadata
+      data.private_metadata,
     );
   }
 };
@@ -2217,7 +2220,7 @@ var OrganizationMembership = class _OrganizationMembership {
     createdAt,
     updatedAt,
     organization,
-    publicUserData
+    publicUserData,
   ) {
     this.id = id;
     this.role = role;
@@ -2239,7 +2242,7 @@ var OrganizationMembership = class _OrganizationMembership {
       data.created_at,
       data.updated_at,
       Organization.fromJSON(data.organization),
-      OrganizationMembershipPublicUserData.fromJSON(data.public_user_data)
+      OrganizationMembershipPublicUserData.fromJSON(data.public_user_data),
     );
   }
 };
@@ -2259,7 +2262,7 @@ var OrganizationMembershipPublicUserData = class _OrganizationMembershipPublicUs
       data.last_name,
       data.image_url,
       data.has_image,
-      data.user_id
+      data.user_id,
     );
   }
 };
@@ -2270,7 +2273,7 @@ var PhoneNumber = class _PhoneNumber {
     reservedForSecondFactor,
     defaultSecondFactor,
     verification,
-    linkedTo
+    linkedTo,
   ) {
     this.id = id;
     this.phoneNumber = phoneNumber;
@@ -2286,7 +2289,7 @@ var PhoneNumber = class _PhoneNumber {
       data.reserved_for_second_factor,
       data.default_second_factor,
       data.verification && Verification.fromJSON(data.verification),
-      data.linked_to.map((link) => IdentificationLink.fromJSON(link))
+      data.linked_to.map((link) => IdentificationLink.fromJSON(link)),
     );
   }
 };
@@ -2302,7 +2305,7 @@ var RedirectUrl = class _RedirectUrl {
       data.id,
       data.url,
       data.created_at,
-      data.updated_at
+      data.updated_at,
     );
   }
 };
@@ -2324,7 +2327,7 @@ var SignInToken = class _SignInToken {
       data.status,
       data.url,
       data.created_at,
-      data.updated_at
+      data.updated_at,
     );
   }
 };
@@ -2336,7 +2339,7 @@ var SMSMessage = class _SMSMessage {
     message,
     status,
     phoneNumberId,
-    data
+    data,
   ) {
     this.id = id;
     this.fromPhoneNumber = fromPhoneNumber;
@@ -2354,7 +2357,7 @@ var SMSMessage = class _SMSMessage {
       data.message,
       data.status,
       data.phone_number_id,
-      data.data
+      data.data,
     );
   }
 };
@@ -2377,7 +2380,7 @@ var SamlAccountConnection = class _SamlAccountConnection {
     allowSubdomains,
     allowIdpInitiated,
     createdAt,
-    updatedAt
+    updatedAt,
   ) {
     this.id = id;
     this.name = name;
@@ -2401,7 +2404,7 @@ var SamlAccountConnection = class _SamlAccountConnection {
       data.allow_subdomains,
       data.allow_idp_initiated,
       data.created_at,
-      data.updated_at
+      data.updated_at,
     );
   }
 };
@@ -2415,7 +2418,7 @@ var SamlAccount = class _SamlAccount {
     firstName,
     lastName,
     verification,
-    samlConnection
+    samlConnection,
   ) {
     this.id = id;
     this.provider = provider;
@@ -2438,7 +2441,7 @@ var SamlAccount = class _SamlAccount {
       data.last_name,
       data.verification && Verification.fromJSON(data.verification),
       data.saml_connection &&
-        SamlAccountConnection.fromJSON(data.saml_connection)
+        SamlAccountConnection.fromJSON(data.saml_connection),
     );
   }
 };
@@ -2452,7 +2455,7 @@ var Web3Wallet = class _Web3Wallet {
     return new _Web3Wallet(
       data.id,
       data.web3_wallet,
-      data.verification && Verification.fromJSON(data.verification)
+      data.verification && Verification.fromJSON(data.verification),
     );
   }
 };
@@ -2489,7 +2492,7 @@ var User = class _User {
     createOrganizationEnabled,
     createOrganizationsLimit = null,
     deleteSelfEnabled,
-    legalAcceptedAt
+    legalAcceptedAt,
   ) {
     this.id = id;
     this.passwordEnabled = passwordEnabled;
@@ -2557,23 +2560,24 @@ var User = class _User {
       data.create_organization_enabled,
       data.create_organizations_limit,
       data.delete_self_enabled,
-      data.legal_accepted_at
+      data.legal_accepted_at,
     );
   }
   get primaryEmailAddress() {
     return (
-      this.emailAddresses.find(({id}) => id === this.primaryEmailAddressId) ??
+      this.emailAddresses.find(({ id }) => id === this.primaryEmailAddressId) ??
       null
     );
   }
   get primaryPhoneNumber() {
     return (
-      this.phoneNumbers.find(({id}) => id === this.primaryPhoneNumberId) ?? null
+      this.phoneNumbers.find(({ id }) => id === this.primaryPhoneNumberId) ??
+      null
     );
   }
   get primaryWeb3Wallet() {
     return (
-      this.web3Wallets.find(({id}) => id === this.primaryWeb3WalletId) ?? null
+      this.web3Wallets.find(({ id }) => id === this.primaryWeb3WalletId) ?? null
     );
   }
   get fullName() {
@@ -2584,13 +2588,13 @@ function deserialize(payload) {
   let data, totalCount;
   if (Array.isArray(payload)) {
     const data2 = payload.map((item) => jsonToObject(item));
-    return {data: data2};
+    return { data: data2 };
   } else if (isPaginated(payload)) {
     data = payload.data.map((item) => jsonToObject(item));
     totalCount = payload.total_count;
-    return {data, totalCount};
+    return { data, totalCount };
   } else {
-    return {data: jsonToObject(payload)};
+    return { data: jsonToObject(payload) };
   }
 }
 function isPaginated(payload) {
@@ -2656,7 +2660,7 @@ function buildRequest(options) {
       apiVersion = API_VERSION$1,
       userAgent = USER_AGENT,
     } = options;
-    const {path, method, queryParams, headerParams, bodyParams, formData} =
+    const { path, method, queryParams, headerParams, bodyParams, formData } =
       requestOptions;
     if (requireSecretKey) {
       assertValidSecretKey(secretKey);
@@ -2664,7 +2668,7 @@ function buildRequest(options) {
     const url = joinPaths(apiUrl, apiVersion, path);
     const finalUrl = new URL(url);
     if (queryParams) {
-      const snakecasedQueryParams = snakecaseKeys({...queryParams});
+      const snakecasedQueryParams = snakecaseKeys({ ...queryParams });
       for (const [key, val] of Object.entries(snakecasedQueryParams)) {
         if (val) {
           [val].flat().forEach((v) => finalUrl.searchParams.append(key, v));
@@ -2690,7 +2694,7 @@ function buildRequest(options) {
         const hasBody =
           method !== "GET" && bodyParams && Object.keys(bodyParams).length > 0;
         const body = hasBody
-          ? {body: JSON.stringify(snakecaseKeys(bodyParams, {deep: false}))}
+          ? { body: JSON.stringify(snakecaseKeys(bodyParams, { deep: false })) }
           : null;
         res = await runtime.fetch(finalUrl.href, {
           method,
@@ -2761,7 +2765,7 @@ function parseErrors(data) {
 }
 function withLegacyRequestReturn(cb) {
   return async (...args) => {
-    const {data, errors, totalCount, status, statusText, clerkTraceId} =
+    const { data, errors, totalCount, status, statusText, clerkTraceId } =
       await cb(...args);
     if (errors) {
       const error = new ClerkAPIResponseError(statusText || "", {
@@ -2773,7 +2777,7 @@ function withLegacyRequestReturn(cb) {
       throw error;
     }
     if (typeof totalCount !== "undefined") {
-      return {data, totalCount};
+      return { data, totalCount };
     }
     return data;
   };
@@ -2782,7 +2786,7 @@ function createBackendApiClient(options) {
   const request = buildRequest(options);
   return {
     __experimental_accountlessApplications: new AccountlessApplicationAPI(
-      buildRequest({...options, requireSecretKey: false})
+      buildRequest({ ...options, requireSecretKey: false }),
     ),
     allowlistIdentifiers: new AllowlistIdentifierAPI(request),
     clients: new ClientAPI(request),
@@ -2801,10 +2805,10 @@ function createBackendApiClient(options) {
 }
 var createDebug = (data) => {
   return () => {
-    const res = {...data};
+    const res = { ...data };
     res.secretKey = (res.secretKey || "").substring(0, 7);
     res.jwtKey = (res.jwtKey || "").substring(0, 7);
-    return {...res};
+    return { ...res };
   };
 };
 function signedInAuthObject(authenticateContext, sessionToken, sessionClaims) {
@@ -2844,7 +2848,7 @@ function signedInAuthObject(authenticateContext, sessionToken, sessionClaims) {
       userId,
       factorVerificationAge,
     }),
-    debug: createDebug({...authenticateContext, sessionToken}),
+    debug: createDebug({ ...authenticateContext, sessionToken }),
   };
 }
 function signedOutAuthObject(debugData) {
@@ -2864,7 +2868,7 @@ function signedOutAuthObject(debugData) {
   };
 }
 var createGetToken = (params) => {
-  const {fetcher, sessionToken, sessionId} = params;
+  const { fetcher, sessionToken, sessionId } = params;
   return async (options = {}) => {
     if (!sessionId) {
       return null;
@@ -2900,12 +2904,12 @@ function signedIn(
   authenticateContext,
   sessionClaims,
   headers = new Headers(),
-  token
+  token,
 ) {
   const authObject = signedInAuthObject(
     authenticateContext,
     token,
-    sessionClaims
+    sessionClaims,
   );
   return {
     status: AuthStatus.SignedIn,
@@ -2929,7 +2933,7 @@ function signedOut(
   authenticateContext,
   reason,
   message = "",
-  headers = new Headers()
+  headers = new Headers(),
 ) {
   return withDebugHeaders({
     status: AuthStatus.SignedOut,
@@ -3047,7 +3051,7 @@ var ClerkRequest = class extends Request {
   }
   parseCookies(req) {
     const cookiesRecord = parse$1(
-      this.decodeCookieValue(req.headers.get("cookie") || "")
+      this.decodeCookieValue(req.headers.get("cookie") || ""),
     );
     return new Map(Object.entries(cookiesRecord));
   }
@@ -3100,7 +3104,7 @@ function loadClerkJWKFromLocal(localKey) {
         n: modulus,
         e: "AQAB",
       },
-      false
+      false,
       // local key never expires in cache
     );
   }
@@ -3122,7 +3126,7 @@ async function loadClerkJWKFromRemote({
       });
     }
     const fetcher = () => fetchJWKSFromBAPI(apiUrl, secretKey, apiVersion);
-    const {keys} = await callWithRetry(fetcher);
+    const { keys } = await callWithRetry(fetcher);
     if (!keys || !keys.length) {
       throw new TokenVerificationError({
         action: TokenVerificationErrorAction.ContactSupport,
@@ -3171,7 +3175,7 @@ async function fetchJWKSFromBAPI(apiUrl, key, apiVersion) {
     const json = await response.json();
     const invalidSecretKeyError = getErrorObjectByCode(
       json?.errors,
-      TokenVerificationErrorCode.InvalidSecretKey
+      TokenVerificationErrorCode.InvalidSecretKey,
     );
     if (invalidSecretKeyError) {
       const reason = TokenVerificationErrorReason.InvalidSecretKey;
@@ -3207,18 +3211,18 @@ var getErrorObjectByCode = (errors, code) => {
   return errors.find((err) => err.code === code);
 };
 async function verifyToken(token, options) {
-  const {data: decodedResult, errors} = decodeJwt(token);
+  const { data: decodedResult, errors } = decodeJwt(token);
   if (errors) {
-    return {errors};
+    return { errors };
   }
-  const {header} = decodedResult;
-  const {kid} = header;
+  const { header } = decodedResult;
+  const { kid } = header;
   try {
     let key;
     if (options.jwtKey) {
       key = loadClerkJWKFromLocal(options.jwtKey);
     } else if (options.secretKey) {
-      key = await loadClerkJWKFromRemote({...options, kid});
+      key = await loadClerkJWKFromRemote({ ...options, kid });
     } else {
       return {
         errors: [
@@ -3230,9 +3234,9 @@ async function verifyToken(token, options) {
         ],
       };
     }
-    return await verifyJwt(token, {...options, key});
+    return await verifyJwt(token, { ...options, key });
   } catch (error) {
-    return {errors: [error]};
+    return { errors: [error] };
   }
 }
 var AuthenticateContext = class {
@@ -3251,7 +3255,7 @@ var AuthenticateContext = class {
   }
   usesSuffixedCookies() {
     const suffixedClientUat = this.getSuffixedCookie(
-      constants.Cookies.ClientUat
+      constants.Cookies.ClientUat,
     );
     const clientUat = this.getCookie(constants.Cookies.ClientUat);
     const suffixedSession =
@@ -3266,9 +3270,9 @@ var AuthenticateContext = class {
     if (!suffixedClientUat && !suffixedSession) {
       return false;
     }
-    const {data: sessionData} = decodeJwt(session);
+    const { data: sessionData } = decodeJwt(session);
     const sessionIat = sessionData?.payload.iat || 0;
-    const {data: suffixedSessionData} = decodeJwt(suffixedSession);
+    const { data: suffixedSessionData } = decodeJwt(suffixedSession);
     const suffixedSessionIat = suffixedSessionData?.payload.iat || 0;
     if (
       suffixedClientUat !== "0" &&
@@ -3308,7 +3312,7 @@ var AuthenticateContext = class {
   }
   initHeaderValues() {
     this.sessionTokenInHeader = this.stripAuthorizationHeader(
-      this.getHeader(constants.Headers.Authorization)
+      this.getHeader(constants.Headers.Authorization),
     );
     this.origin = this.getHeader(constants.Headers.Origin);
     this.host = this.getHeader(constants.Headers.Host);
@@ -3323,14 +3327,14 @@ var AuthenticateContext = class {
   }
   initCookieValues() {
     this.sessionTokenInCookie = this.getSuffixedOrUnSuffixedCookie(
-      constants.Cookies.Session
+      constants.Cookies.Session,
     );
     this.refreshTokenInCookie = this.getSuffixedCookie(
-      constants.Cookies.Refresh
+      constants.Cookies.Refresh,
     );
     this.clientUat =
       Number.parseInt(
-        this.getSuffixedOrUnSuffixedCookie(constants.Cookies.ClientUat) || ""
+        this.getSuffixedOrUnSuffixedCookie(constants.Cookies.ClientUat) || "",
       ) || 0;
   }
   initHandshakeValues() {
@@ -3367,7 +3371,7 @@ var AuthenticateContext = class {
     return this.getCookie(cookieName);
   }
   tokenHasIssuer(token) {
-    const {data, errors} = decodeJwt(token);
+    const { data, errors } = decodeJwt(token);
     if (errors) {
       return false;
     }
@@ -3377,7 +3381,7 @@ var AuthenticateContext = class {
     if (!token) {
       return false;
     }
-    const {data, errors} = decodeJwt(token);
+    const { data, errors } = decodeJwt(token);
     if (errors) {
       return false;
     }
@@ -3400,16 +3404,16 @@ var getCookieName = (cookieDirective) => {
 var getCookieValue = (cookieDirective) => {
   return cookieDirective.split(";")[0]?.split("=")[1];
 };
-async function verifyHandshakeJwt(token, {key}) {
-  const {data: decoded, errors} = decodeJwt(token);
+async function verifyHandshakeJwt(token, { key }) {
+  const { data: decoded, errors } = decodeJwt(token);
   if (errors) {
     throw errors[0];
   }
-  const {header, payload} = decoded;
-  const {typ, alg} = header;
+  const { header, payload } = decoded;
+  const { typ, alg } = header;
   assertHeaderType(typ);
   assertHeaderAlgorithm(alg);
-  const {data: signatureValid, errors: signatureErrors} =
+  const { data: signatureValid, errors: signatureErrors } =
     await hasValidSignature(decoded, key);
   if (signatureErrors) {
     throw new TokenVerificationError({
@@ -3434,11 +3438,11 @@ async function verifyHandshakeToken(token, options) {
     jwtKey,
     skipJwksCache,
   } = options;
-  const {data, errors} = decodeJwt(token);
+  const { data, errors } = decodeJwt(token);
   if (errors) {
     throw errors[0];
   }
-  const {kid} = data.header;
+  const { kid } = data.header;
   let key;
   if (jwtKey) {
     key = loadClerkJWKFromLocal(jwtKey);
@@ -3478,14 +3482,14 @@ var RefreshTokenErrorReason = {
 function assertSignInUrlExists(signInUrl, key) {
   if (!signInUrl && isDevelopmentFromSecretKey(key)) {
     throw new Error(
-      `Missing signInUrl. Pass a signInUrl for dev instances if an app is satellite`
+      `Missing signInUrl. Pass a signInUrl for dev instances if an app is satellite`,
     );
   }
 }
 function assertProxyUrlOrDomain(proxyUrlOrDomain) {
   if (!proxyUrlOrDomain) {
     throw new Error(
-      `Missing domain and proxyUrl. A satellite application needs to specify a domain or a proxyUrl`
+      `Missing domain and proxyUrl. A satellite application needs to specify a domain or a proxyUrl`,
     );
   }
 }
@@ -3498,12 +3502,12 @@ function assertSignInUrlFormatAndOrigin(_signInUrl, origin) {
   }
   if (signInUrl.origin === origin) {
     throw new Error(
-      `The signInUrl needs to be on a different origin than your satellite application.`
+      `The signInUrl needs to be on a different origin than your satellite application.`,
     );
   }
 }
 function isRequestEligibleForHandshake(authenticateContext) {
-  const {accept, secFetchDest} = authenticateContext;
+  const { accept, secFetchDest } = authenticateContext;
   if (secFetchDest === "document" || secFetchDest === "iframe") {
     return true;
   }
@@ -3522,26 +3526,26 @@ function isRequestEligibleForRefresh(err, authenticateContext, request) {
 async function authenticateRequest(request, options) {
   const authenticateContext = await createAuthenticateContext(
     createClerkRequest(request),
-    options
+    options,
   );
   assertValidSecretKey(authenticateContext.secretKey);
   if (authenticateContext.isSatellite) {
     assertSignInUrlExists(
       authenticateContext.signInUrl,
-      authenticateContext.secretKey
+      authenticateContext.secretKey,
     );
     if (authenticateContext.signInUrl && authenticateContext.origin) {
       assertSignInUrlFormatAndOrigin(
         authenticateContext.signInUrl,
-        authenticateContext.origin
+        authenticateContext.origin,
       );
     }
     assertProxyUrlOrDomain(
-      authenticateContext.proxyUrl || authenticateContext.domain
+      authenticateContext.proxyUrl || authenticateContext.domain,
     );
   }
   const organizationSyncTargetMatchers = computeOrganizationSyncTargetMatchers(
-    options.organizationSyncOptions
+    options.organizationSyncOptions,
   );
   function removeDevBrowserFromURL(url) {
     const updatedURL = new URL(url);
@@ -3549,21 +3553,21 @@ async function authenticateRequest(request, options) {
     updatedURL.searchParams.delete(constants.QueryParameters.LegacyDevBrowser);
     return updatedURL;
   }
-  function buildRedirectToHandshake({handshakeReason}) {
+  function buildRedirectToHandshake({ handshakeReason }) {
     const redirectUrl = removeDevBrowserFromURL(authenticateContext.clerkUrl);
     const frontendApiNoProtocol = authenticateContext.frontendApi.replace(
       /http(s)?:\/\//,
-      ""
+      "",
     );
     const url = new URL(`https://${frontendApiNoProtocol}/v1/client/handshake`);
     url.searchParams.append("redirect_url", redirectUrl?.href || "");
     url.searchParams.append(
       constants.QueryParameters.SuffixedCookies,
-      authenticateContext.usesSuffixedCookies().toString()
+      authenticateContext.usesSuffixedCookies().toString(),
     );
     url.searchParams.append(
       constants.QueryParameters.HandshakeReason,
-      handshakeReason
+      handshakeReason,
     );
     if (
       authenticateContext.instanceType === "development" &&
@@ -3571,13 +3575,13 @@ async function authenticateRequest(request, options) {
     ) {
       url.searchParams.append(
         constants.QueryParameters.DevBrowser,
-        authenticateContext.devBrowserToken
+        authenticateContext.devBrowserToken,
       );
     }
     const toActivate = getOrganizationSyncTarget(
       authenticateContext.clerkUrl,
       options.organizationSyncOptions,
-      organizationSyncTargetMatchers
+      organizationSyncTargetMatchers,
     );
     if (toActivate) {
       const params = getOrganizationSyncQueryParams(toActivate);
@@ -3585,7 +3589,7 @@ async function authenticateRequest(request, options) {
         url.searchParams.append(key, value);
       });
     }
-    return new Headers({[constants.Headers.Location]: url.href});
+    return new Headers({ [constants.Headers.Location]: url.href });
   }
   async function resolveHandshake() {
     const headers = new Headers({
@@ -3594,7 +3598,7 @@ async function authenticateRequest(request, options) {
     });
     const handshakePayload = await verifyHandshakeToken(
       authenticateContext.handshakeToken,
-      authenticateContext
+      authenticateContext,
     );
     const cookiesToSet = handshakePayload.handshake;
     let sessionToken = "";
@@ -3616,12 +3620,12 @@ async function authenticateRequest(request, options) {
         authenticateContext,
         AuthErrorReason.SessionTokenMissing,
         "",
-        headers
+        headers,
       );
     }
-    const {data, errors: [error] = []} = await verifyToken(
+    const { data, errors: [error] = [] } = await verifyToken(
       sessionToken,
-      authenticateContext
+      authenticateContext,
     );
     if (data) {
       return signedIn(authenticateContext, data, headers, sessionToken);
@@ -3640,21 +3644,19 @@ To resolve this issue, make sure your system's clock is set to the correct time 
 
 ---
 
-${error.getFullMessage()}`
+${error.getFullMessage()}`,
       );
-      const {data: retryResult, errors: [retryError] = []} = await verifyToken(
-        sessionToken,
-        {
+      const { data: retryResult, errors: [retryError] = [] } =
+        await verifyToken(sessionToken, {
           ...authenticateContext,
           clockSkewInMs: 864e5,
-        }
-      );
+        });
       if (retryResult) {
         return signedIn(
           authenticateContext,
           retryResult,
           headers,
-          sessionToken
+          sessionToken,
         );
       }
       throw retryError;
@@ -3667,7 +3669,7 @@ ${error.getFullMessage()}`
         data: null,
         error: {
           message: "An apiClient is needed to perform token refresh.",
-          cause: {reason: RefreshTokenErrorReason.MissingApiClient},
+          cause: { reason: RefreshTokenErrorReason.MissingApiClient },
         },
       };
     }
@@ -3680,7 +3682,7 @@ ${error.getFullMessage()}`
         data: null,
         error: {
           message: "Session token must be provided.",
-          cause: {reason: RefreshTokenErrorReason.MissingSessionToken},
+          cause: { reason: RefreshTokenErrorReason.MissingSessionToken },
         },
       };
     }
@@ -3689,11 +3691,11 @@ ${error.getFullMessage()}`
         data: null,
         error: {
           message: "Refresh token must be provided.",
-          cause: {reason: RefreshTokenErrorReason.MissingRefreshToken},
+          cause: { reason: RefreshTokenErrorReason.MissingRefreshToken },
         },
       };
     }
-    const {data: decodeResult, errors: decodedErrors} =
+    const { data: decodeResult, errors: decodedErrors } =
       decodeJwt(expiredSessionToken);
     if (!decodeResult || decodedErrors) {
       return {
@@ -3727,11 +3729,11 @@ ${error.getFullMessage()}`
           request_origin: authenticateContext2.clerkUrl.origin,
           // The refresh endpoint expects headers as Record<string, string[]>, so we need to transform it.
           request_headers: Object.fromEntries(
-            Array.from(request.headers.entries()).map(([k, v]) => [k, [v]])
+            Array.from(request.headers.entries()).map(([k, v]) => [k, [v]]),
           ),
-        }
+        },
       );
-      return {data: tokenResponse.jwt, error: null};
+      return { data: tokenResponse.jwt, error: null };
     } catch (err) {
       if (err?.errors?.length) {
         if (err.errors[0].code === "unexpected_error") {
@@ -3750,7 +3752,7 @@ ${error.getFullMessage()}`
           data: null,
           error: {
             message: err.errors[0].code,
-            cause: {reason: err.errors[0].code, errors: err.errors},
+            cause: { reason: err.errors[0].code, errors: err.errors },
           },
         };
       } else {
@@ -3768,35 +3770,38 @@ ${error.getFullMessage()}`
     }
   }
   async function attemptRefresh(authenticateContext2) {
-    const {data: sessionToken, error} =
+    const { data: sessionToken, error } =
       await refreshToken(authenticateContext2);
     if (!sessionToken) {
-      return {data: null, error};
+      return { data: null, error };
     }
-    const {data: jwtPayload, errors} = await verifyToken(
+    const { data: jwtPayload, errors } = await verifyToken(
       sessionToken,
-      authenticateContext2
+      authenticateContext2,
     );
     if (errors) {
       return {
         data: null,
         error: {
           message: `Clerk: unable to verify refreshed session token.`,
-          cause: {reason: RefreshTokenErrorReason.InvalidSessionToken, errors},
+          cause: {
+            reason: RefreshTokenErrorReason.InvalidSessionToken,
+            errors,
+          },
         },
       };
     }
-    return {data: {jwtPayload, sessionToken}, error: null};
+    return { data: { jwtPayload, sessionToken }, error: null };
   }
   function handleMaybeHandshakeStatus(
     authenticateContext2,
     reason,
     message,
-    headers
+    headers,
   ) {
     if (isRequestEligibleForHandshake(authenticateContext2)) {
       const handshakeHeaders =
-        headers ?? buildRedirectToHandshake({handshakeReason: reason});
+        headers ?? buildRedirectToHandshake({ handshakeReason: reason });
       if (handshakeHeaders.get(constants.Headers.Location)) {
         handshakeHeaders.set(constants.Headers.CacheControl, "no-store");
       }
@@ -3815,7 +3820,7 @@ ${error.getFullMessage()}`
     const organizationSyncTarget = getOrganizationSyncTarget(
       authenticateContext2.clerkUrl,
       options.organizationSyncOptions,
-      organizationSyncTargetMatchers
+      organizationSyncTargetMatchers,
     );
     if (!organizationSyncTarget) {
       return null;
@@ -3843,14 +3848,14 @@ ${error.getFullMessage()}`
     }
     if (authenticateContext2.handshakeRedirectLoopCounter > 0) {
       console.warn(
-        "Clerk: Organization activation handshake loop detected. This is likely due to an invalid organization ID or slug. Skipping organization activation."
+        "Clerk: Organization activation handshake loop detected. This is likely due to an invalid organization ID or slug. Skipping organization activation.",
       );
       return null;
     }
     const handshakeState = handleMaybeHandshakeStatus(
       authenticateContext2,
       AuthErrorReason.ActiveOrganizationMismatch,
-      ""
+      "",
     );
     if (handshakeState.status !== "handshake") {
       return null;
@@ -3858,11 +3863,11 @@ ${error.getFullMessage()}`
     return handshakeState;
   }
   async function authenticateRequestWithTokenInHeader() {
-    const {sessionTokenInHeader} = authenticateContext;
+    const { sessionTokenInHeader } = authenticateContext;
     try {
-      const {data, errors} = await verifyToken(
+      const { data, errors } = await verifyToken(
         sessionTokenInHeader,
-        authenticateContext
+        authenticateContext,
       );
       if (errors) {
         throw errors[0];
@@ -3881,7 +3886,7 @@ ${error.getFullMessage()}`
     const cookieName = constants.Cookies.RedirectCount;
     headers.append(
       "Set-Cookie",
-      `${cookieName}=${newCounterValue}; SameSite=Lax; HttpOnly; Max-Age=3`
+      `${cookieName}=${newCounterValue}; SameSite=Lax; HttpOnly; Max-Age=3`,
     );
     return false;
   }
@@ -3891,7 +3896,7 @@ ${error.getFullMessage()}`
       throw new Error(msg);
     }
     throw new Error(
-      `Clerk: Handshake token verification failed: ${error.getFullMessage()}.`
+      `Clerk: Handshake token verification failed: ${error.getFullMessage()}.`,
     );
   }
   async function authenticateRequestWithTokenInCookie() {
@@ -3915,13 +3920,13 @@ ${error.getFullMessage()}`
     if (
       authenticateContext.instanceType === "development" &&
       authenticateContext.clerkUrl.searchParams.has(
-        constants.QueryParameters.DevBrowser
+        constants.QueryParameters.DevBrowser,
       )
     ) {
       return handleMaybeHandshakeStatus(
         authenticateContext,
         AuthErrorReason.DevBrowserSync,
-        ""
+        "",
       );
     }
     const isRequestEligibleForMultiDomainSync =
@@ -3934,7 +3939,7 @@ ${error.getFullMessage()}`
       return handleMaybeHandshakeStatus(
         authenticateContext,
         AuthErrorReason.SatelliteCookieNeedsSyncing,
-        ""
+        "",
       );
     }
     if (
@@ -3944,11 +3949,11 @@ ${error.getFullMessage()}`
       const redirectURL = new URL(authenticateContext.signInUrl);
       redirectURL.searchParams.append(
         constants.QueryParameters.ClerkRedirectUrl,
-        authenticateContext.clerkUrl.toString()
+        authenticateContext.clerkUrl.toString(),
       );
       redirectURL.searchParams.append(
         constants.QueryParameters.HandshakeReason,
-        AuthErrorReason.SatelliteCookieNeedsSyncing
+        AuthErrorReason.SatelliteCookieNeedsSyncing,
       );
       const headers = new Headers({
         [constants.Headers.Location]: redirectURL.toString(),
@@ -3957,11 +3962,11 @@ ${error.getFullMessage()}`
         authenticateContext,
         AuthErrorReason.SatelliteCookieNeedsSyncing,
         "",
-        headers
+        headers,
       );
     }
     const redirectUrl = new URL(authenticateContext.clerkUrl).searchParams.get(
-      constants.QueryParameters.ClerkRedirectUrl
+      constants.QueryParameters.ClerkRedirectUrl,
     );
     if (
       authenticateContext.instanceType === "development" &&
@@ -3972,17 +3977,17 @@ ${error.getFullMessage()}`
       if (authenticateContext.devBrowserToken) {
         redirectBackToSatelliteUrl.searchParams.append(
           constants.QueryParameters.DevBrowser,
-          authenticateContext.devBrowserToken
+          authenticateContext.devBrowserToken,
         );
       }
       redirectBackToSatelliteUrl.searchParams.append(
         constants.QueryParameters.ClerkSynced,
-        "true"
+        "true",
       );
       const authErrReason = AuthErrorReason.PrimaryRespondsToSyncing;
       redirectBackToSatelliteUrl.searchParams.append(
         constants.QueryParameters.HandshakeReason,
-        authErrReason
+        authErrReason,
       );
       const headers = new Headers({
         [constants.Headers.Location]: redirectBackToSatelliteUrl.toString(),
@@ -3991,7 +3996,7 @@ ${error.getFullMessage()}`
         authenticateContext,
         authErrReason,
         "",
-        headers
+        headers,
       );
     }
     if (
@@ -4001,32 +4006,32 @@ ${error.getFullMessage()}`
       return handleMaybeHandshakeStatus(
         authenticateContext,
         AuthErrorReason.DevBrowserMissing,
-        ""
+        "",
       );
     }
     if (!hasActiveClient && !hasSessionToken) {
       return signedOut(
         authenticateContext,
         AuthErrorReason.SessionTokenAndUATMissing,
-        ""
+        "",
       );
     }
     if (!hasActiveClient && hasSessionToken) {
       return handleMaybeHandshakeStatus(
         authenticateContext,
         AuthErrorReason.SessionTokenWithoutClientUAT,
-        ""
+        "",
       );
     }
     if (hasActiveClient && !hasSessionToken) {
       return handleMaybeHandshakeStatus(
         authenticateContext,
         AuthErrorReason.ClientUATWithoutSessionToken,
-        ""
+        "",
       );
     }
-    const {data: decodeResult, errors: decodedErrors} = decodeJwt(
-      authenticateContext.sessionTokenInCookie
+    const { data: decodeResult, errors: decodedErrors } = decodeJwt(
+      authenticateContext.sessionTokenInCookie,
     );
     if (decodedErrors) {
       return handleError(decodedErrors[0], "cookie");
@@ -4035,13 +4040,13 @@ ${error.getFullMessage()}`
       return handleMaybeHandshakeStatus(
         authenticateContext,
         AuthErrorReason.SessionTokenIATBeforeClientUAT,
-        ""
+        "",
       );
     }
     try {
-      const {data, errors} = await verifyToken(
+      const { data, errors } = await verifyToken(
         authenticateContext.sessionTokenInCookie,
-        authenticateContext
+        authenticateContext,
       );
       if (errors) {
         throw errors[0];
@@ -4050,11 +4055,11 @@ ${error.getFullMessage()}`
         authenticateContext,
         data,
         void 0,
-        authenticateContext.sessionTokenInCookie
+        authenticateContext.sessionTokenInCookie,
       );
       const handshakeRequestState = handleMaybeOrganizationSyncHandshake(
         authenticateContext,
-        signedInRequestState.toAuth()
+        signedInRequestState.toAuth(),
       );
       if (handshakeRequestState) {
         return handshakeRequestState;
@@ -4071,13 +4076,13 @@ ${error.getFullMessage()}`
     }
     let refreshError;
     if (isRequestEligibleForRefresh(err, authenticateContext, request)) {
-      const {data, error} = await attemptRefresh(authenticateContext);
+      const { data, error } = await attemptRefresh(authenticateContext);
       if (data) {
         return signedIn(
           authenticateContext,
           data.jwtPayload,
           void 0,
-          data.sessionToken
+          data.sessionToken,
         );
       }
       if (error?.cause?.reason) {
@@ -4107,7 +4112,7 @@ ${error.getFullMessage()}`
           tokenError: err.reason,
           refreshError,
         }),
-        err.getFullMessage()
+        err.getFullMessage(),
       );
     }
     return signedOut(authenticateContext, err.reason, err.getFullMessage());
@@ -4144,7 +4149,7 @@ function computeOrganizationSyncTargetMatchers(options) {
       personalAccountMatcher = match(options.personalAccountPatterns);
     } catch (e) {
       throw new Error(
-        `Invalid personal account pattern "${options.personalAccountPatterns}": "${e}"`
+        `Invalid personal account pattern "${options.personalAccountPatterns}": "${e}"`,
       );
     }
   }
@@ -4154,7 +4159,7 @@ function computeOrganizationSyncTargetMatchers(options) {
       organizationMatcher = match(options.organizationPatterns);
     } catch (e) {
       throw new Error(
-        `Clerk: Invalid organization pattern "${options.organizationPatterns}": "${e}"`
+        `Clerk: Invalid organization pattern "${options.organizationPatterns}": "${e}"`,
       );
     }
   }
@@ -4174,20 +4179,20 @@ function getOrganizationSyncTarget(url, options, matchers) {
     } catch (e) {
       console.error(
         `Clerk: Failed to apply organization pattern "${options.organizationPatterns}" to a path`,
-        e
+        e,
       );
       return null;
     }
     if (orgResult && "params" in orgResult) {
       const params = orgResult.params;
       if ("id" in params && typeof params.id === "string") {
-        return {type: "organization", organizationId: params.id};
+        return { type: "organization", organizationId: params.id };
       }
       if ("slug" in params && typeof params.slug === "string") {
-        return {type: "organization", organizationSlug: params.slug};
+        return { type: "organization", organizationSlug: params.slug };
       }
       console.warn(
-        "Clerk: Detected an organization pattern match, but no organization ID or slug was found in the URL. Does the pattern include `:id` or `:slug`?"
+        "Clerk: Detected an organization pattern match, but no organization ID or slug was found in the URL. Does the pattern include `:id` or `:slug`?",
       );
     }
   }
@@ -4198,12 +4203,12 @@ function getOrganizationSyncTarget(url, options, matchers) {
     } catch (e) {
       console.error(
         `Failed to apply personal account pattern "${options.personalAccountPatterns}" to a path`,
-        e
+        e,
       );
       return null;
     }
     if (personalResult) {
-      return {type: "personalAccount"};
+      return { type: "personalAccount" };
     }
   }
   return null;
@@ -4241,9 +4246,9 @@ var convertTokenVerificationErrorReasonToAuthErrorReason = ({
 function mergePreDefinedOptions(preDefinedOptions, options) {
   return Object.keys(preDefinedOptions).reduce(
     (obj, key) => {
-      return {...obj, [key]: options[key] || obj[key]};
+      return { ...obj, [key]: options[key] || obj[key] };
     },
-    {...preDefinedOptions}
+    { ...preDefinedOptions },
   );
 }
 var defaultOptions = {
@@ -4260,11 +4265,11 @@ var defaultOptions = {
 function createAuthenticateRequest(params) {
   const buildTimeOptions = mergePreDefinedOptions(
     defaultOptions,
-    params.options
+    params.options,
   );
   const apiClient = params.apiClient;
   const authenticateRequest2 = (request, options = {}) => {
-    const {apiUrl, apiVersion} = buildTimeOptions;
+    const { apiUrl, apiVersion } = buildTimeOptions;
     const runTimeOptions = mergePreDefinedOptions(buildTimeOptions, options);
     return authenticateRequest(request, {
       ...options,
@@ -4324,7 +4329,7 @@ var TelemetryEventThrottler = class {
       !__privateGet(
         this,
         _TelemetryEventThrottler_instances,
-        isValidBrowser_get
+        isValidBrowser_get,
       )
     ) {
       return false;
@@ -4333,13 +4338,13 @@ var TelemetryEventThrottler = class {
     const key = __privateMethod(
       this,
       _TelemetryEventThrottler_instances,
-      generateKey_fn
+      generateKey_fn,
     ).call(this, payload);
     const entry =
       (_a = __privateGet(
         this,
         _TelemetryEventThrottler_instances,
-        cache_get
+        cache_get,
       )) == null
         ? void 0
         : _a[key];
@@ -4350,7 +4355,7 @@ var TelemetryEventThrottler = class {
       };
       localStorage.setItem(
         __privateGet(this, _storageKey),
-        JSON.stringify(updatedCache)
+        JSON.stringify(updatedCache),
       );
     }
     const shouldInvalidate =
@@ -4359,12 +4364,12 @@ var TelemetryEventThrottler = class {
       const updatedCache = __privateGet(
         this,
         _TelemetryEventThrottler_instances,
-        cache_get
+        cache_get,
       );
       delete updatedCache[key];
       localStorage.setItem(
         __privateGet(this, _storageKey),
-        JSON.stringify(updatedCache)
+        JSON.stringify(updatedCache),
       );
     }
     return !!entry;
@@ -4374,7 +4379,7 @@ _storageKey = /* @__PURE__ */ new WeakMap();
 _cacheTtl = /* @__PURE__ */ new WeakMap();
 _TelemetryEventThrottler_instances = /* @__PURE__ */ new WeakSet();
 generateKey_fn = function (event) {
-  const {sk: _sk, pk: _pk, payload, ...rest} = event;
+  const { sk: _sk, pk: _pk, payload, ...rest } = event;
   const sanitizedEvent = {
     ...payload,
     ...rest,
@@ -4385,7 +4390,7 @@ generateKey_fn = function (event) {
       ...rest,
     })
       .sort()
-      .map((key) => sanitizedEvent[key])
+      .map((key) => sanitizedEvent[key]),
   );
 };
 cache_get = function () {
@@ -4477,7 +4482,7 @@ var TelemetryCollector = class {
     if (options.secretKey) {
       __privateGet(this, _metadata).secretKey = options.secretKey.substring(
         0,
-        16
+        16,
       );
     }
     __privateSet(this, _eventThrottler, new TelemetryEventThrottler());
@@ -4515,25 +4520,25 @@ var TelemetryCollector = class {
     const preparedPayload = __privateMethod(
       this,
       _TelemetryCollector_instances,
-      preparePayload_fn
+      preparePayload_fn,
     ).call(this, event.event, event.payload);
     __privateMethod(this, _TelemetryCollector_instances, logEvent_fn).call(
       this,
       preparedPayload.event,
-      preparedPayload
+      preparedPayload,
     );
     if (
       !__privateMethod(
         this,
         _TelemetryCollector_instances,
-        shouldRecord_fn
+        shouldRecord_fn,
       ).call(this, preparedPayload, event.eventSamplingRate)
     ) {
       return;
     }
     __privateGet(this, _buffer).push(preparedPayload);
     __privateMethod(this, _TelemetryCollector_instances, scheduleFlush_fn).call(
-      this
+      this,
     );
   }
 };
@@ -4550,7 +4555,7 @@ shouldRecord_fn = function (preparedPayload, eventSamplingRate) {
     __privateMethod(
       this,
       _TelemetryCollector_instances,
-      shouldBeSampled_fn
+      shouldBeSampled_fn,
     ).call(this, preparedPayload, eventSamplingRate)
   );
 };
@@ -4593,9 +4598,9 @@ scheduleFlush_fn = function () {
       _pendingFlush,
       requestIdleCallback(() => {
         __privateMethod(this, _TelemetryCollector_instances, flush_fn).call(
-          this
+          this,
         );
-      })
+      }),
     );
   } else {
     __privateSet(
@@ -4603,9 +4608,9 @@ scheduleFlush_fn = function () {
       _pendingFlush,
       setTimeout(() => {
         __privateMethod(this, _TelemetryCollector_instances, flush_fn).call(
-          this
+          this,
         );
-      }, 0)
+      }, 0),
     );
   }
 };
@@ -4644,7 +4649,7 @@ getSDKMetadata_fn = function () {
     version: __privateGet(this, _metadata).sdkVersion,
   };
   if (typeof window !== "undefined" && window.Clerk) {
-    sdkMetadata = {...sdkMetadata, ...window.Clerk.constructor.sdkMetadata};
+    sdkMetadata = { ...sdkMetadata, ...window.Clerk.constructor.sdkMetadata };
   }
   return sdkMetadata;
 };
@@ -4653,7 +4658,7 @@ preparePayload_fn = function (event, payload) {
   const sdkMetadata = __privateMethod(
     this,
     _TelemetryCollector_instances,
-    getSDKMetadata_fn
+    getSDKMetadata_fn,
   ).call(this);
   return {
     event,
@@ -4662,24 +4667,24 @@ preparePayload_fn = function (event, payload) {
     sdk: sdkMetadata.name,
     sdkv: sdkMetadata.version,
     ...(__privateGet(this, _metadata).publishableKey
-      ? {pk: __privateGet(this, _metadata).publishableKey}
+      ? { pk: __privateGet(this, _metadata).publishableKey }
       : {}),
     ...(__privateGet(this, _metadata).secretKey
-      ? {sk: __privateGet(this, _metadata).secretKey}
+      ? { sk: __privateGet(this, _metadata).secretKey }
       : {}),
     payload,
   };
 };
 function createClerkClient(options) {
-  const opts = {...options};
+  const opts = { ...options };
   const apiClient = createBackendApiClient(opts);
-  const requestState = createAuthenticateRequest({options: opts, apiClient});
+  const requestState = createAuthenticateRequest({ options: opts, apiClient });
   const telemetry = new TelemetryCollector({
     ...options.telemetry,
     publishableKey: opts.publishableKey,
     secretKey: opts.secretKey,
     ...(opts.sdkMetadata
-      ? {sdk: opts.sdkMetadata.name, sdkVersion: opts.sdkMetadata.version}
+      ? { sdk: opts.sdkMetadata.name, sdkVersion: opts.sdkMetadata.version }
       : {}),
   });
   return {
@@ -4833,8 +4838,8 @@ const envPrivate = /* @__PURE__ */ Object.freeze(
       npm_package_version,
     },
     Symbol.toStringTag,
-    {value: "Module"}
-  )
+    { value: "Module" },
+  ),
 );
 function getPublicEnv(name, defaultValue = "") {
   return name in envPublic ? envPublic[name] : defaultValue;
@@ -4846,12 +4851,12 @@ const API_VERSION = getPublicEnv("PUBLIC_CLERK_API_VERSION", "v1");
 const PUBLISHABLE_KEY = getPublicEnv("PUBLIC_CLERK_PUBLISHABLE_KEY");
 const API_URL = getPublicEnv("PUBLIC_CLERK_API_URL", "https://api.clerk.com");
 const TELEMETRY_DISABLED = isTruthy(
-  getPublicEnv("PUBLIC_CLERK_TELEMETRY_DISABLED")
+  getPublicEnv("PUBLIC_CLERK_TELEMETRY_DISABLED"),
 );
 const TELEMETRY_DEBUG = isTruthy(getPublicEnv("PUBLIC_CLERK_TELEMETRY_DEBUG"));
 const SECRET_KEY = getPrivateEnv("CLERK_SECRET_KEY");
 const JWT_KEY = getPrivateEnv("CLERK_JWT_KEY");
-const {Cookies, Headers: Headers$1} = constants;
+const { Cookies, Headers: Headers$1 } = constants;
 const clerkClient = createClerkClient({
   secretKey: SECRET_KEY,
   apiUrl: API_URL,
@@ -4872,8 +4877,8 @@ function createCurrentUser(auth) {
   };
 }
 function withClerkHandler(middlewareOptions) {
-  return async ({event, resolve}) => {
-    const {debug = false, ...options} = {};
+  return async ({ event, resolve }) => {
+    const { debug = false, ...options } = {};
     const clerkWebRequest = createClerkRequest(event.request);
     if (debug) {
       console.log("[svelte-clerk] " + JSON.stringify(clerkWebRequest.toJSON()));
@@ -4884,14 +4889,14 @@ function withClerkHandler(middlewareOptions) {
         ...options,
         secretKey: options?.secretKey ?? SECRET_KEY,
         publishableKey: options?.publishableKey ?? PUBLISHABLE_KEY,
-      }
+      },
     );
     const locationHeader = requestState.headers.get(Headers$1.Location);
     if (locationHeader) {
       if (debug) {
         console.log("[svelte-clerk] Handshake redirect triggered");
       }
-      return new Response(null, {status: 307, headers: requestState.headers});
+      return new Response(null, { status: 307, headers: requestState.headers });
     }
     if (requestState.status === AuthStatus.Handshake) {
       throw new Error("[svelte-clerk] Handshake status without redirect");
@@ -4910,7 +4915,7 @@ function decorateHeaders(event, headers) {
   if (setCookie) {
     const parsedCookies = parse$2(setCookie);
     parsedCookies.forEach((parsedCookie) => {
-      const {name, value, ...options} = parsedCookie;
+      const { name, value, ...options } = parsedCookie;
       event.cookies.set(name, value, options);
     });
     headers.delete("set-cookie");
@@ -4922,4 +4927,4 @@ function decorateLocals(event, authObject) {
   event.locals.currentUser = createCurrentUser(authObject);
 }
 const handle = withClerkHandler();
-export {handle};
+export { handle };

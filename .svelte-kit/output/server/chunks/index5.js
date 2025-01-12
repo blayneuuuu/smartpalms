@@ -1,8 +1,13 @@
-import { n as noop, s as subscribe_to_store, r as run_all, b as safe_not_equal } from "./index3.js";
+import {
+  n as noop,
+  s as subscribe_to_store,
+  r as run_all,
+  b as safe_not_equal,
+} from "./index3.js";
 const subscriber_queue = [];
 function readable(value, start) {
   return {
-    subscribe: writable(value, start).subscribe
+    subscribe: writable(value, start).subscribe,
   };
 }
 function writable(value, start = noop) {
@@ -27,10 +32,12 @@ function writable(value, start = noop) {
     }
   }
   function update(fn) {
-    set(fn(
-      /** @type {T} */
-      value
-    ));
+    set(
+      fn(
+        /** @type {T} */
+        value,
+      ),
+    );
   }
   function subscribe(run, invalidate = noop) {
     const subscriber = [run, invalidate];
@@ -40,7 +47,7 @@ function writable(value, start = noop) {
     }
     run(
       /** @type {T} */
-      value
+      value,
     );
     return () => {
       subscribers.delete(subscriber);
@@ -76,8 +83,8 @@ function derived(stores, fn, initial_value) {
         cleanup = typeof result === "function" ? result : noop;
       }
     };
-    const unsubscribers = stores_array.map(
-      (store, i) => subscribe_to_store(
+    const unsubscribers = stores_array.map((store, i) =>
+      subscribe_to_store(
         store,
         (value) => {
           values[i] = value;
@@ -88,8 +95,8 @@ function derived(stores, fn, initial_value) {
         },
         () => {
           pending |= 1 << i;
-        }
-      )
+        },
+      ),
     );
     started = true;
     sync();
@@ -103,18 +110,12 @@ function derived(stores, fn, initial_value) {
 function readonly(store) {
   return {
     // @ts-expect-error TODO i suspect the bind is unnecessary
-    subscribe: store.subscribe.bind(store)
+    subscribe: store.subscribe.bind(store),
   };
 }
 function get(store) {
   let value;
-  subscribe_to_store(store, (_) => value = _)();
+  subscribe_to_store(store, (_) => (value = _))();
   return value;
 }
-export {
-  readonly as a,
-  derived as d,
-  get as g,
-  readable as r,
-  writable as w
-};
+export { readonly as a, derived as d, get as g, readable as r, writable as w };

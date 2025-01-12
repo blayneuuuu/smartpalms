@@ -1,12 +1,16 @@
 import { tv } from "tailwind-variants";
 import "clsx";
 import "dequal";
-import { d as derived, g as get, w as writable, r as readable } from "./index5.js";
+import {
+  d as derived,
+  g as get,
+  w as writable,
+  r as readable,
+} from "./index5.js";
 import { o as onDestroy } from "./index-server.js";
 function styleToString(style) {
   return Object.keys(style).reduce((str, key) => {
-    if (style[key] === void 0)
-      return str;
+    if (style[key] === void 0) return str;
     return str + `${key}:${style[key]};`;
   }, "");
 }
@@ -20,8 +24,8 @@ function styleToString(style) {
     opacity: 0,
     "pointer-events": "none",
     margin: 0,
-    transform: "translateX(-100%)"
-  })
+    transform: "translateX(-100%)",
+  }),
 });
 function portalAttr(portal) {
   if (portal !== null) {
@@ -32,8 +36,7 @@ function portalAttr(portal) {
 function lightable(value) {
   function subscribe(run) {
     run(value);
-    return () => {
-    };
+    return () => {};
   }
   return { subscribe };
 }
@@ -44,7 +47,7 @@ const hiddenAction = (obj) => {
     },
     ownKeys(target) {
       return Reflect.ownKeys(target).filter((key) => key !== "action");
-    }
+    },
   });
 };
 const isFunctionWithParams = (fn) => {
@@ -62,7 +65,7 @@ function makeElement(name, args) {
             return hiddenAction({
               ...result(...args2),
               [`data-melt-${name}`]: "",
-              action: action ?? noop
+              action: action ?? noop,
             });
           };
           fn.action = action ?? noop;
@@ -71,7 +74,7 @@ function makeElement(name, args) {
         return hiddenAction({
           ...result,
           [`data-melt-${name}`]: "",
-          action: action ?? noop
+          action: action ?? noop,
         });
       });
     } else {
@@ -82,26 +85,27 @@ function makeElement(name, args) {
           return hiddenAction({
             ...result(...args2),
             [`data-melt-${name}`]: "",
-            action: action ?? noop
+            action: action ?? noop,
           });
         };
         resultFn.action = action ?? noop;
         return lightable(resultFn);
       }
-      return lightable(hiddenAction({
-        ...result,
-        [`data-melt-${name}`]: "",
-        action: action ?? noop
-      }));
+      return lightable(
+        hiddenAction({
+          ...result,
+          [`data-melt-${name}`]: "",
+          action: action ?? noop,
+        }),
+      );
     }
   })();
-  const actionFn = action ?? (() => {
-  });
+  const actionFn = action ?? (() => {});
   actionFn.subscribe = derivedStore.subscribe;
   return actionFn;
 }
 function createElHelpers(prefix) {
-  const name = (part) => part ? `${prefix}-${part}` : prefix;
+  const name = (part) => (part ? `${prefix}-${part}` : prefix);
   const attribute = (part) => `data-melt-${prefix}${part ? `-${part}` : ""}`;
   const selector = (part) => `[data-melt-${prefix}${part ? `-${part}` : ""}]`;
   const getEl = (part) => document.querySelector(selector(part));
@@ -109,7 +113,7 @@ function createElHelpers(prefix) {
     name,
     attribute,
     selector,
-    getEl
+    getEl,
   };
 }
 const isBrowser = typeof document !== "undefined";
@@ -135,35 +139,39 @@ function executeCallbacks(...callbacks) {
     }
   };
 }
-function noop() {
-}
+function noop() {}
 function addEventListener(target, event, handler, options) {
   const events = Array.isArray(event) ? event : [event];
   events.forEach((_event) => target.addEventListener(_event, handler, options));
   return () => {
-    events.forEach((_event) => target.removeEventListener(_event, handler, options));
+    events.forEach((_event) =>
+      target.removeEventListener(_event, handler, options),
+    );
   };
 }
 function addMeltEventListener(target, event, handler, options) {
   const events = Array.isArray(event) ? event : [event];
   if (typeof handler === "function") {
     const handlerWithMelt = withMelt((_event) => handler(_event));
-    events.forEach((_event) => target.addEventListener(_event, handlerWithMelt, options));
+    events.forEach((_event) =>
+      target.addEventListener(_event, handlerWithMelt, options),
+    );
     return () => {
-      events.forEach((_event) => target.removeEventListener(_event, handlerWithMelt, options));
+      events.forEach((_event) =>
+        target.removeEventListener(_event, handlerWithMelt, options),
+      );
     };
   }
   return () => noop();
 }
 function dispatchMeltEvent(originalEvent) {
   const node = originalEvent.currentTarget;
-  if (!isHTMLElement(node))
-    return null;
+  if (!isHTMLElement(node)) return null;
   const customMeltEvent = new CustomEvent(`m-${originalEvent.type}`, {
     detail: {
-      originalEvent
+      originalEvent,
     },
-    cancelable: true
+    cancelable: true,
   });
   node.dispatchEvent(customMeltEvent);
   return customMeltEvent;
@@ -171,8 +179,7 @@ function dispatchMeltEvent(originalEvent) {
 function withMelt(handler) {
   return (event) => {
     const customEvent = dispatchMeltEvent(event);
-    if (customEvent?.defaultPrevented)
-      return;
+    if (customEvent?.defaultPrevented) return;
     return handler(event);
   };
 }
@@ -195,10 +202,10 @@ function omit(obj, ...keys) {
 function withGet(store) {
   return {
     ...store,
-    get: () => get(store)
+    get: () => get(store),
   };
 }
-withGet.writable = function(initial) {
+withGet.writable = function (initial) {
   const internal = writable(initial);
   let value = initial;
   return {
@@ -214,22 +221,26 @@ withGet.writable = function(initial) {
     },
     get() {
       return value;
-    }
+    },
   };
 };
-withGet.derived = function(stores, fn) {
+withGet.derived = function (stores, fn) {
   const subscribers = /* @__PURE__ */ new Map();
   const get2 = () => {
-    const values = Array.isArray(stores) ? stores.map((store) => store.get()) : stores.get();
+    const values = Array.isArray(stores)
+      ? stores.map((store) => store.get())
+      : stores.get();
     return fn(values);
   };
   const subscribe = (subscriber) => {
     const unsubscribers = [];
     const storesArr = Array.isArray(stores) ? stores : [stores];
     storesArr.forEach((store) => {
-      unsubscribers.push(store.subscribe(() => {
-        subscriber(get2());
-      }));
+      unsubscribers.push(
+        store.subscribe(() => {
+          subscriber(get2());
+        }),
+      );
     });
     subscriber(get2());
     subscribers.set(subscriber, unsubscribers);
@@ -245,7 +256,7 @@ withGet.derived = function(stores, fn) {
   };
   return {
     get: get2,
-    subscribe
+    subscribe,
   };
 };
 const kbd = {
@@ -283,7 +294,7 @@ const kbd = {
   CTRL: "Control",
   ASTERISK: "*",
   A: "a",
-  P: "p"
+  P: "p",
 };
 function effect(stores, fn) {
   let cb = void 0;
@@ -305,7 +316,7 @@ readable(void 0, (set) => {
   }
   const unsubscribe = addEventListener(document, "pointerup", clicked, {
     passive: false,
-    capture: true
+    capture: true,
   });
   return unsubscribe;
 });
@@ -317,7 +328,7 @@ const documentEscapeKeyStore = readable(void 0, (set) => {
     set(void 0);
   }
   const unsubscribe = addEventListener(document, "keydown", keydown, {
-    passive: false
+    passive: false,
   });
   return unsubscribe;
 });
@@ -326,25 +337,31 @@ const useEscapeKeydown = (node, config = {}) => {
   function update(config2 = {}) {
     unsub();
     const options = { enabled: true, ...config2 };
-    const enabled = isReadable(options.enabled) ? options.enabled : readable(options.enabled);
+    const enabled = isReadable(options.enabled)
+      ? options.enabled
+      : readable(options.enabled);
     unsub = executeCallbacks(
       // Handle escape keydowns
       documentEscapeKeyStore.subscribe((e) => {
-        if (!e || !get(enabled))
-          return;
+        if (!e || !get(enabled)) return;
         const target = e.target;
-        if (!isHTMLElement(target) || target.closest("[data-escapee]") !== node) {
+        if (
+          !isHTMLElement(target) ||
+          target.closest("[data-escapee]") !== node
+        ) {
           return;
         }
         e.preventDefault();
         if (options.ignore) {
           if (isFunction(options.ignore)) {
-            if (options.ignore(e))
-              return;
+            if (options.ignore(e)) return;
           } else if (Array.isArray(options.ignore)) {
-            if (options.ignore.length > 0 && options.ignore.some((ignoreEl) => {
-              return ignoreEl && target === ignoreEl;
-            }))
+            if (
+              options.ignore.length > 0 &&
+              options.ignore.some((ignoreEl) => {
+                return ignoreEl && target === ignoreEl;
+              })
+            )
               return;
           }
         }
@@ -356,7 +373,7 @@ const useEscapeKeydown = (node, config = {}) => {
         } else {
           delete node.dataset.escapee;
         }
-      })
+      }),
     );
   }
   update(config);
@@ -365,14 +382,14 @@ const useEscapeKeydown = (node, config = {}) => {
     destroy() {
       node.removeAttribute("data-escapee");
       unsub();
-    }
+    },
   };
 };
 ({
   prefix: "",
   disabled: readable(false),
   required: readable(false),
-  name: readable(void 0)
+  name: readable(void 0),
 });
 const defaults = {
   isDateDisabled: void 0,
@@ -389,14 +406,14 @@ const defaults = {
   maxValue: void 0,
   disabled: false,
   readonly: false,
-  weekdayFormat: "narrow"
+  weekdayFormat: "narrow",
 };
 ({
   isDateDisabled: void 0,
   isDateUnavailable: void 0,
   value: void 0,
   positioning: {
-    placement: "bottom"
+    placement: "bottom",
   },
   closeOnEscape: true,
   closeOnOutsideClick: true,
@@ -410,30 +427,43 @@ const defaults = {
   minValue: void 0,
   maxValue: void 0,
   weekdayFormat: "narrow",
-  ...omit(defaults, "isDateDisabled", "isDateUnavailable", "value", "locale", "disabled", "readonly", "minValue", "maxValue", "weekdayFormat")
+  ...omit(
+    defaults,
+    "isDateDisabled",
+    "isDateUnavailable",
+    "value",
+    "locale",
+    "disabled",
+    "readonly",
+    "minValue",
+    "maxValue",
+    "weekdayFormat",
+  ),
 });
 const buttonVariants = tv({
   base: "ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   variants: {
     variant: {
       default: "bg-primary text-primary-foreground hover:bg-primary/90",
-      destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-      outline: "border-input bg-background hover:bg-accent hover:text-accent-foreground border",
+      destructive:
+        "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      outline:
+        "border-input bg-background hover:bg-accent hover:text-accent-foreground border",
       secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
       ghost: "hover:bg-accent hover:text-accent-foreground",
-      link: "text-primary underline-offset-4 hover:underline"
+      link: "text-primary underline-offset-4 hover:underline",
     },
     size: {
       default: "h-10 px-4 py-2",
       sm: "h-9 rounded-md px-3",
       lg: "h-11 rounded-md px-8",
-      icon: "h-10 w-10"
-    }
+      icon: "h-10 w-10",
+    },
   },
   defaultVariants: {
     variant: "default",
-    size: "default"
-  }
+    size: "default",
+  },
 });
 export {
   isFunction as a,
@@ -453,5 +483,5 @@ export {
   portalAttr as p,
   styleToString as s,
   useEscapeKeydown as u,
-  withGet as w
+  withGet as w,
 };

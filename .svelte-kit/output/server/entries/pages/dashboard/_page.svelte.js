@@ -19,6 +19,4 @@ function _page($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
-export {
-  _page as default
-};
+export { _page as default };

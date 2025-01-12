@@ -1,4 +1,52 @@
-import { h as active_reaction, i as is_runes, D as DERIVED, B as BLOCK_EFFECT, j as derived_sources, k as state_unsafe_mutation, l as increment_write_version, m as DIRTY, o as set_signal_status, C as CLEAN, U as UNOWNED, q as schedule_effect, M as MAYBE_DIRTY, t as safe_equals, v as active_effect, w as BRANCH_EFFECT, x as new_deps, y as untracked_writes, z as set_untracked_writes, A as equals, H as HYDRATION_ERROR, E as get_next_sibling, F as define_property, G as set_active_reaction, I as set_active_effect, J as is_array, K as init_operations, L as get_first_child, N as HYDRATION_START, O as HYDRATION_END, P as hydration_failed, Q as clear_text_content, R as array_from, S as component_root, T as is_passive_event, V as create_text, W as branch, X as push, Y as pop, Z as component_context, _ as get, $ as LEGACY_PROPS, a0 as flush_sync, a1 as render, a as push$1, f as setContext, p as pop$1 } from "./index3.js";
+import {
+  h as active_reaction,
+  i as is_runes,
+  D as DERIVED,
+  B as BLOCK_EFFECT,
+  j as derived_sources,
+  k as state_unsafe_mutation,
+  l as increment_write_version,
+  m as DIRTY,
+  o as set_signal_status,
+  C as CLEAN,
+  U as UNOWNED,
+  q as schedule_effect,
+  M as MAYBE_DIRTY,
+  t as safe_equals,
+  v as active_effect,
+  w as BRANCH_EFFECT,
+  x as new_deps,
+  y as untracked_writes,
+  z as set_untracked_writes,
+  A as equals,
+  H as HYDRATION_ERROR,
+  E as get_next_sibling,
+  F as define_property,
+  G as set_active_reaction,
+  I as set_active_effect,
+  J as is_array,
+  K as init_operations,
+  L as get_first_child,
+  N as HYDRATION_START,
+  O as HYDRATION_END,
+  P as hydration_failed,
+  Q as clear_text_content,
+  R as array_from,
+  S as component_root,
+  T as is_passive_event,
+  V as create_text,
+  W as branch,
+  X as push,
+  Y as pop,
+  Z as component_context,
+  _ as get,
+  $ as LEGACY_PROPS,
+  a0 as flush_sync,
+  a1 as render,
+  a as push$1,
+  f as setContext,
+  p as pop$1,
+} from "./index3.js";
 import "clsx";
 import "./shared-server.js";
 let base = "";
@@ -23,7 +71,7 @@ function source(v, stack) {
     reactions: null,
     equals,
     rv: 0,
-    wv: 0
+    wv: 0,
   };
   return signal;
 }
@@ -36,9 +84,13 @@ function mutable_source(initial_value, immutable = false) {
   return s;
 }
 function set(source2, value) {
-  if (active_reaction !== null && is_runes() && (active_reaction.f & (DERIVED | BLOCK_EFFECT)) !== 0 && // If the source was created locally within the current derived, then
-  // we allow the mutation.
-  (derived_sources === null || !derived_sources.includes(source2))) {
+  if (
+    active_reaction !== null &&
+    is_runes() &&
+    (active_reaction.f & (DERIVED | BLOCK_EFFECT)) !== 0 && // If the source was created locally within the current derived, then
+    // we allow the mutation.
+    (derived_sources === null || !derived_sources.includes(source2))
+  ) {
     state_unsafe_mutation();
   }
   return internal_set(source2, value);
@@ -49,7 +101,11 @@ function internal_set(source2, value) {
     source2.v = value;
     source2.wv = increment_write_version();
     mark_reactions(source2, DIRTY);
-    if (active_effect !== null && (active_effect.f & CLEAN) !== 0 && (active_effect.f & BRANCH_EFFECT) === 0) {
+    if (
+      active_effect !== null &&
+      (active_effect.f & CLEAN) !== 0 &&
+      (active_effect.f & BRANCH_EFFECT) === 0
+    ) {
       if (new_deps !== null && new_deps.includes(source2)) {
         set_signal_status(active_effect, DIRTY);
         schedule_effect(active_effect);
@@ -78,12 +134,12 @@ function mark_reactions(signal, status) {
         mark_reactions(
           /** @type {Derived} */
           reaction,
-          MAYBE_DIRTY
+          MAYBE_DIRTY,
         );
       } else {
         schedule_effect(
           /** @type {Effect} */
-          reaction
+          reaction,
         );
       }
     }
@@ -104,34 +160,35 @@ function set_hydrate_node(node) {
     hydration_mismatch();
     throw HYDRATION_ERROR;
   }
-  return hydrate_node = node;
+  return (hydrate_node = node);
 }
 function hydrate_next() {
   return set_hydrate_node(
     /** @type {TemplateNode} */
-    get_next_sibling(hydrate_node)
+    get_next_sibling(hydrate_node),
   );
 }
 const all_registered_events = /* @__PURE__ */ new Set();
 const root_event_handles = /* @__PURE__ */ new Set();
 function handle_event_propagation(event) {
   var handler_element = this;
-  var owner_document = (
+  var owner_document =
     /** @type {Node} */
-    handler_element.ownerDocument
-  );
+    handler_element.ownerDocument;
   var event_name = event.type;
   var path = event.composedPath?.() || [];
-  var current_target = (
+  var current_target =
     /** @type {null | Element} */
-    path[0] || event.target
-  );
+    path[0] || event.target;
   var path_idx = 0;
   var handled_at = event.__root;
   if (handled_at) {
     var at_idx = path.indexOf(handled_at);
-    if (at_idx !== -1 && (handler_element === document || handler_element === /** @type {any} */
-    window)) {
+    if (
+      at_idx !== -1 &&
+      (handler_element === document ||
+        handler_element === /** @type {any} */ window)
+    ) {
       event.__root = handler_element;
       return;
     }
@@ -143,14 +200,13 @@ function handle_event_propagation(event) {
       path_idx = at_idx;
     }
   }
-  current_target = /** @type {Element} */
-  path[path_idx] || event.target;
+  current_target = /** @type {Element} */ path[path_idx] || event.target;
   if (current_target === handler_element) return;
   define_property(event, "currentTarget", {
     configurable: true,
     get() {
       return current_target || owner_document;
-    }
+    },
   });
   var previous_reaction = active_reaction;
   var previous_effect = active_effect;
@@ -160,12 +216,18 @@ function handle_event_propagation(event) {
     var throw_error;
     var other_errors = [];
     while (current_target !== null) {
-      var parent_element = current_target.assignedSlot || current_target.parentNode || /** @type {any} */
-      current_target.host || null;
+      var parent_element =
+        current_target.assignedSlot ||
+        current_target.parentNode ||
+        /** @type {any} */
+        current_target.host ||
+        null;
       try {
         var delegated = current_target["__" + event_name];
-        if (delegated !== void 0 && !/** @type {any} */
-        current_target.disabled) {
+        if (
+          delegated !== void 0 &&
+          !(/** @type {any} */ current_target.disabled)
+        ) {
           if (is_array(delegated)) {
             var [fn, ...data] = delegated;
             fn.apply(current_target, [event, ...data]);
@@ -180,7 +242,11 @@ function handle_event_propagation(event) {
           throw_error = error;
         }
       }
-      if (event.cancelBubble || parent_element === handler_element || parent_element === null) {
+      if (
+        event.cancelBubble ||
+        parent_element === handler_element ||
+        parent_element === null
+      ) {
         break;
       }
       current_target = parent_element;
@@ -201,10 +267,9 @@ function handle_event_propagation(event) {
   }
 }
 function assign_nodes(start, end) {
-  var effect = (
+  var effect =
     /** @type {Effect} */
-    active_effect
-  );
+    active_effect;
   if (effect.nodes_start === null) {
     effect.nodes_start = start;
     effect.nodes_end = end;
@@ -220,14 +285,16 @@ function hydrate(component, options2) {
   const was_hydrating = hydrating;
   const previous_hydrate_node = hydrate_node;
   try {
-    var anchor = (
+    var anchor =
       /** @type {TemplateNode} */
-      get_first_child(target)
-    );
-    while (anchor && (anchor.nodeType !== 8 || /** @type {Comment} */
-    anchor.data !== HYDRATION_START)) {
-      anchor = /** @type {TemplateNode} */
-      get_next_sibling(anchor);
+      get_first_child(target);
+    while (
+      anchor &&
+      (anchor.nodeType !== 8 ||
+        /** @type {Comment} */
+        anchor.data !== HYDRATION_START)
+    ) {
+      anchor = /** @type {TemplateNode} */ get_next_sibling(anchor);
     }
     if (!anchor) {
       throw HYDRATION_ERROR;
@@ -235,12 +302,16 @@ function hydrate(component, options2) {
     set_hydrating(true);
     set_hydrate_node(
       /** @type {Comment} */
-      anchor
+      anchor,
     );
     hydrate_next();
     const instance = _mount(component, { ...options2, anchor });
-    if (hydrate_node === null || hydrate_node.nodeType !== 8 || /** @type {Comment} */
-    hydrate_node.data !== HYDRATION_END) {
+    if (
+      hydrate_node === null ||
+      hydrate_node.nodeType !== 8 ||
+      /** @type {Comment} */
+      hydrate_node.data !== HYDRATION_END
+    ) {
       hydration_mismatch();
       throw HYDRATION_ERROR;
     }
@@ -266,7 +337,10 @@ function hydrate(component, options2) {
   }
 }
 const document_listeners = /* @__PURE__ */ new Map();
-function _mount(Component, { target, anchor, props = {}, events, context, intro = true }) {
+function _mount(
+  Component,
+  { target, anchor, props = {}, events, context, intro = true },
+) {
   init_operations();
   var registered_events = /* @__PURE__ */ new Set();
   var event_handle = (events2) => {
@@ -275,10 +349,14 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
       if (registered_events.has(event_name)) continue;
       registered_events.add(event_name);
       var passive = is_passive_event(event_name);
-      target.addEventListener(event_name, handle_event_propagation, { passive });
+      target.addEventListener(event_name, handle_event_propagation, {
+        passive,
+      });
       var n = document_listeners.get(event_name);
       if (n === void 0) {
-        document.addEventListener(event_name, handle_event_propagation, { passive });
+        document.addEventListener(event_name, handle_event_propagation, {
+          passive,
+        });
         document_listeners.set(event_name, 1);
       } else {
         document_listeners.set(event_name, n + 1);
@@ -293,10 +371,9 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
     branch(() => {
       if (context) {
         push({});
-        var ctx = (
+        var ctx =
           /** @type {ComponentContext} */
-          component_context
-        );
+          component_context;
         ctx.c = context;
       }
       if (events) {
@@ -306,7 +383,7 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
         assign_nodes(
           /** @type {TemplateNode} */
           anchor_node,
-          null
+          null,
         );
       }
       component = Component(anchor_node, props) || {};
@@ -320,10 +397,9 @@ function _mount(Component, { target, anchor, props = {}, events, context, intro 
     return () => {
       for (var event_name of registered_events) {
         target.removeEventListener(event_name, handle_event_propagation);
-        var n = (
+        var n =
           /** @type {number} */
-          document_listeners.get(event_name)
-        );
+          document_listeners.get(event_name);
         if (--n === 0) {
           document.removeEventListener(event_name, handle_event_propagation);
           document_listeners.delete(event_name);
@@ -355,7 +431,7 @@ function asClassComponent$1(component) {
     constructor(options2) {
       super({
         component,
-        ...options2
+        ...options2,
       });
     }
   };
@@ -378,10 +454,12 @@ class Svelte4Component {
       return s;
     };
     const props = new Proxy(
-      { ...options2.props || {}, $$events: {} },
+      { ...(options2.props || {}), $$events: {} },
       {
         get(target, prop) {
-          return get(sources.get(prop) ?? add_source(prop, Reflect.get(target, prop)));
+          return get(
+            sources.get(prop) ?? add_source(prop, Reflect.get(target, prop)),
+          );
         },
         has(target, prop) {
           if (prop === LEGACY_PROPS) return true;
@@ -391,8 +469,8 @@ class Svelte4Component {
         set(target, prop, value) {
           set(sources.get(prop) ?? add_source(prop, value), value);
           return Reflect.set(target, prop, value);
-        }
-      }
+        },
+      },
     );
     this.#instance = (options2.hydrate ? hydrate : mount)(options2.component, {
       target: options2.target,
@@ -400,7 +478,7 @@ class Svelte4Component {
       props,
       context: options2.context,
       intro: options2.intro ?? false,
-      recover: options2.recover
+      recover: options2.recover,
     });
     if (!options2?.props?.$$host || options2.sync === false) {
       flush_sync();
@@ -416,13 +494,14 @@ class Svelte4Component {
         set(value) {
           this.#instance[key] = value;
         },
-        enumerable: true
+        enumerable: true,
       });
     }
-    this.#instance.$set = /** @param {Record<string, any>} next */
-    (next) => {
-      Object.assign(props, next);
-    };
+    this.#instance.$set =
+      /** @param {Record<string, any>} next */
+      (next) => {
+        Object.assign(props, next);
+      };
     this.#instance.$destroy = () => {
       unmount(this.#instance);
     };
@@ -443,7 +522,7 @@ class Svelte4Component {
     return () => {
       this.#events[event] = this.#events[event].filter(
         /** @param {any} fn */
-        (fn) => fn !== cb
+        (fn) => fn !== cb,
       );
     };
   }
@@ -455,8 +534,7 @@ let read_implementation = null;
 function set_read_implementation(fn) {
   read_implementation = fn;
 }
-function set_manifest(_) {
-}
+function set_manifest(_) {}
 function asClassComponent(component) {
   const component_constructor = asClassComponent$1(component);
   const _render = (props, { context } = {}) => {
@@ -464,15 +542,14 @@ function asClassComponent(component) {
     return {
       css: { code: "", map: null },
       head: result.head,
-      html: result.body
+      html: result.body,
     };
   };
   component_constructor.render = _render;
   return component_constructor;
 }
 let prerendering = false;
-function set_building() {
-}
+function set_building() {}
 function set_prerendering() {
   prerendering = true;
 }
@@ -485,7 +562,7 @@ function Root($$payload, $$props) {
     components = [],
     form,
     data_0 = null,
-    data_1 = null
+    data_1 = null,
   } = $$props;
   {
     setContext("__svelte__", stores);
@@ -506,7 +583,7 @@ function Root($$payload, $$props) {
         Pyramid_1($$payload2, { data: data_1, form });
         $$payload2.out += `<!---->`;
       },
-      $$slots: { default: true }
+      $$slots: { default: true },
     });
     $$payload.out += `<!---->`;
   } else {
@@ -527,7 +604,17 @@ const root = asClassComponent(Root);
 const options = {
   app_dir: "_app",
   app_template_contains_nonce: false,
-  csp: { "mode": "auto", "directives": { "upgrade-insecure-requests": false, "block-all-mixed-content": false }, "reportOnly": { "upgrade-insecure-requests": false, "block-all-mixed-content": false } },
+  csp: {
+    mode: "auto",
+    directives: {
+      "upgrade-insecure-requests": false,
+      "block-all-mixed-content": false,
+    },
+    reportOnly: {
+      "upgrade-insecure-requests": false,
+      "block-all-mixed-content": false,
+    },
+  },
   csrf_check_origin: true,
   embedded: false,
   env_public_prefix: "PUBLIC_",
@@ -539,8 +626,18 @@ const options = {
   root,
   service_worker: false,
   templates: {
-    app: ({ head, body, assets: assets2, nonce, env }) => '<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8" />\n    <link rel="icon" href="' + assets2 + '/favicon.png" />\n    <meta name="viewport" content="width=device-width, initial-scale=1" />\n    ' + head + '\n  </head>\n  <body data-sveltekit-preload-data="hover">\n    <div style="display: contents">' + body + "</div>\n  </body>\n</html>\n",
-    error: ({ status, message }) => '<!doctype html>\n<html lang="en">\n	<head>\n		<meta charset="utf-8" />\n		<title>' + message + `</title>
+    app: ({ head, body, assets: assets2, nonce, env }) =>
+      '<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8" />\n    <link rel="icon" href="' +
+      assets2 +
+      '/favicon.png" />\n    <meta name="viewport" content="width=device-width, initial-scale=1" />\n    ' +
+      head +
+      '\n  </head>\n  <body data-sveltekit-preload-data="hover">\n    <div style="display: contents">' +
+      body +
+      "</div>\n  </body>\n</html>\n",
+    error: ({ status, message }) =>
+      '<!doctype html>\n<html lang="en">\n	<head>\n		<meta charset="utf-8" />\n		<title>' +
+      message +
+      `</title>
 
 		<style>
 			body {
@@ -609,16 +706,22 @@ const options = {
 	</head>
 	<body>
 		<div class="error">
-			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
+			<span class="status">` +
+      status +
+      '</span>\n			<div class="message">\n				<h1>' +
+      message +
+      "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n",
   },
-  version_hash: "6qcy45"
+  version_hash: "6qcy45",
 };
 async function get_hooks() {
   let handle;
   let handleFetch;
   let handleError;
   let init;
-  ({ handle, handleFetch, handleError, init } = await import("./hooks.server.js"));
+  ({ handle, handleFetch, handleError, init } = await import(
+    "./hooks.server.js"
+  ));
   let reroute;
   let transport;
   return {
@@ -627,7 +730,7 @@ async function get_hooks() {
     handleError,
     init,
     reroute,
-    transport
+    transport,
   };
 }
 export {
@@ -643,5 +746,5 @@ export {
   override as o,
   prerendering as p,
   reset as r,
-  set_read_implementation as s
+  set_read_implementation as s,
 };

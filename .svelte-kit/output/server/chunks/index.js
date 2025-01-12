@@ -9,7 +9,7 @@ function json(data, init) {
   }
   return new Response(body, {
     ...init,
-    headers
+    headers,
   });
 }
 const encoder = new TextEncoder();
@@ -20,15 +20,12 @@ function text(body, init) {
     headers.set("content-length", encoded.byteLength.toString());
     return new Response(encoded, {
       ...init,
-      headers
+      headers,
     });
   }
   return new Response(body, {
     ...init,
-    headers
+    headers,
   });
 }
-export {
-  json as j,
-  text as t
-};
+export { json as j, text as t };

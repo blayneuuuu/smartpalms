@@ -1,6 +1,15 @@
 import "clsx";
-import { g as getContext, d as store_get, u as unsubscribe_stores, p as pop, a as push } from "../../chunks/index3.js";
-import { s as setClerkContext, a as setClerkJsLoadingErrorPackageName } from "../../chunks/chunk-5JJNUDZC.js";
+import {
+  g as getContext,
+  d as store_get,
+  u as unsubscribe_stores,
+  p as pop,
+  a as push,
+} from "../../chunks/index3.js";
+import {
+  s as setClerkContext,
+  a as setClerkJsLoadingErrorPackageName,
+} from "../../chunks/chunk-5JJNUDZC.js";
 import "../../chunks/client.js";
 import { P as PUBLIC_CLERK_PUBLISHABLE_KEY } from "../../chunks/public.js";
 var deriveState = (clerkLoaded, state, initialState) => {
@@ -32,7 +41,7 @@ var deriveFromSsrInitialState = (initialState) => {
     orgPermissions,
     orgSlug,
     actor,
-    factorVerificationAge
+    factorVerificationAge,
   };
 };
 var deriveFromClientSideState = (state) => {
@@ -41,12 +50,18 @@ var deriveFromClientSideState = (state) => {
   const user = state.user;
   const sessionId = state.session ? state.session.id : state.session;
   const session = state.session;
-  const factorVerificationAge = state.session ? state.session.factorVerificationAge : null;
+  const factorVerificationAge = state.session
+    ? state.session.factorVerificationAge
+    : null;
   const actor = session == null ? void 0 : session.actor;
   const organization = state.organization;
   const orgId = state.organization ? state.organization.id : state.organization;
   const orgSlug = organization == null ? void 0 : organization.slug;
-  const membership = organization ? (_a = user == null ? void 0 : user.organizationMemberships) == null ? void 0 : _a.find((om) => om.organization.id === orgId) : organization;
+  const membership = organization
+    ? (_a = user == null ? void 0 : user.organizationMemberships) == null
+      ? void 0
+      : _a.find((om) => om.organization.id === orgId)
+    : organization;
   const orgPermissions = membership ? membership.permissions : membership;
   const orgRole = membership ? membership.role : membership;
   return {
@@ -60,7 +75,7 @@ var deriveFromClientSideState = (state) => {
     orgSlug,
     orgPermissions,
     actor,
-    factorVerificationAge
+    factorVerificationAge,
   };
 };
 const getStores = () => {
@@ -68,40 +83,39 @@ const getStores = () => {
   return {
     /** @type {typeof page} */
     page: {
-      subscribe: stores$1.page.subscribe
+      subscribe: stores$1.page.subscribe,
     },
     /** @type {typeof navigating} */
     navigating: {
-      subscribe: stores$1.navigating.subscribe
+      subscribe: stores$1.navigating.subscribe,
     },
     /** @type {typeof updated} */
-    updated: stores$1.updated
+    updated: stores$1.updated,
   };
 };
 const page = {
   subscribe(fn) {
     const store = getStores().page;
     return store.subscribe(fn);
-  }
+  },
 };
 function ClerkProvider($$payload, $$props) {
   push();
   var $$store_subs;
-  const {
-    children,
-    $$slots,
-    $$events,
-    ...clerkInitOptions
-  } = $$props;
+  const { children, $$slots, $$events, ...clerkInitOptions } = $$props;
   let clerk = null;
   let isLoaded = false;
   let resources = {
     client: {},
     session: void 0,
     user: void 0,
-    organization: void 0
+    organization: void 0,
   };
-  let auth = deriveState(isLoaded, resources, store_get($$store_subs ??= {}, "$page", page)?.data?.initialState);
+  let auth = deriveState(
+    isLoaded,
+    resources,
+    store_get(($$store_subs ??= {}), "$page", page)?.data?.initialState,
+  );
   let client = resources.client;
   let session = auth.session;
   let user = auth.user;
@@ -128,7 +142,7 @@ function ClerkProvider($$payload, $$props) {
     },
     get organization() {
       return organization;
-    }
+    },
   });
   children($$payload);
   $$payload.out += `<!---->`;
@@ -144,10 +158,8 @@ function _layout($$payload, $$props) {
       children($$payload2);
       $$payload2.out += `<!---->`;
     },
-    $$slots: { default: true }
+    $$slots: { default: true },
   });
   pop();
 }
-export {
-  _layout as default
-};
+export { _layout as default };

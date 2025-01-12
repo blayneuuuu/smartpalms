@@ -1,1 +1,2 @@
-import{j as a}from"./index-client.CvPjOW-w.js";a();
+import { j as a } from "./index-client.CvPjOW-w.js";
+a();

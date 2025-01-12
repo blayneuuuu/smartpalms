@@ -4,19 +4,17 @@ const load = async () => {
     const allLockers = await db.select().from(lockers);
     const formattedLockers = allLockers.map((locker) => ({
       ...locker,
-      isAvailable: !locker.userId || locker.userId === ""
+      isAvailable: !locker.userId || locker.userId === "",
     }));
     return {
-      lockers: formattedLockers
+      lockers: formattedLockers,
     };
   } catch (error) {
     console.error("Error loading lockers:", error);
     return {
       lockers: [],
-      error: "Failed to load lockers"
+      error: "Failed to load lockers",
     };
   }
 };
-export {
-  load
-};
+export { load };
