@@ -26,4 +26,4 @@ export const load = async () => {
     };
   }
 };
-null as any as PageServerLoad;
+;null as any as PageServerLoad;
