@@ -59,7 +59,7 @@ function parsePublishableKey(key, options = {}) {
       );
     }
     if (options.fatal && !isPublishableKey(key)) {
-      throw new Error("Publishable key not valid.");
+      throw new Error("Publishable key not valid.", key);
     }
     return null;
   }
