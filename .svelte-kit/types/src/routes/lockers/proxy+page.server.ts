@@ -1,10 +1,10 @@
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // routes/lockers/+page.server.ts
-import {db} from "$lib/server/db";
-import {lockers} from "$lib/server/db/schema";
-import type {PageServerLoad} from "./$types";
-import type {Locker} from "$lib/server/db/schema";
+import { db } from "$lib/server/db";
+import { lockers } from "$lib/server/db/schema";
+import type { PageServerLoad } from "./$types";
+import type { Locker } from "$lib/server/db/schema";
 
 export const load = async () => {
   try {

@@ -1,10 +1,10 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {lockers} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { lockers } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
-export const GET: RequestHandler = async ({params}) => {
+export const GET: RequestHandler = async ({ params }) => {
   try {
     const otp = params.otp;
 
@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({params}) => {
           success: false,
           message: "Invalid OTP",
         },
-        {status: 404}
+        { status: 404 },
       );
     }
 
@@ -39,13 +39,13 @@ export const GET: RequestHandler = async ({params}) => {
         success: false,
         message: "Server error",
       },
-      {status: 500}
+      { status: 500 },
     );
   }
 };
 
 // Using PATCH as it's more semantically correct for partial updates
-export const PATCH: RequestHandler = async ({params}) => {
+export const PATCH: RequestHandler = async ({ params }) => {
   try {
     const otp = params.otp;
 
@@ -62,14 +62,14 @@ export const PATCH: RequestHandler = async ({params}) => {
           success: false,
           message: "Invalid OTP",
         },
-        {status: 404}
+        { status: 404 },
       );
     }
 
     // Reset OTP to null
     await db
       .update(lockers)
-      .set({otp: null})
+      .set({ otp: null })
       .where(eq(lockers.id, locker.id))
       .run();
 
@@ -84,7 +84,7 @@ export const PATCH: RequestHandler = async ({params}) => {
         success: false,
         message: "Server error",
       },
-      {status: 500}
+      { status: 500 },
     );
   }
 };

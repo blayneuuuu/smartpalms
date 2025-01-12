@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {lockers} from "$lib/server/db/schema";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { lockers } from "$lib/server/db/schema";
 
-export const GET: RequestHandler = async ({locals}) => {
+export const GET: RequestHandler = async ({ locals }) => {
   try {
     // Get all lockers
     const allLockers = await db.select().from(lockers);
@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({locals}) => {
       },
       {
         status: 200,
-      }
+      },
     );
   } catch (error) {
     console.error("Error fetching lockers:", error);
@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({locals}) => {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 };
