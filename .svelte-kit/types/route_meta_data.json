@@ -1,7 +1,19 @@
 {
 	"/": [],
+	"/api/admin/requests": [
+		"src/routes/api/admin/requests/+server.ts"
+	],
+	"/api/admin/requests/[requestId]": [
+		"src/routes/api/admin/requests/[requestId]/+server.ts"
+	],
+	"/api/admin/stats": [
+		"src/routes/api/admin/stats/+server.ts"
+	],
 	"/api/admin/[id]": [
 		"src/routes/api/admin/[id]/+server.ts"
+	],
+	"/api/lockers/request": [
+		"src/routes/api/lockers/request/+server.ts"
 	],
 	"/api/locker": [
 		"src/routes/api/locker/+server.ts"
