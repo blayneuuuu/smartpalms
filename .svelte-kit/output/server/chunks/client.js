@@ -1,11 +1,12 @@
 import "clsx";
 import "./exports.js";
-import { w as writable } from "./index5.js";
+import { w as writable } from "./index4.js";
 import { n as noop } from "./index3.js";
 function get(key, parse = JSON.parse) {
   try {
     return parse(sessionStorage[key]);
-  } catch {}
+  } catch {
+  }
 }
 const SNAPSHOT_KEY = "sveltekit:snapshot";
 const SCROLL_KEY = "sveltekit:scroll";
@@ -23,8 +24,8 @@ function notifiable_store(value) {
   function subscribe(run) {
     let old_value;
     return store.subscribe((new_value) => {
-      if (old_value === void 0 || (ready && new_value !== old_value)) {
-        run((old_value = new_value));
+      if (old_value === void 0 || ready && new_value !== old_value) {
+        run(old_value = new_value);
       }
     });
   }
@@ -36,14 +37,12 @@ function create_updated_store() {
     return {
       subscribe,
       // eslint-disable-next-line @typescript-eslint/require-await
-      check: async () => false,
+      check: async () => false
     };
   }
 }
 let updated;
-const is_legacy =
-  noop.toString().includes("$$") ||
-  /function \w+\(\) \{\}/.test(noop.toString());
+const is_legacy = noop.toString().includes("$$") || /function \w+\(\) \{\}/.test(noop.toString());
 if (is_legacy) {
   ({
     data: {},
@@ -53,13 +52,13 @@ if (is_legacy) {
     route: { id: null },
     state: {},
     status: -1,
-    url: new URL("https://example.com"),
+    url: new URL("https://example.com")
   });
   updated = { current: false };
 } else {
-  updated = new (class Updated {
+  updated = new class Updated {
     current = false;
-  })();
+  }();
 }
 get(SCROLL_KEY) ?? {};
 get(SNAPSHOT_KEY) ?? {};
@@ -68,8 +67,11 @@ const stores = {
   page: /* @__PURE__ */ notifiable_store({}),
   navigating: /* @__PURE__ */ writable(
     /** @type {import('@sveltejs/kit').Navigation | null} */
-    null,
+    null
   ),
-  updated: /* @__PURE__ */ create_updated_store(),
+  updated: /* @__PURE__ */ create_updated_store()
 };
-export { stores as s, updated as u };
+export {
+  stores as s,
+  updated as u
+};

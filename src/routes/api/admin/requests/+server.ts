@@ -29,6 +29,7 @@ export const GET: AuthenticatedRequestHandler = async ({locals}) => {
         lockerId: lockerRequests.lockerId,
         status: lockerRequests.status,
         requestedAt: lockerRequests.requestedAt,
+        proofOfPayment: lockerRequests.proofOfPayment,
       })
       .from(lockerRequests)
       .where(eq(lockerRequests.status, "pending"))
@@ -56,6 +57,7 @@ export const GET: AuthenticatedRequestHandler = async ({locals}) => {
       lockerNumber: lockerMap.get(request.lockerId) ?? "Unknown",
       requestedAt: request.requestedAt,
       status: request.status,
+      proofOfPayment: request.proofOfPayment,
     }));
 
     return json({requests: formattedRequests});

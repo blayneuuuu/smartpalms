@@ -8,25 +8,12 @@ function parseError(error) {
     message: error.message,
     longMessage: error.long_message,
     meta: {
-      paramName:
-        (_a = error == null ? void 0 : error.meta) == null
-          ? void 0
-          : _a.param_name,
-      sessionId:
-        (_b = error == null ? void 0 : error.meta) == null
-          ? void 0
-          : _b.session_id,
-      emailAddresses:
-        (_c = error == null ? void 0 : error.meta) == null
-          ? void 0
-          : _c.email_addresses,
-      identifiers:
-        (_d = error == null ? void 0 : error.meta) == null
-          ? void 0
-          : _d.identifiers,
-      zxcvbn:
-        (_e = error == null ? void 0 : error.meta) == null ? void 0 : _e.zxcvbn,
-    },
+      paramName: (_a = error == null ? void 0 : error.meta) == null ? void 0 : _a.param_name,
+      sessionId: (_b = error == null ? void 0 : error.meta) == null ? void 0 : _b.session_id,
+      emailAddresses: (_c = error == null ? void 0 : error.meta) == null ? void 0 : _c.email_addresses,
+      identifiers: (_d = error == null ? void 0 : error.meta) == null ? void 0 : _d.identifiers,
+      zxcvbn: (_e = error == null ? void 0 : error.meta) == null ? void 0 : _e.zxcvbn
+    }
   };
 }
 var ClerkAPIResponseError = class _ClerkAPIResponseError extends Error {
@@ -36,7 +23,9 @@ var ClerkAPIResponseError = class _ClerkAPIResponseError extends Error {
       let message2 = `[${this.name}]
 Message:${this.message}
 Status:${this.status}
-Serialized errors: ${this.errors.map((e) => JSON.stringify(e))}`;
+Serialized errors: ${this.errors.map(
+        (e) => JSON.stringify(e)
+      )}`;
       if (this.clerkTraceId) {
         message2 += `
 Clerk Trace ID: ${this.clerkTraceId}`;
@@ -56,13 +45,13 @@ var DefaultMessages = Object.freeze({
   InvalidPublishableKeyErrorMessage: `The publishableKey passed to Clerk is invalid. You can get your Publishable key at https://dashboard.clerk.com/last-active?path=api-keys. (key={{key}})`,
   MissingPublishableKeyErrorMessage: `Missing publishableKey. You can get your key at https://dashboard.clerk.com/last-active?path=api-keys.`,
   MissingSecretKeyErrorMessage: `Missing secretKey. You can get your key at https://dashboard.clerk.com/last-active?path=api-keys.`,
-  MissingClerkProvider: `{{source}} can only be used within the <ClerkProvider /> component. Learn more: https://clerk.com/docs/components/clerk-provider`,
+  MissingClerkProvider: `{{source}} can only be used within the <ClerkProvider /> component. Learn more: https://clerk.com/docs/components/clerk-provider`
 });
 function buildErrorThrower({ packageName, customMessages }) {
   let pkg = packageName;
   const messages = {
     ...DefaultMessages,
-    ...customMessages,
+    ...customMessages
   };
   function buildMessage(rawMessage, replacements) {
     if (!replacements) {
@@ -88,14 +77,10 @@ function buildErrorThrower({ packageName, customMessages }) {
       return this;
     },
     throwInvalidPublishableKeyError(params) {
-      throw new Error(
-        buildMessage(messages.InvalidPublishableKeyErrorMessage, params),
-      );
+      throw new Error(buildMessage(messages.InvalidPublishableKeyErrorMessage, params));
     },
     throwInvalidProxyUrl(params) {
-      throw new Error(
-        buildMessage(messages.InvalidProxyUrlErrorMessage, params),
-      );
+      throw new Error(buildMessage(messages.InvalidProxyUrlErrorMessage, params));
     },
     throwMissingPublishableKeyError() {
       throw new Error(buildMessage(messages.MissingPublishableKeyErrorMessage));
@@ -108,7 +93,11 @@ function buildErrorThrower({ packageName, customMessages }) {
     },
     throw(message) {
       throw new Error(buildMessage(message));
-    },
+    }
   };
 }
-export { ClerkAPIResponseError as C, buildErrorThrower as b, parseError as p };
+export {
+  ClerkAPIResponseError as C,
+  buildErrorThrower as b,
+  parseError as p
+};

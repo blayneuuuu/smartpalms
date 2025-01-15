@@ -1,16 +1,11 @@
-import {
-  g as getContext,
-  e as escape_html,
-  p as pop,
-  a as push,
-} from "../../chunks/index3.js";
+import { h as getContext, e as escape_html, p as pop, c as push } from "../../chunks/index3.js";
 import "clsx";
 import { u as updated, s as stores } from "../../chunks/client.js";
 ({
   get current() {
     return updated.current;
   },
-  check: stores.updated.check,
+  check: stores.updated.check
 });
 function context() {
   return getContext("__request__");
@@ -39,7 +34,7 @@ const page$1 = {
   },
   get url() {
     return context().page.url;
-  },
+  }
 };
 const page = page$1;
 function Error$1($$payload, $$props) {
@@ -47,4 +42,6 @@ function Error$1($$payload, $$props) {
   $$payload.out += `<h1>${escape_html(page.status)}</h1> <p>${escape_html(page.error?.message)}</p>`;
   pop();
 }
-export { Error$1 as default };
+export {
+  Error$1 as default
+};

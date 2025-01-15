@@ -16,5 +16,5 @@ export {
   public_env as c,
   safe_public_env as d,
   private_env as p,
-  set_private_env as s,
+  set_private_env as s
 };

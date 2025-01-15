@@ -1,6 +1,7 @@
 <script lang="ts">
     import { UserButton } from 'svelte-clerk';
     import Request from './dashboardComponents/Request.svelte';
+  import Users from './dashboardComponents/Users.svelte';
     
     type UserData = {
         email: string;
@@ -117,7 +118,7 @@
                     <p class="text-gray-500 text-center py-4">Locker management coming soon</p>
                 {:else}
                     <!-- User management component will go here -->
-                    <p class="text-gray-500 text-center py-4">User management coming soon</p>
+                    <Users />
                 {/if}
             </div>
         </div>

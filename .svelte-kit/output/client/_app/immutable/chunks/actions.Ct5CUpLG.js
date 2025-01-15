@@ -1,0 +1,1 @@
+import{m as c,g as o,n as i,k as d,s as m}from"./index-client.A1mlkm1m.js";function u(e,n,s){c(()=>{var r=o(()=>n(e,s==null?void 0:s())||{});if(s&&(r!=null&&r.update)){var a=!1,t={};i(()=>{var f=s();d(f),a&&m(t,f)&&(t=f,r.update(f))}),a=!0}if(r!=null&&r.destroy)return()=>r.destroy()})}export{u as a};

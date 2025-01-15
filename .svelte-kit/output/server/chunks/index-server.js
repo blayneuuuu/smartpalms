@@ -1,9 +1,14 @@
-import { c as current_component } from "./index3.js";
+import { d as current_component } from "./index3.js";
 function onDestroy(fn) {
-  var context =
+  var context = (
     /** @type {Component} */
-    current_component;
+    current_component
+  );
   (context.d ??= []).push(fn);
 }
-async function tick() {}
-export { onDestroy as o, tick as t };
+async function tick() {
+}
+export {
+  onDestroy as o,
+  tick as t
+};

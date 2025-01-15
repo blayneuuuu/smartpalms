@@ -4,6 +4,7 @@ import {sqliteTable, text, integer, index} from "drizzle-orm/sqlite-core";
 export type Status = "active" | "expired" | "cancelled";
 export type LockerSize = "small" | "medium" | "large";
 export type RequestStatus = "pending" | "approved" | "rejected";
+export type SubscriptionDuration = "1_day" | "7_days" | "30_days";
 
 // Admin table
 export const admins = sqliteTable(
@@ -50,11 +51,16 @@ export const lockerRequests = sqliteTable(
     lockerId: text("locker_id")
       .notNull()
       .references(() => lockers.id),
+    subscriptionTypeId: text("subscription_type_id")
+      .notNull()
+      .references(() => subscriptionTypes.id),
     status: text("status", {
       enum: ["pending", "approved", "rejected"],
     })
       .notNull()
       .default("pending"),
+    proofOfPayment: text("proof_of_payment", {length: 4294967295}),
+    rejectionReason: text("rejection_reason"),
     requestedAt: integer("requested_at", {mode: "timestamp"})
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -65,6 +71,9 @@ export const lockerRequests = sqliteTable(
     userIdIdx: index("request_user_id_idx").on(table.userId),
     lockerIdIdx: index("request_locker_id_idx").on(table.lockerId),
     statusIdx: index("request_status_idx").on(table.status),
+    subscriptionTypeIdx: index("subscription_type_idx").on(
+      table.subscriptionTypeId
+    ),
   })
 );
 
@@ -101,6 +110,7 @@ export const transactions = sqliteTable(
     userId: text("user_id").notNull(),
     subscriptionId: text("subscription_id").references(() => subscriptions.id),
     status: text("status", {enum: ["success", "failed", "pending"]}).notNull(),
+    proofOfPayment: text("proof_of_payment"), // Base64 image for proof of payment
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -109,6 +119,26 @@ export const transactions = sqliteTable(
     userIdIdx: index("trans_user_id_idx").on(table.userId),
     subscriptionIdIdx: index("subscription_id_idx").on(table.subscriptionId),
     statusIdx: index("trans_status_idx").on(table.status),
+  })
+);
+
+// Subscription Types table
+export const subscriptionTypes = sqliteTable(
+  "subscription_types",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    duration: text("duration", {
+      enum: ["1_day", "7_days", "30_days"],
+    }).notNull(),
+    amount: integer("amount").notNull(), // Amount in cents (e.g., 5000 for 50 PHP)
+    isActive: integer("is_active", {mode: "boolean"}).notNull().default(true),
+    createdAt: integer("created_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    durationIdx: index("duration_idx").on(table.duration),
   })
 );
 
@@ -127,3 +157,6 @@ export type NewTransaction = typeof transactions.$inferInsert;
 
 export type LockerRequest = typeof lockerRequests.$inferSelect;
 export type NewLockerRequest = typeof lockerRequests.$inferInsert;
+
+export type SubscriptionType = typeof subscriptionTypes.$inferSelect;
+export type NewSubscriptionType = typeof subscriptionTypes.$inferInsert;

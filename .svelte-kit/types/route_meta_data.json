@@ -3,8 +3,8 @@
 	"/api/admin/requests": [
 		"src/routes/api/admin/requests/+server.ts"
 	],
-	"/api/admin/requests/[requestId]": [
-		"src/routes/api/admin/requests/[requestId]/+server.ts"
+	"/api/admin/requests/[id]": [
+		"src/routes/api/admin/requests/[id]/+server.ts"
 	],
 	"/api/admin/stats": [
 		"src/routes/api/admin/stats/+server.ts"
@@ -12,14 +12,29 @@
 	"/api/admin/[id]": [
 		"src/routes/api/admin/[id]/+server.ts"
 	],
+	"/api/lockers": [
+		"src/routes/api/lockers/+server.ts"
+	],
 	"/api/lockers/request": [
 		"src/routes/api/lockers/request/+server.ts"
+	],
+	"/api/lockers/[id]": [
+		"src/routes/api/lockers/[id]/+server.ts"
 	],
 	"/api/locker": [
 		"src/routes/api/locker/+server.ts"
 	],
 	"/api/register": [
 		"src/routes/api/register/+server.ts"
+	],
+	"/api/subscription-types": [
+		"src/routes/api/subscription-types/+server.ts"
+	],
+	"/api/test": [
+		"src/routes/api/test/+server.js"
+	],
+	"/api/transaction": [
+		"src/routes/api/transaction/+server.ts"
 	],
 	"/api/[otp]": [
 		"src/routes/api/[otp]/+server.ts"
