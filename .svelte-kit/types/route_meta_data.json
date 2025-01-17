@@ -18,8 +18,17 @@
 	"/api/lockers/request": [
 		"src/routes/api/lockers/request/+server.ts"
 	],
+	"/api/lockers/request/[id]/resubmit": [
+		"src/routes/api/lockers/request/[id]/resubmit/+server.ts"
+	],
+	"/api/lockers/user/[id]": [
+		"src/routes/api/lockers/user/[id]/+server.ts"
+	],
 	"/api/lockers/[id]": [
 		"src/routes/api/lockers/[id]/+server.ts"
+	],
+	"/api/lockers/[id]/otp": [
+		"src/routes/api/lockers/[id]/otp/+server.ts"
 	],
 	"/api/locker": [
 		"src/routes/api/locker/+server.ts"

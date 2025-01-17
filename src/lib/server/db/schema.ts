@@ -34,6 +34,10 @@ export const lockers = sqliteTable(
       .notNull()
       .default(false),
     lastAccessedAt: integer("last_accessed_at", {mode: "timestamp"}),
+    otpExpiresAt: integer("otp_expires_at", {mode: "timestamp"}),
+    createdAt: integer("created_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => ({
     numberIdx: index("number_idx").on(table.number),

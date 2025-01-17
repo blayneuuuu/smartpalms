@@ -2,25 +2,7 @@
 	import { UserButton } from 'svelte-clerk';
 	import { Card } from "$lib/components/ui/card";
 	import { Button } from "$lib/components/ui/button";
-	import { Input } from "$lib/components/ui/input";
-	import { Label } from "$lib/components/ui/label";
-	import {
-		Dialog,
-		DialogContent,
-		DialogDescription,
-		DialogHeader,
-		DialogTitle,
-		DialogTrigger,
-		DialogFooter,
-	} from "$lib/components/ui/dialog";
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger,
-		SelectValue,
-	} from "$lib/components/ui/select";
-	
+
 	type UserData = {
 		email: string;
 		fullName: string;
@@ -30,28 +12,41 @@
 
 	let { userData } = $props<{userData: UserData}>();
 
-	let rentedLockers = $state(0);
+	type LockerData = {
+		subscriptions: Array<{
+			id: string;
+			lockerId: string;
+			expiresAt: string;
+			lockerNumber: string;
+			lockerSize: string;
+			status: string;
+		}>;
+		requests: Array<{
+			id: string;
+			lockerId: string;
+			lockerNumber: string;
+			lockerSize: string;
+			status: string;
+			rejectionReason?: string;
+			requestedAt: string;
+			subscriptionName: string;
+			proofOfPayment: string | null;
+		}>;
+		subscriptionsCount: number;
+		requestsCount: number;
+	}
+
+	let lockerData = $state<LockerData>({ 
+		subscriptions: [], 
+		requests: [], 
+		subscriptionsCount: 0, 
+		requestsCount: 0 
+	});
 	let loading = $state(true);
 	let error = $state<string | null>(null);
-	let showRentDialog = $state(false);
-	let selectedLocker = $state<{id: string; number: string} | null>(null);
-	let selectedSubscriptionType = $state<string | null>(null);
-	let proofOfPayment = $state<string | null>(null);
-	let subscriptionTypes = $state<Array<{
-		id: string;
-		name: string;
-		duration: string;
-		amount: number;
-	}>>([]);
+	let otpStates = $state<Record<string, { otp: string; expiresAt: string } | null>>({});
 
-	// Mock subscription types until API is ready
-	subscriptionTypes = [
-		{ id: "1", name: "1 Day Access", duration: "1_day", amount: 5000 },
-		{ id: "2", name: "7 Days Access", duration: "7_days", amount: 30000 },
-		{ id: "3", name: "30 Days Access", duration: "30_days", amount: 100000 },
-	];
-
-	async function fetchRentedLockers() {
+	async function fetchLockerData() {
 		if (!userData.id) return;
 		
 		loading = true;
@@ -60,78 +55,65 @@
 			const response = await fetch(`/api/lockers/user/${userData.id}`);
 			if (!response.ok) throw new Error('Failed to fetch locker data');
 			const data = await response.json();
-			rentedLockers = data.count ?? 0;
+			lockerData = data;
 		} catch (err) {
 			console.error('Error fetching locker data:', err);
 			error = err instanceof Error ? err.message : 'Failed to fetch locker data';
-			rentedLockers = 0;
+			lockerData = { subscriptions: [], requests: [], subscriptionsCount: 0, requestsCount: 0 };
 		} finally {
 			loading = false;
 		}
 	}
 
-	function formatAmount(amount: number): string {
-		return `₱${(amount / 100).toFixed(2)}`;
+	function formatDate(date: string) {
+		return new Date(date).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
 	}
 
-	async function handleFileUpload(event: Event) {
-		const input = event.target as HTMLInputElement;
-		if (!input.files?.length) return;
-
-		const file = input.files[0];
-		const reader = new FileReader();
-
-		reader.onload = () => {
-			proofOfPayment = reader.result as string;
-		};
-
-		reader.readAsDataURL(file);
-	}
-
-	async function handleRentSubmit() {
-		if (!selectedLocker || !selectedSubscriptionType || !proofOfPayment || !userData.id) {
-			error = "Please fill in all required fields";
-			return;
-		}
-
+	async function generateOTP(lockerId: string) {
 		try {
-			// Create locker request
-			const response = await fetch('/api/lockers/request', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					userId: userData.id,
-					lockerId: selectedLocker.id,
-					subscriptionTypeId: selectedSubscriptionType,
-					proofOfPayment,
-				}),
+			const response = await fetch(`/api/lockers/${lockerId}/otp`, {
+				method: 'POST'
 			});
 
-			if (!response.ok) throw new Error('Failed to submit rental request');
-
-			// Reset form
-			showRentDialog = false;
-			selectedLocker = null;
-			selectedSubscriptionType = null;
-			proofOfPayment = null;
-
-			// Refresh locker data
-			fetchRentedLockers();
+			if (!response.ok) throw new Error('Failed to generate OTP');
+			
+			const data = await response.json();
+			otpStates[lockerId] = data;
 		} catch (err) {
-			console.error('Error submitting rental request:', err);
-			error = err instanceof Error ? err.message : 'Failed to submit rental request';
+			console.error('Error generating OTP:', err);
+			error = err instanceof Error ? err.message : 'Failed to generate OTP';
 		}
 	}
 
-	function openRentDialog(locker: {id: string; number: string}) {
-		selectedLocker = locker;
-		showRentDialog = true;
+	async function resubmitRequest(requestId: string, newProofOfPayment: string | null = null) {
+		try {
+			const response = await fetch(`/api/lockers/request/${requestId}/resubmit`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ proofOfPayment: newProofOfPayment })
+			});
+
+			if (!response.ok) throw new Error('Failed to resubmit request');
+			
+			await fetchLockerData();
+		} catch (err) {
+			console.error('Error resubmitting request:', err);
+			error = err instanceof Error ? err.message : 'Failed to resubmit request';
+		}
 	}
 
 	// Fetch data when component mounts
-	if (userData.id) {
-		fetchRentedLockers();
-	}
+	$effect(() => {
+		if (userData.id) {
+			fetchLockerData();
+		}
+	});
 </script>
 
 <div class="min-h-screen bg-gray-50">
@@ -153,103 +135,130 @@
 				<p>{error}</p>
 				<button 
 					class="bg-red-100 text-red-800 px-3 py-1 rounded mt-2 hover:bg-red-200"
-					on:click={fetchRentedLockers}
+					on:click={fetchLockerData}
 				>
 					Retry
 				</button>
 			</div>
 		{/if}
 
-		<Dialog bind:open={showRentDialog}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Rent Locker {selectedLocker?.number}</DialogTitle>
-					<DialogDescription>
-						Please select a subscription plan and upload your proof of payment.
-					</DialogDescription>
-				</DialogHeader>
-
-				<div class="grid gap-4 py-4">
-					<div class="grid gap-2">
-						<Label for="subscription">Subscription Plan</Label>
-						<Select onValueChange={(value) => selectedSubscriptionType = value}>
-							<SelectTrigger>
-								<SelectValue placeholder="Select a plan" />
-							</SelectTrigger>
-							<SelectContent>
-								{#each subscriptionTypes as type}
-									<SelectItem value={type.id}>
-										{type.name} - {formatAmount(type.amount)}
-									</SelectItem>
-								{/each}
-							</SelectContent>
-						</Select>
+		<div class="space-y-6">
+			<!-- Rented Lockers Section -->
+			<div class="bg-white shadow rounded-lg p-6">
+				<div class="border rounded-lg p-6">
+					<div class="flex justify-between items-center mb-6">
+						<h2 class="text-xl text-gray-700">
+							Rented Lockers: 
+							{#if loading}
+								<span class="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse"></span>
+							{:else}
+								<span class="font-semibold text-black">{lockerData.subscriptionsCount}</span>
+							{/if}
+						</h2>
+						<a 
+							href="/lockers" 
+							class="bg-blue-500 hover:bg-blue-600 text-white text-lg px-6 py-2 rounded-md transition-colors duration-200 inline-flex items-center"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+							</svg>
+							Rent a Locker
+						</a>
 					</div>
-
-					<div class="grid gap-2">
-						<Label for="proof">Proof of Payment</Label>
-						<Input
-							id="proof"
-							type="file"
-							accept="image/*"
-							on:change={handleFileUpload}
-						/>
-						{#if proofOfPayment}
-							<img 
-								src={proofOfPayment} 
-								alt="Proof of Payment Preview"
-								class="mt-2 max-h-48 rounded-lg"
-							/>
-						{/if}
-					</div>
+					
+					{#if !loading && lockerData.subscriptionsCount > 0}
+						<div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+							{#each lockerData.subscriptions as subscription}
+								<div class="bg-white rounded-lg shadow p-4 border border-gray-200">
+									<div class="flex justify-between items-start mb-2">
+										<div>
+											<h3 class="text-lg font-semibold">Locker #{subscription.lockerNumber}</h3>
+											<p class="text-sm text-gray-500 capitalize">{subscription.lockerSize} Size</p>
+										</div>
+										<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+											Active
+										</span>
+									</div>
+									<div class="mt-4 space-y-3">
+										<p class="text-sm text-gray-600">
+											<span class="font-medium">Expires:</span> {formatDate(subscription.expiresAt)}
+										</p>
+										
+										{#if otpStates[subscription.lockerId]}
+											<div class="bg-blue-50 p-3 rounded-md">
+												<p class="text-sm font-medium text-blue-900">
+													OTP: {otpStates[subscription.lockerId]?.otp || 'N/A'}
+												</p>
+											</div>
+										{/if}
+										
+										<Button 
+											variant="outline" 
+											class="w-full"
+											on:click={() => generateOTP(subscription.lockerId)}
+										>
+											{otpStates[subscription.lockerId] ? 'Generate New OTP' : 'Generate OTP'}
+										</Button>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{:else if !loading}
+						<p class="text-gray-500 text-center py-8">
+							You haven't rented any lockers yet. Click the button above to get started!
+						</p>
+					{/if}
 				</div>
-
-				<DialogFooter>
-					<Button variant="outline" on:click={() => showRentDialog = false}>
-						Cancel
-					</Button>
-					<Button
-						on:click={handleRentSubmit}
-						disabled={!selectedSubscriptionType || !proofOfPayment}
-					>
-						Submit Request
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
-
-		<div class="bg-white shadow rounded-lg p-6">
-			<div class="border rounded-lg p-6">
-				<div class="flex justify-between items-center mb-6">
-					<h2 class="text-xl text-gray-700">
-						Rented Lockers: 
-						{#if loading}
-							<span class="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse"></span>
-						{:else}
-							<span class="font-semibold text-black">{rentedLockers}</span>
-						{/if}
-					</h2>
-					<a 
-						href="/lockers" 
-						class="bg-blue-500 hover:bg-blue-600 text-white text-lg px-6 py-2 rounded-md transition-colors duration-200 inline-flex items-center"
-					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-							<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-						</svg>
-						Rent a Locker
-					</a>
-				</div>
-				
-				{#if !loading && rentedLockers > 0}
-					<div class="mt-4">
-						<!-- We can add a list of rented lockers here -->
-					</div>
-				{:else if !loading}
-					<p class="text-gray-500 text-center py-8">
-						You haven't rented any lockers yet. Click the button above to get started!
-					</p>
-				{/if}
 			</div>
+
+			<!-- Locker Requests Section -->
+			{#if lockerData.requestsCount > 0}
+				<div class="bg-white shadow rounded-lg p-6">
+					<div class="border rounded-lg p-6">
+						<h2 class="text-xl text-gray-700 mb-6">Locker Requests</h2>
+						<div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+							{#each lockerData.requests as request}
+								<div class="bg-white rounded-lg shadow p-4 border border-gray-200">
+									<div class="flex justify-between items-start mb-2">
+										<div>
+											<h3 class="text-lg font-semibold">Locker #{request.lockerNumber}</h3>
+											<p class="text-sm text-gray-500 capitalize">{request.lockerSize} Size</p>
+										</div>
+										<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+											{request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+											request.status === 'approved' ? 'bg-green-100 text-green-800' : 
+											'bg-red-100 text-red-800'}">
+											{request.status}
+										</span>
+									</div>
+									<div class="mt-4 space-y-3">
+										<p class="text-sm text-gray-600">
+											<span class="font-medium">Subscription:</span> {request.subscriptionName}
+										</p>
+										<p class="text-sm text-gray-600">
+											<span class="font-medium">Requested:</span> {formatDate(request.requestedAt)}
+										</p>
+										{#if request.status === 'rejected'}
+											<div class="bg-red-50 p-3 rounded-md">
+												<p class="text-sm text-red-800">
+													<span class="font-medium">Reason:</span> {request.rejectionReason}
+												</p>
+												<Button 
+													variant="outline" 
+													class="w-full mt-2"
+													on:click={() => resubmitRequest(request.id)}
+												>
+													Resubmit Request
+												</Button>
+											</div>
+										{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
+			{/if}
 		</div>
 	</main>
 </div>
