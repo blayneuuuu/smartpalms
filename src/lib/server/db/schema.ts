@@ -31,24 +31,6 @@ export const users = sqliteTable(
   })
 );
 
-// Admin table
-export const admins = sqliteTable(
-  "admins",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id")
-      .notNull()
-      .unique()
-      .references(() => users.id),
-    createdAt: integer("created_at", {mode: "timestamp"})
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (table) => ({
-    userIdIdx: index("user_id_idx").on(table.userId),
-  })
-);
-
 // Lockers table
 export const lockers = sqliteTable(
   "lockers",
@@ -99,7 +81,7 @@ export const lockerRequests = sqliteTable(
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
     processedAt: integer("processed_at", {mode: "timestamp"}),
-    processedBy: text("processed_by").references(() => admins.id),
+    processedBy: text("processed_by").references(() => users.id),
   },
   (table) => ({
     userIdIdx: index("request_user_id_idx").on(table.userId),
@@ -204,8 +186,8 @@ export const accessHistory = sqliteTable(
 );
 
 // Types for your entities
-export type Admin = typeof admins.$inferSelect;
-export type NewAdmin = typeof admins.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
@@ -221,9 +203,6 @@ export type NewLockerRequest = typeof lockerRequests.$inferInsert;
 
 export type SubscriptionType = typeof subscriptionTypes.$inferSelect;
 export type NewSubscriptionType = typeof subscriptionTypes.$inferInsert;
-
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
 
 export type AccessHistory = typeof accessHistory.$inferSelect;
 export type NewAccessHistory = typeof accessHistory.$inferInsert;

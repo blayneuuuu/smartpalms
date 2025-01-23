@@ -1,16 +1,18 @@
-import type {RequestEvent} from "@sveltejs/kit";
+import type {RequestEvent, RequestHandler} from "@sveltejs/kit";
+import type {User} from "$lib/server/db/schema";
 
-export interface AuthenticatedRequestEvent extends RequestEvent {
+export interface AuthenticatedRequestEvent {
   locals: {
-    auth: {
-      userId: string;
-    };
+    user: User;
   };
 }
 
-export type AuthenticatedRequestHandler = (
-  event: AuthenticatedRequestEvent
-) => Promise<Response>;
+export type AuthenticatedRequestHandler = RequestHandler<{
+  locals: {
+    user: User;
+  };
+  params?: Record<string, string>;
+}>;
 
 // Base API request type
 export type APIRequest = RequestEvent<
