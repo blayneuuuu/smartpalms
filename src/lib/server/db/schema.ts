@@ -5,13 +5,41 @@ export type Status = "active" | "expired" | "cancelled";
 export type LockerSize = "small" | "medium" | "large";
 export type RequestStatus = "pending" | "approved" | "rejected";
 export type SubscriptionDuration = "1_day" | "7_days" | "30_days";
+export type UserType = "admin" | "user";
+
+// Users table
+export const users = sqliteTable(
+  "users",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    password: text("password").notNull(),
+    type: text("type", {enum: ["admin", "user"]})
+      .notNull()
+      .default("user"),
+    createdAt: integer("created_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer("updated_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    emailIdx: index("email_idx").on(table.email),
+    typeIdx: index("type_idx").on(table.type),
+  })
+);
 
 // Admin table
 export const admins = sqliteTable(
   "admins",
   {
     id: text("id").primaryKey(),
-    userId: text("user_id").notNull().unique(),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => users.id),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -28,7 +56,7 @@ export const lockers = sqliteTable(
     id: text("id").primaryKey(),
     number: text("number").notNull().unique(),
     size: text("size", {enum: ["small", "medium", "large"]}).notNull(),
-    userId: text("user_id"), // Nullable - if null, locker is available
+    userId: text("user_id").references(() => users.id), // Nullable - if null, locker is available
     otp: text("otp"),
     isOccupied: integer("is_occupied", {mode: "boolean"})
       .notNull()
@@ -51,7 +79,9 @@ export const lockerRequests = sqliteTable(
   "locker_requests",
   {
     id: text("id").primaryKey(),
-    userId: text("user_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
     lockerId: text("locker_id")
       .notNull()
       .references(() => lockers.id),
@@ -89,7 +119,9 @@ export const subscriptions = sqliteTable(
     status: text("status", {
       enum: ["active", "expired", "cancelled"],
     }).notNull(),
-    userId: text("user_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
     lockerId: text("locker_id")
       .notNull()
       .references(() => lockers.id, {onDelete: "cascade"}),
@@ -111,7 +143,9 @@ export const transactions = sqliteTable(
   {
     id: text("id").primaryKey(),
     amount: text("amount").notNull(),
-    userId: text("user_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
     subscriptionId: text("subscription_id").references(() => subscriptions.id),
     status: text("status", {enum: ["success", "failed", "pending"]}).notNull(),
     proofOfPayment: text("proof_of_payment"), // Base64 image for proof of payment
@@ -146,6 +180,29 @@ export const subscriptionTypes = sqliteTable(
   })
 );
 
+// Access History table
+export const accessHistory = sqliteTable(
+  "access_history",
+  {
+    id: text("id").primaryKey(),
+    lockerId: text("locker_id")
+      .notNull()
+      .references(() => lockers.id),
+    userId: text("user_id").references(() => users.id),
+    accessedAt: integer("accessed_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    accessType: text("access_type", {enum: ["otp", "external"]}).notNull(),
+    otp: text("otp"),
+    status: text("status", {enum: ["success", "failed"]}).notNull(),
+  },
+  (table) => ({
+    lockerIdIdx: index("access_locker_id_idx").on(table.lockerId),
+    userIdIdx: index("access_user_id_idx").on(table.userId),
+    accessedAtIdx: index("accessed_at_idx").on(table.accessedAt),
+  })
+);
+
 // Types for your entities
 export type Admin = typeof admins.$inferSelect;
 export type NewAdmin = typeof admins.$inferInsert;
@@ -164,3 +221,9 @@ export type NewLockerRequest = typeof lockerRequests.$inferInsert;
 
 export type SubscriptionType = typeof subscriptionTypes.$inferSelect;
 export type NewSubscriptionType = typeof subscriptionTypes.$inferInsert;
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+export type AccessHistory = typeof accessHistory.$inferSelect;
+export type NewAccessHistory = typeof accessHistory.$inferInsert;

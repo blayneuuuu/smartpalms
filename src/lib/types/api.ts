@@ -1,17 +1,5 @@
 import type {RequestEvent} from "@sveltejs/kit";
 
-export interface AuthenticatedRequestEvent extends RequestEvent {
-  locals: {
-    auth: {
-      userId: string;
-    };
-  };
-}
-
-export type AuthenticatedRequestHandler = (
-  event: AuthenticatedRequestEvent
-) => Promise<Response>;
-
 // Base API request type
 export type APIRequest = RequestEvent<
   Partial<Record<string, string>>,

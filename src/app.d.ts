@@ -1,16 +1,30 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 /// <reference types="svelte-clerk/env" />
+/// <reference types="@sveltejs/kit" />
+
 declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      auth: import("svelte-clerk/server").Auth;
+      user?: {
+        id: string;
+        email: string;
+        name: string;
+        type: "admin" | "user";
+      };
     }
-    // interface PageData {}
+    interface PageData {
+      user?: {
+        id: string;
+        email: string;
+        name: string;
+        type: "admin" | "user";
+      };
+    }
     // interface PageState {}
-    // interface Platform {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface Platform {}
   }
 }
 

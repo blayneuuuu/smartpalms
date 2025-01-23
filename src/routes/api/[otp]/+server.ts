@@ -1,90 +1,95 @@
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { db } from "$lib/server/db";
-import { lockers } from "$lib/server/db/schema";
-import { eq } from "drizzle-orm";
+import {json} from "@sveltejs/kit";
+import {db} from "$lib/server/db";
+import {lockers, accessHistory} from "$lib/server/db/schema";
+import {eq, and, lte} from "drizzle-orm";
+import type {RequestHandler} from "@sveltejs/kit";
+import type {OTPAccessResponse} from "$lib/types/api";
+import {APIErrors, handleError} from "$lib/server/errors";
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({params}) => {
   try {
-    const otp = params.otp;
+    const {otp} = params;
 
-    // Find locker with matching OTP
-    const locker = await db
-      .select()
-      .from(lockers)
-      .where(eq(lockers.otp, otp))
-      .get();
-
-    if (!locker) {
-      return json(
-        {
-          success: false,
-          message: "Invalid OTP",
-        },
-        { status: 404 },
-      );
+    if (!otp) {
+      throw APIErrors.OTP.REQUIRED();
     }
 
-    return json({
-      success: true,
-      data: {
-        number: locker.number,
-        size: locker.size,
-      },
+    // Find locker with matching OTP and not expired
+    const [locker] = await db
+      .select()
+      .from(lockers)
+      .where(and(eq(lockers.otp, otp), lte(lockers.otpExpiresAt, new Date())));
+
+    if (!locker) {
+      // Create failed access history without user ID
+      await db.insert(accessHistory).values({
+        id: crypto.randomUUID(),
+        lockerId: "unknown",
+        accessType: "otp",
+        otp,
+        status: "failed",
+      });
+
+      throw APIErrors.OTP.INVALID();
+    }
+
+    // Create successful access history
+    await db.insert(accessHistory).values({
+      id: crypto.randomUUID(),
+      lockerId: locker.id,
+      accessType: "otp",
+      otp,
+      status: "success",
     });
-  } catch (error) {
-    console.error("Error fetching locker by OTP:", error);
-    return json(
-      {
-        success: false,
-        message: "Server error",
-      },
-      { status: 500 },
-    );
+
+    // Clear OTP after successful use
+    await db
+      .update(lockers)
+      .set({
+        otp: null,
+        otpExpiresAt: null,
+        lastAccessedAt: new Date(),
+      })
+      .where(eq(lockers.id, locker.id));
+
+    const response: OTPAccessResponse = {
+      success: true,
+      locker: {id: locker.id, number: locker.number},
+    };
+    return json(response);
+  } catch (err) {
+    return handleError(err);
   }
 };
 
 // Using PATCH as it's more semantically correct for partial updates
-export const PATCH: RequestHandler = async ({ params }) => {
+export const PATCH: RequestHandler = async ({params}) => {
   try {
-    const otp = params.otp;
+    const {otp} = params;
+
+    if (!otp) {
+      throw APIErrors.OTP.REQUIRED();
+    }
 
     // Find and update locker with matching OTP
-    const locker = await db
+    const [locker] = await db
       .select()
       .from(lockers)
-      .where(eq(lockers.otp, otp))
-      .get();
+      .where(eq(lockers.otp, otp));
 
     if (!locker) {
-      return json(
-        {
-          success: false,
-          message: "Invalid OTP",
-        },
-        { status: 404 },
-      );
+      throw APIErrors.OTP.INVALID();
     }
 
     // Reset OTP to null
-    await db
-      .update(lockers)
-      .set({ otp: null })
-      .where(eq(lockers.id, locker.id))
-      .run();
+    await db.update(lockers).set({otp: null}).where(eq(lockers.id, locker.id));
 
-    return json({
+    const response: OTPAccessResponse = {
       success: true,
       message: "OTP cleared successfully",
-    });
-  } catch (error) {
-    console.error("Error clearing OTP:", error);
-    return json(
-      {
-        success: false,
-        message: "Server error",
-      },
-      { status: 500 },
-    );
+    };
+    return json(response);
+  } catch (err) {
+    return handleError(err);
   }
 };

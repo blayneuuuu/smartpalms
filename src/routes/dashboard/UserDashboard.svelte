@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { UserButton } from 'svelte-clerk';
-	import { Card } from "$lib/components/ui/card";
-	import { Button } from "$lib/components/ui/button";
+	import { Card } from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { goto } from '$app/navigation';
 
 	type UserData = {
+		id: string;
 		email: string;
-		fullName: string;
-		imageUrl: string;
-		id: string | null;
-	}
+		name: string;
+		type: 'admin' | 'user';
+	};
 
-	let { userData } = $props<{userData: UserData}>();
+	let { userData } = $props<{ userData: UserData }>();
 
 	type LockerData = {
 		subscriptions: Array<{
@@ -34,13 +34,13 @@
 		}>;
 		subscriptionsCount: number;
 		requestsCount: number;
-	}
+	};
 
-	let lockerData = $state<LockerData>({ 
-		subscriptions: [], 
-		requests: [], 
-		subscriptionsCount: 0, 
-		requestsCount: 0 
+	let lockerData = $state<LockerData>({
+		subscriptions: [],
+		requests: [],
+		subscriptionsCount: 0,
+		requestsCount: 0
 	});
 	let loading = $state(true);
 	let error = $state<string | null>(null);
@@ -48,7 +48,7 @@
 
 	async function fetchLockerData() {
 		if (!userData.id) return;
-		
+
 		loading = true;
 		error = null;
 		try {
@@ -82,7 +82,7 @@
 			});
 
 			if (!response.ok) throw new Error('Failed to generate OTP');
-			
+
 			const data = await response.json();
 			otpStates[lockerId] = data;
 		} catch (err) {
@@ -100,11 +100,22 @@
 			});
 
 			if (!response.ok) throw new Error('Failed to resubmit request');
-			
+
 			await fetchLockerData();
 		} catch (err) {
 			console.error('Error resubmitting request:', err);
 			error = err instanceof Error ? err.message : 'Failed to resubmit request';
+		}
+	}
+
+	async function handleSignOut() {
+		try {
+			const response = await fetch('/api/auth/signout', { method: 'POST' });
+			if (response.ok) {
+				goto('/');
+			}
+		} catch (err) {
+			console.error('Sign out failed:', err);
 		}
 	}
 
@@ -122,9 +133,10 @@
 			<h1 class="text-2xl font-extrabold text-gray-900">Dashboard</h1>
 			<div class="flex flex-row items-center space-x-4">
 				<div class="flex items-center space-x-3">
-					<span class="text-lg font-semibold text-gray-700">{userData.fullName}</span>
+					<span class="text-lg font-semibold text-gray-700">{userData.name}</span>
 				</div>
-				<UserButton afterSignOutUrl="/"/>
+				<Button href="/profile" color="light">Profile</Button>
+				<Button color="light" on:click={handleSignOut}>Sign out</Button>
 			</div>
 		</div>
 	</header>
@@ -133,7 +145,7 @@
 		{#if error}
 			<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6">
 				<p>{error}</p>
-				<button 
+				<button
 					class="bg-red-100 text-red-800 px-3 py-1 rounded mt-2 hover:bg-red-200"
 					on:click={fetchLockerData}
 				>
@@ -148,24 +160,33 @@
 				<div class="border rounded-lg p-6">
 					<div class="flex justify-between items-center mb-6">
 						<h2 class="text-xl text-gray-700">
-							Rented Lockers: 
+							Rented Lockers:
 							{#if loading}
-								<span class="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse"></span>
+								<span class="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse" />
 							{:else}
 								<span class="font-semibold text-black">{lockerData.subscriptionsCount}</span>
 							{/if}
 						</h2>
-						<a 
-							href="/lockers" 
+						<a
+							href="/lockers"
 							class="bg-blue-500 hover:bg-blue-600 text-white text-lg px-6 py-2 rounded-md transition-colors duration-200 inline-flex items-center"
 						>
-							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-5 w-5 mr-2"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+									clip-rule="evenodd"
+								/>
 							</svg>
 							Rent a Locker
 						</a>
 					</div>
-					
+
 					{#if !loading && lockerData.subscriptionsCount > 0}
 						<div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 							{#each lockerData.subscriptions as subscription}
@@ -175,15 +196,18 @@
 											<h3 class="text-lg font-semibold">Locker #{subscription.lockerNumber}</h3>
 											<p class="text-sm text-gray-500 capitalize">{subscription.lockerSize} Size</p>
 										</div>
-										<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+										<span
+											class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+										>
 											Active
 										</span>
 									</div>
 									<div class="mt-4 space-y-3">
 										<p class="text-sm text-gray-600">
-											<span class="font-medium">Expires:</span> {formatDate(subscription.expiresAt)}
+											<span class="font-medium">Expires:</span>
+											{formatDate(subscription.expiresAt)}
 										</p>
-										
+
 										{#if otpStates[subscription.lockerId]}
 											<div class="bg-blue-50 p-3 rounded-md">
 												<p class="text-sm font-medium text-blue-900">
@@ -191,9 +215,9 @@
 												</p>
 											</div>
 										{/if}
-										
-										<Button 
-											variant="outline" 
+
+										<Button
+											variant="outline"
 											class="w-full"
 											on:click={() => generateOTP(subscription.lockerId)}
 										>
@@ -224,27 +248,34 @@
 											<h3 class="text-lg font-semibold">Locker #{request.lockerNumber}</h3>
 											<p class="text-sm text-gray-500 capitalize">{request.lockerSize} Size</p>
 										</div>
-										<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-											{request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-											request.status === 'approved' ? 'bg-green-100 text-green-800' : 
-											'bg-red-100 text-red-800'}">
+										<span
+											class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+											{request.status === 'pending'
+												? 'bg-yellow-100 text-yellow-800'
+												: request.status === 'approved'
+												? 'bg-green-100 text-green-800'
+												: 'bg-red-100 text-red-800'}"
+										>
 											{request.status}
 										</span>
 									</div>
 									<div class="mt-4 space-y-3">
 										<p class="text-sm text-gray-600">
-											<span class="font-medium">Subscription:</span> {request.subscriptionName}
+											<span class="font-medium">Subscription:</span>
+											{request.subscriptionName}
 										</p>
 										<p class="text-sm text-gray-600">
-											<span class="font-medium">Requested:</span> {formatDate(request.requestedAt)}
+											<span class="font-medium">Requested:</span>
+											{formatDate(request.requestedAt)}
 										</p>
 										{#if request.status === 'rejected'}
 											<div class="bg-red-50 p-3 rounded-md">
 												<p class="text-sm text-red-800">
-													<span class="font-medium">Reason:</span> {request.rejectionReason}
+													<span class="font-medium">Reason:</span>
+													{request.rejectionReason}
 												</p>
-												<Button 
-													variant="outline" 
+												<Button
+													variant="outline"
 													class="w-full mt-2"
 													on:click={() => resubmitRequest(request.id)}
 												>

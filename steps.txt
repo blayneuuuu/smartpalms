@@ -1,0 +1,99 @@
+[ ] Create a users table with the following fields:
+  - id (primary key)
+  - name
+  - email (unique)
+  - password (hashed)
+  - role (admin, user)
+  - created_at
+  - updated_at
+
+[x] Create an authentication system:
+  - Login
+  - Signup
+  - Logout
+  - Password hashing
+  - Session management
+
+[x] Remake login and signup pages using flowbite-svelte
+
+[x] Create an API route for user lockers:
+  - POST /api/access/external
+  - Request body: { locker_id: string }
+  - Response: { success: boolean, locker: { id: string, number: string } }
+
+[x] Create a new table for access history:
+  - id (primary key)
+  - locker_id (foreign key)
+  - user_id (foreign key)
+  - accessed_at
+  - access_type (otp, subscription)
+  - otp (nullable)
+  - status (success, failed)
+
+[x] Create API routes for generating access history:
+  - POST /api/access/external
+  - POST /api/access/otp
+
+Review Notes:
+1. Authentication System:
+   - Login, Register, and Profile pages are working with proper validation
+   - Password hashing and session management implemented
+   - Type safety improved with Zod schemas
+
+2. Locker Access:
+   - Two methods implemented:
+     a. OTP-based access (GET /api/[otp])
+     b. External direct access (POST /api/access/external)
+   - Both methods log access history
+   - Both endpoints are stateless and don't require user authentication
+   - Made both endpoints simpler by removing user ID requirement
+
+3. Access History:
+   - Properly tracks all access attempts (success/failed)
+   - Stores access method (otp/external)
+   - User ID made optional to support anonymous access
+   - Added proper type definitions for API responses
+
+4. Type Safety Improvements:
+   - Created centralized types in $lib/types/api.ts
+   - Fixed type errors in API endpoints
+   - Improved error handling with proper typing
+   - Added Zod validation for request bodies
+   - Fixed import paths for types
+
+5. Error Handling Improvements:
+   - Created centralized error handling system
+   - Added typed API errors with status codes and error codes
+   - Improved error messages and logging
+   - Standardized error responses across endpoints
+   - Added validation error handling
+
+6. API Improvements:
+   - Added request validation middleware
+   - Created comprehensive API documentation
+   - Standardized request validation across endpoints
+   - Added security notes and recommendations
+   - Documented all response types and error codes
+
+Final Review:
+1. Code Quality:
+   - Well-organized and modular code structure
+   - Consistent error handling and validation
+   - Type-safe with proper interfaces
+
+2. Security:
+   - Proper input validation
+   - Access logging for auditing
+   - Error messages don't expose internals
+   - OTP expiration and single-use enforced
+
+3. Maintainability:
+   - Clear documentation
+   - Centralized types and error handling
+   - Easy to add new features
+
+4. User Experience:
+   - Clear error messages
+   - Consistent response formats
+   - Fast response times
+   - Simple API design
