@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Card } from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
+	import { Button, Card, Badge, Alert, Spinner, Tabs, TabItem } from 'flowbite-svelte';
+	import { formatDate, formatTimestamp } from '$lib/utils/date';
 	import { goto } from '$app/navigation';
 
 	type UserData = {
@@ -11,14 +11,19 @@
 	};
 
 	let { userData } = $props<{ userData: UserData }>();
+	let loading = $state(false);
+	let error = $state<string | null>(null);
+	let currentOTP = $state<{otp: string; expiryDate: string} | null>(null);
 
 	type LockerData = {
+		subscriptionsCount: number;
+		requestsCount: number;
 		subscriptions: Array<{
 			id: string;
 			lockerId: string;
-			expiresAt: string;
 			lockerNumber: string;
 			lockerSize: string;
+			expiresAt: string;
 			status: string;
 		}>;
 		requests: Array<{
@@ -30,81 +35,87 @@
 			rejectionReason?: string;
 			requestedAt: string;
 			subscriptionName: string;
-			proofOfPayment: string | null;
+			proofOfPayment: string;
 		}>;
-		subscriptionsCount: number;
-		requestsCount: number;
 	};
 
 	let lockerData = $state<LockerData>({
-		subscriptions: [],
-		requests: [],
 		subscriptionsCount: 0,
-		requestsCount: 0
+		requestsCount: 0,
+		subscriptions: [],
+		requests: []
 	});
-	let loading = $state(true);
-	let error = $state<string | null>(null);
-	let otpStates = $state<Record<string, { otp: string; expiresAt: string } | null>>({});
+
+	type AccessHistory = {
+		id: string;
+		lockerId: string;
+		lockerNumber: string;
+		accessType: string;
+		otp: string | null;
+		status: string;
+		accessedAt: string;
+	};
+
+	let accessHistory = $state<AccessHistory[]>([]);
 
 	async function fetchLockerData() {
-		if (!userData.id) return;
-
 		loading = true;
 		error = null;
 		try {
-			const response = await fetch(`/api/lockers/user/${userData.id}`);
-			if (!response.ok) throw new Error('Failed to fetch locker data');
+			const response = await fetch(`/api/lockers/user/${userData.id}`, {
+				credentials: 'include'
+			});
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to fetch locker data');
+			}
 			const data = await response.json();
+			console.log('Received locker data:', data);
 			lockerData = data;
+			console.log('Updated locker data:', lockerData);
 		} catch (err) {
 			console.error('Error fetching locker data:', err);
 			error = err instanceof Error ? err.message : 'Failed to fetch locker data';
-			lockerData = { subscriptions: [], requests: [], subscriptionsCount: 0, requestsCount: 0 };
 		} finally {
 			loading = false;
 		}
 	}
 
-	function formatDate(date: string) {
-		return new Date(date).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	}
-
 	async function generateOTP(lockerId: string) {
+		loading = true;
+		error = null;
 		try {
 			const response = await fetch(`/api/lockers/${lockerId}/otp`, {
-				method: 'POST'
+				method: 'POST',
+				credentials: 'include'
 			});
-
-			if (!response.ok) throw new Error('Failed to generate OTP');
-
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to generate OTP');
+			}
 			const data = await response.json();
-			otpStates[lockerId] = data;
+			currentOTP = data;
 		} catch (err) {
 			console.error('Error generating OTP:', err);
 			error = err instanceof Error ? err.message : 'Failed to generate OTP';
+		} finally {
+			loading = false;
 		}
 	}
 
-	async function resubmitRequest(requestId: string, newProofOfPayment: string | null = null) {
+	async function resubmitRequest(requestId: string) {
 		try {
-			const response = await fetch(`/api/lockers/request/${requestId}/resubmit`, {
+			const response = await fetch(`/api/locker-requests/${requestId}/resubmit`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ proofOfPayment: newProofOfPayment })
 			});
 
-			if (!response.ok) throw new Error('Failed to resubmit request');
+			if (!response.ok) {
+				throw new Error('Failed to resubmit request');
+			}
 
 			await fetchLockerData();
-		} catch (err) {
-			console.error('Error resubmitting request:', err);
-			error = err instanceof Error ? err.message : 'Failed to resubmit request';
+		} catch (error) {
+			console.error('Error resubmitting request:', error);
 		}
 	}
 
@@ -119,10 +130,27 @@
 		}
 	}
 
-	// Fetch data when component mounts
+	async function fetchAccessHistory() {
+		try {
+			const response = await fetch(`/api/lockers/user/${userData.id}/access-history`, {
+				credentials: 'include'
+			});
+			if (!response.ok) {
+				throw new Error('Failed to fetch access history');
+			}
+			const data = await response.json();
+			accessHistory = data.history;
+		} catch (err) {
+			console.error('Error fetching access history:', err);
+		}
+	}
+
+	// Call fetchLockerData and fetchAccessHistory when the component mounts
 	$effect(() => {
 		if (userData.id) {
+			console.log('Fetching locker data for user:', userData.id);
 			fetchLockerData();
+			fetchAccessHistory();
 		}
 	});
 </script>
@@ -141,155 +169,166 @@
 		</div>
 	</header>
 
-	<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-		{#if error}
-			<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6">
-				<p>{error}</p>
-				<button
-					class="bg-red-100 text-red-800 px-3 py-1 rounded mt-2 hover:bg-red-200"
-					on:click={fetchLockerData}
-				>
-					Retry
-				</button>
-			</div>
-		{/if}
-
+	<main class="container mx-auto px-4 py-8">
 		<div class="space-y-6">
-			<!-- Rented Lockers Section -->
-			<div class="bg-white shadow rounded-lg p-6">
-				<div class="border rounded-lg p-6">
-					<div class="flex justify-between items-center mb-6">
-						<h2 class="text-xl text-gray-700">
-							Rented Lockers:
-							{#if loading}
-								<span class="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse" />
-							{:else}
-								<span class="font-semibold text-black">{lockerData.subscriptionsCount}</span>
-							{/if}
-						</h2>
-						<a
-							href="/lockers"
-							class="bg-blue-500 hover:bg-blue-600 text-white text-lg px-6 py-2 rounded-md transition-colors duration-200 inline-flex items-center"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5 mr-2"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-							>
-								<path
-									fill-rule="evenodd"
-									d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-							Rent a Locker
-						</a>
-					</div>
+			{#if error}
+				<Alert color="red">
+					<span class="font-medium">{error}</span>
+					<Button color="red" class="ml-4" on:click={() => {
+						error = null;
+						fetchLockerData();
+					}}>Retry</Button>
+				</Alert>
+			{/if}
 
-					{#if !loading && lockerData.subscriptionsCount > 0}
-						<div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-							{#each lockerData.subscriptions as subscription}
-								<div class="bg-white rounded-lg shadow p-4 border border-gray-200">
-									<div class="flex justify-between items-start mb-2">
-										<div>
-											<h3 class="text-lg font-semibold">Locker #{subscription.lockerNumber}</h3>
-											<p class="text-sm text-gray-500 capitalize">{subscription.lockerSize} Size</p>
-										</div>
-										<span
-											class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
-										>
-											Active
-										</span>
-									</div>
-									<div class="mt-4 space-y-3">
-										<p class="text-sm text-gray-600">
-											<span class="font-medium">Expires:</span>
-											{formatDate(subscription.expiresAt)}
-										</p>
-
-										{#if otpStates[subscription.lockerId]}
-											<div class="bg-blue-50 p-3 rounded-md">
-												<p class="text-sm font-medium text-blue-900">
-													OTP: {otpStates[subscription.lockerId]?.otp || 'N/A'}
-												</p>
-											</div>
-										{/if}
-
-										<Button
-											variant="outline"
-											class="w-full"
-											on:click={() => generateOTP(subscription.lockerId)}
-										>
-											{otpStates[subscription.lockerId] ? 'Generate New OTP' : 'Generate OTP'}
-										</Button>
-									</div>
-								</div>
-							{/each}
+			<Tabs style="underline">
+				<TabItem open title="My Lockers">
+					<div class="w-full flex flex-col">
+						<div class="flex justify-between items-center mb-4">
+							<h2 class="text-xl font-bold text-gray-900">Active Lockers</h2>
+							<Button href="/lockers" color="blue">Rent a Locker</Button>
 						</div>
-					{:else if !loading}
-						<p class="text-gray-500 text-center py-8">
-							You haven't rented any lockers yet. Click the button above to get started!
-						</p>
-					{/if}
-				</div>
-			</div>
 
-			<!-- Locker Requests Section -->
-			{#if lockerData.requestsCount > 0}
-				<div class="bg-white shadow rounded-lg p-6">
-					<div class="border rounded-lg p-6">
-						<h2 class="text-xl text-gray-700 mb-6">Locker Requests</h2>
-						<div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+						{#if loading}
+							<div class="flex justify-center py-4">
+								<Spinner size="8" />
+							</div>
+						{:else if !lockerData.subscriptions || lockerData.subscriptions.length === 0}
+							<p class="text-gray-600">You don't have any active locker subscriptions.</p>
+						{:else}
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+								{#each lockerData.subscriptions as subscription (subscription.id)}
+									<div class="bg-white shadow-md rounded-lg p-4">
+										<div class="flex flex-col space-y-4">
+											<div class="flex justify-between items-start">
+												<div>
+													<h3 class="text-lg font-semibold">Locker #{subscription.lockerNumber}</h3>
+													<p class="text-sm text-gray-600">Size: {subscription.lockerSize}</p>
+													<p class="text-sm text-gray-600">
+														Valid until: {formatDate(subscription.expiresAt, true)}
+													</p>
+												</div>
+												<Badge color={subscription.status === 'active' ? 'green' : 'red'}>
+													{subscription.status}
+												</Badge>
+											</div>
+
+											{#if subscription.status === 'active'}
+												<div class="flex flex-col space-y-2">
+													{#if currentOTP && !loading}
+														<Alert color="green">
+															<span class="text-lg">OTP: <span class="font-bold tracking-widest">{currentOTP.otp}</span></span>
+															<p class="text-sm">Expires at: {formatDate(currentOTP.expiryDate, true)}</p>
+														</Alert>
+													{/if}
+													<Button size="sm" on:click={() => generateOTP(subscription.lockerId)}>
+														{#if loading}
+															<Spinner class="mr-3" size="4" />
+															Loading...
+														{:else}
+															Generate OTP
+														{/if}
+													</Button>
+												</div>
+											{/if}
+										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</TabItem>
+
+				<TabItem title="Requests">
+					<div class="flex items-center gap-2 mb-4">
+						<h2 class="text-xl font-bold text-gray-900">Requests</h2>
+						{#if lockerData.requestsCount > 0}
+							<Badge color="blue">{lockerData.requestsCount}</Badge>
+						{/if}
+					</div>
+					{#if loading}
+						<div class="flex justify-center py-4">
+							<Spinner size="8" />
+						</div>
+					{:else if !lockerData.requests || lockerData.requests.length === 0}
+						<p class="text-gray-600">You don't have any pending requests.</p>
+					{:else}
+						<div class="space-y-4">
 							{#each lockerData.requests as request}
-								<div class="bg-white rounded-lg shadow p-4 border border-gray-200">
-									<div class="flex justify-between items-start mb-2">
+								<Card>
+									<div class="flex justify-between items-center">
 										<div>
 											<h3 class="text-lg font-semibold">Locker #{request.lockerNumber}</h3>
-											<p class="text-sm text-gray-500 capitalize">{request.lockerSize} Size</p>
-										</div>
-										<span
-											class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-											{request.status === 'pending'
-												? 'bg-yellow-100 text-yellow-800'
-												: request.status === 'approved'
-												? 'bg-green-100 text-green-800'
-												: 'bg-red-100 text-red-800'}"
-										>
-											{request.status}
-										</span>
-									</div>
-									<div class="mt-4 space-y-3">
-										<p class="text-sm text-gray-600">
-											<span class="font-medium">Subscription:</span>
-											{request.subscriptionName}
-										</p>
-										<p class="text-sm text-gray-600">
-											<span class="font-medium">Requested:</span>
-											{formatDate(request.requestedAt)}
-										</p>
-										{#if request.status === 'rejected'}
-											<div class="bg-red-50 p-3 rounded-md">
-												<p class="text-sm text-red-800">
-													<span class="font-medium">Reason:</span>
-													{request.rejectionReason}
+											<p class="text-sm text-gray-600">Size: {request.lockerSize}</p>
+											<p class="text-sm text-gray-600">
+												Subscription: {request.subscriptionName}
+											</p>
+											<p class="text-sm text-gray-600">
+												Requested on: {formatDate(request.requestedAt, true)}
+											</p>
+											{#if request.status === 'rejected' && request.rejectionReason}
+												<p class="text-sm text-red-600">
+													Reason: {request.rejectionReason}
 												</p>
-												<Button
-													variant="outline"
-													class="w-full mt-2"
-													on:click={() => resubmitRequest(request.id)}
-												>
-													Resubmit Request
+											{/if}
+										</div>
+										<div class="flex items-center space-x-4">
+											<Badge
+												color={request.status === 'pending'
+													? 'yellow'
+													: request.status === 'approved'
+													? 'green'
+													: 'red'}
+											>
+												{request.status}
+											</Badge>
+											{#if request.status === 'rejected'}
+												<Button size="sm" on:click={() => resubmitRequest(request.id)}>
+													Resubmit
 												</Button>
-											</div>
-										{/if}
+											{/if}
+										</div>
 									</div>
-								</div>
+								</Card>
 							{/each}
 						</div>
-					</div>
-				</div>
-			{/if}
+					{/if}
+				</TabItem>
+
+				<TabItem title="Access History">
+					{#if loading}
+						<div class="flex justify-center py-4">
+							<Spinner size="8" />
+						</div>
+					{:else if !accessHistory || accessHistory.length === 0}
+						<p class="text-gray-600">No access history available.</p>
+					{:else}
+						<div class="space-y-4">
+							{#each accessHistory as access}
+								<Card>
+									<div class="flex justify-between items-center">
+										<div>
+											<h3 class="text-lg font-semibold">Locker #{access.lockerNumber}</h3>
+											<p class="text-sm text-gray-600">
+												Access Type: {access.accessType === 'otp' ? 'OTP' : 'Subscription'}
+											</p>
+											{#if access.otp}
+												<p class="text-sm text-gray-600">OTP: {access.otp}</p>
+											{/if}
+											<p class="text-sm text-gray-600">
+												Accessed on: {formatTimestamp(access.accessedAt)}
+											</p>
+										</div>
+										<Badge color={access.status === 'success' ? 'green' : 'red'}>
+											{access.status}
+										</Badge>
+									</div>
+								</Card>
+							{/each}
+						</div>
+					{/if}
+				</TabItem>
+			</Tabs>
 		</div>
 	</main>
 </div>

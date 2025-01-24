@@ -6,9 +6,8 @@ import type {NewLockerRequest} from "$lib/server/db/schema";
 import {nanoid} from "nanoid";
 import {eq, and} from "drizzle-orm";
 
-export const POST: RequestHandler = async ({request, locals}) => {
-  const userId = locals.auth?.userId;
-  if (!userId) {
+export const POST: RequestHandler = async ({locals, request}) => {
+  if (!locals.user) {
     throw error(401, "Unauthorized");
   }
 
@@ -50,7 +49,7 @@ export const POST: RequestHandler = async ({request, locals}) => {
     // Create locker request
     const newRequest: NewLockerRequest = {
       id: nanoid(),
-      userId,
+      userId: locals.user.id,
       lockerId,
       subscriptionTypeId,
       proofOfPayment,

@@ -2,6 +2,7 @@
 	import { Button, Input, Label, Alert } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
+	import { goto } from '$app/navigation';
 
 	export let form: ActionData;
 
@@ -9,6 +10,10 @@
 	let email = '';
 	let password = '';
 	let confirmPassword = '';
+
+	$: if (form?.success) {
+		goto(form.location);
+	}
 </script>
 
 <div class="w-screen h-screen flex flex-col justify-center items-center bg-gray-50">

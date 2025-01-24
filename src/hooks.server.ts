@@ -11,11 +11,23 @@ export const handle: Handle = async ({event, resolve}) => {
     return await resolve(event);
   }
 
-  const [user] = await db.select().from(users).where(eq(users.id, session));
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, session),
+    columns: {
+      id: true,
+      email: true,
+      name: true,
+      type: true,
+    },
+  });
 
   if (user) {
-    const {password: _, ...safeUser} = user;
-    event.locals.user = safeUser;
+    event.locals.user = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      type: user.type,
+    };
   }
 
   return await resolve(event);

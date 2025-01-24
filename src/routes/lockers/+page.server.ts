@@ -7,15 +7,19 @@ import {
   lockers,
   subscriptionTypes,
   lockerRequests,
+  type LockerSize,
 } from "$lib/server/db/schema";
-import {eq, and, sql} from "drizzle-orm";
+import {eq, and, sql, asc} from "drizzle-orm";
 
 export const load: PageServerLoad = async ({locals}) => {
   try {
     console.log("Loading data from database...");
 
-    // Get all lockers
-    const allLockers = await db.select().from(lockers);
+    // Get all lockers, sorted by size and number
+    const allLockers = await db
+      .select()
+      .from(lockers)
+      .orderBy(lockers.size, asc(lockers.number));
 
     // Get all pending requests
     const pendingRequests = await db
@@ -44,11 +48,23 @@ export const load: PageServerLoad = async ({locals}) => {
       };
     });
 
-    console.log("Fetched lockers:", lockersWithAvailability);
+    // Sort lockers by custom size order (small, medium, large)
+    const sizeOrder: Record<LockerSize, number> = {
+      small: 1,
+      medium: 2,
+      large: 3,
+    };
+    const sortedLockers = lockersWithAvailability.sort((a, b) => {
+      const sizeCompare = sizeOrder[a.size] - sizeOrder[b.size];
+      if (sizeCompare !== 0) return sizeCompare;
+      return a.number.localeCompare(b.number);
+    });
+
+    console.log("Fetched lockers:", sortedLockers);
     console.log("Fetched subscription types:", activeSubscriptionTypes);
 
     return {
-      lockers: lockersWithAvailability,
+      lockers: sortedLockers,
       subscriptionTypes: activeSubscriptionTypes,
     };
   } catch (err) {

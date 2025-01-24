@@ -47,7 +47,10 @@ export const actions = {
         maxAge: 60 * 60 * 24 * 30, // 30 days
       });
 
-      throw redirect(303, "/dashboard");
+      return {
+        success: true,
+        location: "/dashboard",
+      };
     } catch (error) {
       console.error("Registration error:", error);
       return fail(500, {error: "Failed to create account"});

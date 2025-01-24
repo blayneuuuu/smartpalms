@@ -7,25 +7,13 @@ import {
   lockers,
   subscriptions,
   transactions,
-  admins,
   subscriptionTypes,
-  type SubscriptionType,
 } from "$lib/server/db/schema";
 import {eq, and} from "drizzle-orm";
 
 export const PUT: RequestHandler = async ({params, request, locals}) => {
-  const userId = locals.auth?.userId;
-  if (!userId) {
+  if (!locals.user || locals.user.type !== "admin") {
     throw error(401, "Unauthorized");
-  }
-
-  // Get admin record
-  const admin = await db.query.admins.findFirst({
-    where: eq(admins.userId, userId),
-  });
-
-  if (!admin) {
-    throw error(401, "Unauthorized - Admin access required");
   }
 
   const requestId = params.id;
@@ -70,8 +58,8 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
     }
 
     if (status === "approve") {
-      // Check if locker is still available
-      const existingSubscription = await db
+      // Check if locker is already assigned to an active subscription
+      const [existingSubscription] = await db
         .select()
         .from(subscriptions)
         .where(
@@ -79,8 +67,7 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
             eq(subscriptions.lockerId, lockerRequest.lockerId),
             eq(subscriptions.status, "active")
           )
-        )
-        .get();
+        );
 
       if (existingSubscription) {
         throw error(400, "Locker is no longer available");
@@ -134,9 +121,19 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
         .update(lockers)
         .set({
           userId: lockerRequest.userId,
-          lastAccessedAt: new Date(),
+          isOccupied: true,
         })
         .where(eq(lockers.id, lockerRequest.lockerId));
+
+      // Update request status
+      await db
+        .update(lockerRequests)
+        .set({
+          status: "approved",
+          processedAt: new Date(),
+          processedBy: locals.user.id,
+        })
+        .where(eq(lockerRequests.id, requestId));
 
       // Delete the request
       await db.delete(lockerRequests).where(eq(lockerRequests.id, requestId));
@@ -148,7 +145,7 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
           status: "rejected",
           rejectionReason: rejectionReason || "No reason provided",
           processedAt: new Date(),
-          processedBy: admin.id,
+          processedBy: locals.user.id,
         })
         .where(eq(lockerRequests.id, requestId));
     }

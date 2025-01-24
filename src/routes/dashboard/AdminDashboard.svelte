@@ -1,145 +1,141 @@
 <script lang="ts">
-	import Request from './dashboardComponents/Request.svelte';
-	import Users from './dashboardComponents/Users.svelte';
-	import { Button } from 'flowbite-svelte';
-	import { goto } from '$app/navigation';
+  import {
+    Button,
+    Card,
+    Badge,
+    Alert,
+    Spinner,
+    Tabs,
+    TabItem,
+  } from "flowbite-svelte";
+  import StatsCard from "./components/StatsCard.svelte";
+  import RequestsTab from "./components/RequestsTab.svelte";
+  import LockersTab from "./components/LockersTab.svelte";
+  import UsersTab from "./components/UsersTab.svelte";
+  import SubscriptionTypesTab from "./components/SubscriptionTypesTab.svelte";
+  import {stats, loading, errors} from "$lib/stores/admin";
+  import {
+    fetchDashboardStats,
+    fetchRequests,
+    fetchLockers,
+    fetchUsers,
+    fetchSubscriptionTypes,
+  } from "$lib/services/admin";
 
-	type UserData = {
-		id: string;
-		email: string;
-		name: string;
-		type: 'admin' | 'user';
-	};
+  type UserData = {
+    id: string;
+    email: string;
+    name: string;
+    type: "admin" | "user";
+  };
 
-	let { userData } = $props<{ userData: UserData }>();
+  let {userData} = $props<{userData: UserData}>();
+  let activeTab = $state("requests");
 
-	type DashboardTab = 'requests' | 'lockers' | 'users';
-	let activeTab = $state<DashboardTab>('requests');
-	let loading = $state(true);
-	let error = $state<string | null>(null);
-	let stats = $state({
-		totalLockers: 0,
-		occupiedLockers: 0,
-		totalUsers: 0,
-		pendingRequests: 0
-	});
+  // Initial data fetch
+  $effect(() => {
+    Promise.all([
+      fetchDashboardStats(),
+      fetchRequests(),
+      fetchLockers(),
+      fetchUsers(),
+      fetchSubscriptionTypes(),
+    ]).catch((err) => {
+      console.error("Error fetching initial data:", err);
+    });
+  });
 
-	async function fetchDashboardStats() {
-		loading = true;
-		error = null;
-		try {
-			const response = await fetch('/api/admin/stats');
-			if (!response.ok) throw new Error('Failed to fetch dashboard stats');
-			const data = await response.json();
-			stats = data;
-		} catch (err) {
-			console.error('Error fetching dashboard stats:', err);
-			error = err instanceof Error ? err.message : 'Failed to fetch dashboard stats';
-		} finally {
-			loading = false;
-		}
-	}
+  // Fetch data when tab changes
+  $effect(() => {
+    switch (activeTab) {
+      case "requests":
+        fetchRequests();
+        break;
+      case "lockers":
+        fetchLockers();
+        break;
+      case "users":
+        fetchUsers();
+        break;
+      case "subscription-types":
+        fetchSubscriptionTypes();
+        break;
+    }
+  });
 
-	async function handleSignOut() {
-		try {
-			const response = await fetch('/api/auth/signout', { method: 'POST' });
-			if (response.ok) {
-				goto('/');
-			}
-		} catch (err) {
-			console.error('Sign out failed:', err);
-		}
-	}
-
-	// Fetch stats immediately when component mounts
-	fetchDashboardStats();
+  function handleTabChange(e: CustomEvent<{tabId: string}>) {
+    activeTab = e.detail.tabId;
+  }
 </script>
 
 <div class="min-h-screen bg-gray-50">
-	<header class="bg-white shadow-sm">
-		<div class="flex flex-row justify-between py-4 px-6 md:px-20 items-center">
-			<h1 class="text-2xl font-extrabold text-gray-900">Admin Dashboard</h1>
-			<div class="flex flex-row items-center space-x-4">
-				<div class="flex items-center space-x-3">
-					<span class="text-lg font-semibold text-gray-700">{userData.name}</span>
-				</div>
-				<Button href="/profile" color="light">Profile</Button>
-				<Button color="light" on:click={handleSignOut}>Sign out</Button>
-			</div>
-		</div>
-	</header>
+  <header class="bg-white shadow-sm">
+    <div class="flex flex-row justify-between py-4 px-6 md:px-20 items-center">
+      <h1 class="text-2xl font-extrabold text-gray-900">Admin Dashboard</h1>
+      <div class="flex flex-row items-center space-x-4">
+        <div class="flex items-center space-x-3">
+          <span class="text-lg font-semibold text-gray-700">{userData.name}</span>
+          <Badge color="red">Admin</Badge>
+        </div>
+        <Button href="/profile" color="light">Profile</Button>
+        <Button href="/logout" color="light">Sign out</Button>
+      </div>
+    </div>
+  </header>
 
-	<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-		<!-- Stats Overview -->
-		<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-			{#each Object.entries(stats) as [key, value]}
-				<div class="bg-white rounded-lg shadow p-6">
-					<h3 class="text-gray-500 text-sm font-medium">
-						{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
-					</h3>
-					{#if loading}
-						<div class="mt-2 h-8 bg-gray-200 rounded animate-pulse" />
-					{:else}
-						<p class="mt-2 text-3xl font-semibold text-gray-900">{value}</p>
-					{/if}
-				</div>
-			{/each}
-		</div>
+  <main class="container mx-auto px-4 py-8">
+    <div class="space-y-6">
+      {#if $errors.stats}
+        <Alert color="red">
+          {$errors.stats}
+          <Button color="red" class="ml-4" on:click={fetchDashboardStats}>
+            Retry
+          </Button>
+        </Alert>
+      {/if}
 
-		{#if error}
-			<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6">
-				<p>{error}</p>
-				<button
-					class="bg-red-100 text-red-800 px-3 py-1 rounded mt-2 hover:bg-red-200"
-					on:click={fetchDashboardStats}
-				>
-					Retry
-				</button>
-			</div>
-		{/if}
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatsCard
+          title="Total Lockers"
+          value={$stats.totalLockers}
+          loading={$loading.stats}
+        />
+        <StatsCard
+          title="Occupied Lockers"
+          value={$stats.occupiedLockers}
+          loading={$loading.stats}
+        />
+        <StatsCard
+          title="Total Users"
+          value={$stats.totalUsers}
+          loading={$loading.stats}
+        />
+        <StatsCard
+          title="Pending Requests"
+          value={$stats.pendingRequests}
+          loading={$loading.stats}
+        />
+      </div>
 
-		<!-- Tab Navigation -->
-		<div class="bg-white shadow rounded-lg">
-			<div class="border-b border-gray-200">
-				<nav class="flex space-x-8 px-6" aria-label="Tabs">
-					<button
-						class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'requests'
-							? 'border-blue-500 text-blue-600'
-							: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
-						on:click={() => (activeTab = 'requests')}
-					>
-						Requests
-					</button>
-					<button
-						class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'lockers'
-							? 'border-blue-500 text-blue-600'
-							: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
-						on:click={() => (activeTab = 'lockers')}
-					>
-						Lockers
-					</button>
-					<button
-						class="py-4 px-1 border-b-2 font-medium text-sm {activeTab === 'users'
-							? 'border-blue-500 text-blue-600'
-							: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
-						on:click={() => (activeTab = 'users')}
-					>
-						Users
-					</button>
-				</nav>
-			</div>
+      <!-- Tabs -->
+      <Tabs style="underline" on:change={handleTabChange}>
+        <TabItem open title="Requests" activeClasses={activeTab === "requests" ? "text-blue-600 border-blue-600" : ""}>
+          <RequestsTab />
+        </TabItem>
 
-			<div class="p-6">
-				{#if activeTab === 'requests'}
-					<Request />
-				{:else if activeTab === 'lockers'}
-					<!-- Locker management component will go here -->
-					<p class="text-gray-500 text-center py-4">Locker management coming soon</p>
-				{:else}
-					<!-- User management component will go here -->
-					<Users />
-				{/if}
-			</div>
-		</div>
-	</main>
+        <TabItem title="Lockers" activeClasses={activeTab === "lockers" ? "text-blue-600 border-blue-600" : ""}>
+          <LockersTab />
+        </TabItem>
+
+        <TabItem title="Users" activeClasses={activeTab === "users" ? "text-blue-600 border-blue-600" : ""}>
+          <UsersTab />
+        </TabItem>
+
+        <TabItem title="Subscription Types" activeClasses={activeTab === "subscription-types" ? "text-blue-600 border-blue-600" : ""}>
+          <SubscriptionTypesTab />
+        </TabItem>
+      </Tabs>
+    </div>
+  </main>
 </div>

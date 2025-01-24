@@ -1,5 +1,13 @@
 {
-	"/": [],
+	"/": [
+		"src/routes/+page.server.ts"
+	],
+	"/api/access/external": [
+		"src/routes/api/access/external/+server.ts"
+	],
+	"/api/admin/lockers": [
+		"src/routes/api/admin/lockers/+server.ts"
+	],
 	"/api/admin/requests": [
 		"src/routes/api/admin/requests/+server.ts"
 	],
@@ -9,11 +17,26 @@
 	"/api/admin/stats": [
 		"src/routes/api/admin/stats/+server.ts"
 	],
+	"/api/admin/subscription-types": [
+		"src/routes/api/admin/subscription-types/+server.ts"
+	],
+	"/api/admin/subscription-types/[id]": [
+		"src/routes/api/admin/subscription-types/[id]/+server.ts"
+	],
+	"/api/admin/users": [
+		"src/routes/api/admin/users/+server.ts"
+	],
 	"/api/admin/[id]": [
 		"src/routes/api/admin/[id]/+server.ts"
 	],
+	"/api/auth/signout": [
+		"src/routes/api/auth/signout/+server.ts"
+	],
 	"/api/lockers": [
 		"src/routes/api/lockers/+server.ts"
+	],
+	"/api/lockers/external": [
+		"src/routes/api/lockers/external/+server.ts"
 	],
 	"/api/lockers/request": [
 		"src/routes/api/lockers/request/+server.ts"
@@ -23,6 +46,9 @@
 	],
 	"/api/lockers/user/[id]": [
 		"src/routes/api/lockers/user/[id]/+server.ts"
+	],
+	"/api/lockers/user/[id]/access-history": [
+		"src/routes/api/lockers/user/[id]/access-history/+server.ts"
 	],
 	"/api/lockers/[id]": [
 		"src/routes/api/lockers/[id]/+server.ts"
@@ -48,9 +74,19 @@
 	"/api/[otp]": [
 		"src/routes/api/[otp]/+server.ts"
 	],
-	"/dashboard": [],
+	"/dashboard": [
+		"src/routes/dashboard/+page.server.ts"
+	],
 	"/lockers": [
 		"src/routes/lockers/+page.server.ts"
 	],
-	"/register": []
+	"/logout": [
+		"src/routes/logout/+server.ts"
+	],
+	"/profile": [
+		"src/routes/profile/+page.server.ts"
+	],
+	"/register": [
+		"src/routes/register/+page.server.ts"
+	]
 }

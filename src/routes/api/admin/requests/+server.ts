@@ -1,71 +1,165 @@
 import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {AuthenticatedRequestHandler} from "../../types";
+import type {RequestHandler} from "./$types";
 import {db} from "$lib/server/db";
-import {lockerRequests, lockers, admins} from "$lib/server/db/schema";
-import {eq, and} from "drizzle-orm";
+import {
+  lockerRequests,
+  lockers,
+  users,
+  subscriptionTypes,
+  subscriptions,
+} from "$lib/server/db/schema";
+import {eq} from "drizzle-orm";
+import {randomUUID} from "crypto";
 
-export const GET: AuthenticatedRequestHandler = async ({locals}) => {
-  const {userId} = locals.auth;
-  if (!userId) {
-    throw error(401, "Unauthorized");
-  }
-
-  // Verify admin status
-  const admin = await db.query.admins.findFirst({
-    where: eq(admins.userId, userId),
-  });
-
-  if (!admin) {
-    throw error(403, "Forbidden - Admin access required");
-  }
-
+export const GET: RequestHandler = async ({locals}) => {
   try {
-    // First get all pending requests
+    if (!locals.user || locals.user.type !== "admin") {
+      return json(
+        {authenticated: false, message: "User is not an admin."},
+        {status: 403}
+      );
+    }
+
     const requests = await db
       .select({
         id: lockerRequests.id,
         userId: lockerRequests.userId,
+        userName: users.name,
         lockerId: lockerRequests.lockerId,
+        lockerNumber: lockers.number,
+        lockerSize: lockers.size,
         status: lockerRequests.status,
         requestedAt: lockerRequests.requestedAt,
-        proofOfPayment: lockerRequests.proofOfPayment,
+        rejectionReason: lockerRequests.rejectionReason,
+        subscriptionName: subscriptionTypes.name,
+        subscriptionTypeId: lockerRequests.subscriptionTypeId,
       })
       .from(lockerRequests)
-      .where(eq(lockerRequests.status, "pending"))
+      .leftJoin(users, eq(lockerRequests.userId, users.id))
+      .leftJoin(lockers, eq(lockerRequests.lockerId, lockers.id))
+      .leftJoin(
+        subscriptionTypes,
+        eq(lockerRequests.subscriptionTypeId, subscriptionTypes.id)
+      )
       .orderBy(lockerRequests.requestedAt);
 
-    // Then get the locker numbers for these requests
-    const lockerDetails = await db
-      .select({
-        id: lockers.id,
-        number: lockers.number,
-      })
-      .from(lockers)
-      .where(and(...requests.map((req) => eq(lockers.id, req.lockerId))));
+    return json({requests});
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    return json({message: "Failed to fetch requests"}, {status: 500});
+  }
+};
 
-    // Create a map of locker IDs to numbers
-    const lockerMap = new Map(
-      lockerDetails.map((locker) => [locker.id, locker.number])
-    );
-
-    // Format the response
-    const formattedRequests = requests.map((request) => ({
-      id: request.id,
-      userId: request.userId,
-      lockerId: request.lockerId,
-      lockerNumber: lockerMap.get(request.lockerId) ?? "Unknown",
-      requestedAt: request.requestedAt,
-      status: request.status,
-      proofOfPayment: request.proofOfPayment,
-    }));
-
-    return json({requests: formattedRequests});
-  } catch (err) {
-    console.error("Error fetching requests:", err);
-    if (err instanceof Error) {
-      throw error(500, err.message);
+export const POST: RequestHandler = async ({locals, request}) => {
+  try {
+    if (!locals.user || locals.user.type !== "admin") {
+      return json(
+        {authenticated: false, message: "User is not an admin."},
+        {status: 403}
+      );
     }
-    throw error(500, "Failed to fetch requests");
+
+    const {requestId, action, rejectionReason} = await request.json();
+
+    if (!requestId || !action || (action === "reject" && !rejectionReason)) {
+      return json({message: "Missing required fields"}, {status: 400});
+    }
+
+    // Get the request details
+    const [lockerRequest] = await db
+      .select()
+      .from(lockerRequests)
+      .where(eq(lockerRequests.id, requestId));
+
+    if (!lockerRequest) {
+      return json({message: "Request not found"}, {status: 404});
+    }
+
+    if (lockerRequest.status !== "pending") {
+      return json({message: "Request is not pending"}, {status: 400});
+    }
+
+    // Check if locker is still available
+    const [locker] = await db
+      .select()
+      .from(lockers)
+      .where(eq(lockers.id, lockerRequest.lockerId));
+
+    if (!locker) {
+      return json({message: "Locker not found"}, {status: 404});
+    }
+
+    if (locker.isOccupied) {
+      return json({message: "Locker is already occupied"}, {status: 400});
+    }
+
+    if (action === "approve") {
+      // Get subscription type details
+      const [subscriptionType] = await db
+        .select()
+        .from(subscriptionTypes)
+        .where(eq(subscriptionTypes.id, lockerRequest.subscriptionTypeId));
+
+      if (!subscriptionType) {
+        return json({message: "Subscription type not found"}, {status: 404});
+      }
+
+      // Calculate subscription dates
+      const startDate = new Date();
+      const endDate = new Date();
+      switch (subscriptionType.duration) {
+        case "1_day":
+          endDate.setDate(endDate.getDate() + 1);
+          break;
+        case "7_days":
+          endDate.setDate(endDate.getDate() + 7);
+          break;
+        case "30_days":
+          endDate.setDate(endDate.getDate() + 30);
+          break;
+      }
+
+      // Create subscription
+      await db.insert(subscriptions).values({
+        id: randomUUID(),
+        userId: lockerRequest.userId,
+        lockerId: lockerRequest.lockerId,
+        startDate,
+        endDate,
+        status: "active",
+      });
+
+      // Update locker status
+      await db
+        .update(lockers)
+        .set({isOccupied: true, userId: lockerRequest.userId})
+        .where(eq(lockers.id, lockerRequest.lockerId));
+
+      // Update request status
+      await db
+        .update(lockerRequests)
+        .set({
+          status: "approved",
+          processedAt: new Date(),
+          processedBy: locals.user.id,
+        })
+        .where(eq(lockerRequests.id, requestId));
+    } else {
+      // Update request status for rejection
+      await db
+        .update(lockerRequests)
+        .set({
+          status: "rejected",
+          rejectionReason,
+          processedAt: new Date(),
+          processedBy: locals.user.id,
+        })
+        .where(eq(lockerRequests.id, requestId));
+    }
+
+    return json({success: true});
+  } catch (error) {
+    console.error("Error processing request:", error);
+    return json({message: "Failed to process request"}, {status: 500});
   }
 };

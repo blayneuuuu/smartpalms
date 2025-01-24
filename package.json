@@ -32,6 +32,9 @@
     "eslint": "^9.7.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-svelte": "^2.36.0",
+    "flowbite": "^2.5.2",
+    "flowbite-svelte": "^0.47.4",
+    "flowbite-svelte-icons": "^2.0.2",
     "globals": "^15.0.0",
     "lucide-svelte": "^0.471.0",
     "prettier": "^3.3.2",
@@ -54,8 +57,6 @@
     "@tailwindcss/typography": "^0.5.15",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.33.0",
-    "flowbite": "^2.5.2",
-    "flowbite-svelte": "^0.47.4",
     "svelte-icons": "^2.1.0",
     "zod": "^3.24.1"
   }

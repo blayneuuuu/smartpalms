@@ -26,7 +26,8 @@
  * ```
  */
 declare module '$env/static/private' {
-	export const npm_config_legacy_peer_deps: string;
+	export const DATABASE_URL: string;
+	export const DATABASE_AUTH_TOKEN: string;
 	export const TERM_PROGRAM: string;
 	export const NODE: string;
 	export const INIT_CWD: string;
@@ -37,20 +38,17 @@ declare module '$env/static/private' {
 	export const TMPDIR: string;
 	export const npm_config_global_prefix: string;
 	export const TERM_PROGRAM_VERSION: string;
-	export const npm_package_optional: string;
 	export const COLOR: string;
 	export const npm_config_noproxy: string;
 	export const npm_config_local_prefix: string;
 	export const USER: string;
 	export const COMMAND_MODE: string;
 	export const npm_config_globalconfig: string;
-	export const npm_package_peer: string;
 	export const SSH_AUTH_SOCK: string;
 	export const __CF_USER_TEXT_ENCODING: string;
 	export const WARP_IS_LOCAL_SHELL_SESSION: string;
 	export const npm_execpath: string;
 	export const WARP_USE_SSH_WRAPPER: string;
-	export const npm_package_integrity: string;
 	export const PATH: string;
 	export const npm_package_json: string;
 	export const _: string;
@@ -64,16 +62,12 @@ declare module '$env/static/private' {
 	export const npm_package_name: string;
 	export const npm_config_npm_version: string;
 	export const XPC_FLAGS: string;
-	export const npm_package_engines_node: string;
 	export const npm_config_node_gyp: string;
-	export const npm_package_dev: string;
 	export const npm_package_version: string;
 	export const XPC_SERVICE_NAME: string;
-	export const npm_package_resolved: string;
 	export const SHLVL: string;
 	export const HOME: string;
 	export const HOMEBREW_PREFIX: string;
-	export const npm_package_dev_optional: string;
 	export const npm_config_cache: string;
 	export const LOGNAME: string;
 	export const npm_lifecycle_script: string;
@@ -86,6 +80,7 @@ declare module '$env/static/private' {
 	export const npm_node_execpath: string;
 	export const npm_config_prefix: string;
 	export const COLORTERM: string;
+	export const NODE_ENV: string;
 }
 
 /**
@@ -117,7 +112,8 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
-		npm_config_legacy_peer_deps: string;
+		DATABASE_URL: string;
+		DATABASE_AUTH_TOKEN: string;
 		TERM_PROGRAM: string;
 		NODE: string;
 		INIT_CWD: string;
@@ -128,20 +124,17 @@ declare module '$env/dynamic/private' {
 		TMPDIR: string;
 		npm_config_global_prefix: string;
 		TERM_PROGRAM_VERSION: string;
-		npm_package_optional: string;
 		COLOR: string;
 		npm_config_noproxy: string;
 		npm_config_local_prefix: string;
 		USER: string;
 		COMMAND_MODE: string;
 		npm_config_globalconfig: string;
-		npm_package_peer: string;
 		SSH_AUTH_SOCK: string;
 		__CF_USER_TEXT_ENCODING: string;
 		WARP_IS_LOCAL_SHELL_SESSION: string;
 		npm_execpath: string;
 		WARP_USE_SSH_WRAPPER: string;
-		npm_package_integrity: string;
 		PATH: string;
 		npm_package_json: string;
 		_: string;
@@ -155,16 +148,12 @@ declare module '$env/dynamic/private' {
 		npm_package_name: string;
 		npm_config_npm_version: string;
 		XPC_FLAGS: string;
-		npm_package_engines_node: string;
 		npm_config_node_gyp: string;
-		npm_package_dev: string;
 		npm_package_version: string;
 		XPC_SERVICE_NAME: string;
-		npm_package_resolved: string;
 		SHLVL: string;
 		HOME: string;
 		HOMEBREW_PREFIX: string;
-		npm_package_dev_optional: string;
 		npm_config_cache: string;
 		LOGNAME: string;
 		npm_lifecycle_script: string;
@@ -177,6 +166,7 @@ declare module '$env/dynamic/private' {
 		npm_node_execpath: string;
 		npm_config_prefix: string;
 		COLORTERM: string;
+		NODE_ENV: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}

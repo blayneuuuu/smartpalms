@@ -1,44 +1,47 @@
 import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import {db} from "$lib/server/db";
-import {lockerRequests, lockers, users} from "$lib/server/db/schema";
-import {eq, isNotNull, sql} from "drizzle-orm";
 import type {RequestHandler} from "./$types";
+import {db} from "$lib/server/db";
+import {lockers, users, lockerRequests} from "$lib/server/db/schema";
+import {eq} from "drizzle-orm";
 
 export const GET: RequestHandler = async ({locals}) => {
-  // @ts-expect-error - we know user exists from hooks
-  if (locals.user?.type !== "admin") {
-    throw error(403, "Unauthorized");
-  }
-
   try {
-    const [totalLockers] = await db
-      .select({count: sql<number>`count(*)`})
-      .from(lockers);
+    if (!locals.user || locals.user.type !== "admin") {
+      return json(
+        {authenticated: false, message: "User is not an admin."},
+        {status: 403}
+      );
+    }
 
-    const [occupiedLockers] = await db
-      .select({count: sql<number>`count(*)`})
-      .from(lockers)
-      .where(isNotNull(lockers.userId));
+    // Get total lockers count
+    const totalLockers = await db.select().from(lockers);
 
-    const [totalUsers] = await db
-      .select({count: sql<number>`count(*)`})
+    // Get occupied lockers count
+    const occupiedLockers = totalLockers.filter(
+      (locker) => locker.isOccupied === true
+    );
+
+    // Get total users count (excluding admins)
+    const allUsers = await db
+      .select()
       .from(users)
       .where(eq(users.type, "user"));
 
-    const [pendingRequests] = await db
-      .select({count: sql<number>`count(*)`})
+    // Get pending requests count
+    const pendingRequests = await db
+      .select()
       .from(lockerRequests)
       .where(eq(lockerRequests.status, "pending"));
 
+    // Return counts as numbers
     return json({
-      totalLockers: totalLockers.count,
-      occupiedLockers: occupiedLockers.count,
-      totalUsers: totalUsers.count,
-      pendingRequests: pendingRequests.count,
+      totalLockers: totalLockers.length,
+      occupiedLockers: occupiedLockers.length,
+      totalUsers: allUsers.length,
+      pendingRequests: pendingRequests.length,
     });
-  } catch (err) {
-    console.error("Error fetching admin stats:", err);
-    throw error(500, "Failed to fetch admin stats");
+  } catch (error) {
+    console.error("Error fetching admin stats:", error);
+    return json({message: "Failed to fetch admin stats"}, {status: 500});
   }
 };

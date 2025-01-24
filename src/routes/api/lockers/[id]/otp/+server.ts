@@ -6,8 +6,7 @@ import {lockers} from "$lib/server/db/schema";
 import {eq} from "drizzle-orm";
 
 export const POST: RequestHandler = async ({params, locals}) => {
-  const userId = locals.auth?.userId;
-  if (!userId) {
+  if (!locals.user) {
     throw error(401, "Unauthorized");
   }
 
@@ -28,14 +27,12 @@ export const POST: RequestHandler = async ({params, locals}) => {
       throw error(404, "Locker not found");
     }
 
-    if (locker.userId !== userId) {
+    if (locker.userId !== locals.user.id) {
       throw error(403, "You don't have access to this locker");
     }
 
     // Generate a random 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Set OTP expiry to 5 minutes from now using SQL
 
     // Update the locker with new OTP
     await db
@@ -51,6 +48,7 @@ export const POST: RequestHandler = async ({params, locals}) => {
 
     return json({
       otp,
+      expiryDate,
     });
   } catch (err) {
     console.error("Error generating OTP:", err);

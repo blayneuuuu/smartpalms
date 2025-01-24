@@ -38,13 +38,11 @@ export const lockers = sqliteTable(
     id: text("id").primaryKey(),
     number: text("number").notNull().unique(),
     size: text("size", {enum: ["small", "medium", "large"]}).notNull(),
-    userId: text("user_id").references(() => users.id), // Nullable - if null, locker is available
-    otp: text("otp"),
     isOccupied: integer("is_occupied", {mode: "boolean"})
       .notNull()
       .default(false),
-    lastAccessedAt: integer("last_accessed_at", {mode: "timestamp"}),
-    otpExpiresAt: integer("otp_expires_at", {mode: "timestamp"}),
+    userId: text("user_id").references(() => users.id),
+    otp: text("otp"),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -107,10 +105,10 @@ export const subscriptions = sqliteTable(
     lockerId: text("locker_id")
       .notNull()
       .references(() => lockers.id, {onDelete: "cascade"}),
+    expiresAt: text("expires_at").notNull(),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
-    expiresAt: text("expires_at").notNull(),
   },
   (table) => ({
     userIdIdx: index("sub_user_id_idx").on(table.userId),
@@ -174,7 +172,7 @@ export const accessHistory = sqliteTable(
     accessedAt: integer("accessed_at", {mode: "timestamp"})
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
-    accessType: text("access_type", {enum: ["otp", "external"]}).notNull(),
+    accessType: text("access_type", {enum: ["otp", "subscription"]}).notNull(),
     otp: text("otp"),
     status: text("status", {enum: ["success", "failed"]}).notNull(),
   },

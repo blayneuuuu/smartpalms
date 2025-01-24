@@ -1,95 +1,117 @@
 import {json} from "@sveltejs/kit";
+import {error} from "@sveltejs/kit";
+import type {RequestHandler} from "./$types";
 import {db} from "$lib/server/db";
 import {lockers, accessHistory} from "$lib/server/db/schema";
-import {eq, and, lte} from "drizzle-orm";
-import type {RequestHandler} from "@sveltejs/kit";
-import type {OTPAccessResponse} from "$lib/types/api";
-import {APIErrors, handleError} from "$lib/server/errors";
+import {eq} from "drizzle-orm";
+import {randomUUID} from "crypto";
 
 export const GET: RequestHandler = async ({params}) => {
+  const otp = params.otp;
+  if (!otp) {
+    throw error(400, "OTP is required");
+  }
+
   try {
-    const {otp} = params;
-
-    if (!otp) {
-      throw APIErrors.OTP.REQUIRED();
-    }
-
-    // Find locker with matching OTP and not expired
-    const [locker] = await db
-      .select()
+    // Find locker with matching OTP
+    const locker = await db
+      .select({
+        id: lockers.id,
+        number: lockers.number,
+        otp: lockers.otp,
+      })
       .from(lockers)
-      .where(and(eq(lockers.otp, otp), lte(lockers.otpExpiresAt, new Date())));
+      .where(eq(lockers.otp, otp))
+      .get();
 
     if (!locker) {
-      // Create failed access history without user ID
+      // Log failed access attempt
       await db.insert(accessHistory).values({
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         lockerId: "unknown",
         accessType: "otp",
         otp,
         status: "failed",
       });
 
-      throw APIErrors.OTP.INVALID();
+      throw error(404, "Invalid or expired OTP");
     }
 
-    // Create successful access history
+    // Log successful access
     await db.insert(accessHistory).values({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       lockerId: locker.id,
       accessType: "otp",
       otp,
       status: "success",
     });
 
-    // Clear OTP after successful use
-    await db
-      .update(lockers)
-      .set({
-        otp: null,
-        otpExpiresAt: null,
-        lastAccessedAt: new Date(),
-      })
-      .where(eq(lockers.id, locker.id));
+    // Clear the OTP after successful access
 
-    const response: OTPAccessResponse = {
+    return json({
       success: true,
-      locker: {id: locker.id, number: locker.number},
-    };
-    return json(response);
+      locker: {
+        id: locker.id,
+        number: locker.number,
+      },
+    });
   } catch (err) {
-    return handleError(err);
+    console.error("Error accessing locker with OTP:", err);
+    throw error(500, "Internal server error");
   }
 };
 
 // Using PATCH as it's more semantically correct for partial updates
 export const PATCH: RequestHandler = async ({params}) => {
+  const otp = params.otp;
+  if (!otp) {
+    throw error(400, "OTP is required");
+  }
+
   try {
-    const {otp} = params;
-
-    if (!otp) {
-      throw APIErrors.OTP.REQUIRED();
-    }
-
     // Find and update locker with matching OTP
-    const [locker] = await db
+    const locker = await db
       .select()
       .from(lockers)
-      .where(eq(lockers.otp, otp));
+      .where(eq(lockers.otp, otp))
+      .get();
 
     if (!locker) {
-      throw APIErrors.OTP.INVALID();
+      // Log failed access attempt
+      await db.insert(accessHistory).values({
+        id: randomUUID(),
+        lockerId: "unknown",
+        accessType: "otp",
+        otp,
+        status: "failed",
+      });
+
+      throw error(404, "Invalid or expired OTP");
     }
 
-    // Reset OTP to null
-    await db.update(lockers).set({otp: null}).where(eq(lockers.id, locker.id));
+    // Log successful access
+    await db.insert(accessHistory).values({
+      id: randomUUID(),
+      lockerId: locker.id,
+      accessType: "otp",
+      otp,
+      status: "success",
+    });
 
-    const response: OTPAccessResponse = {
+    // Reset OTP to null
+    await db
+      .update(lockers)
+      .set({
+        otp: null,
+      })
+      .where(eq(lockers.id, locker.id));
+
+    return json({
       success: true,
       message: "OTP cleared successfully",
-    };
-    return json(response);
+    });
   } catch (err) {
-    return handleError(err);
+    console.error("Error clearing OTP:", err);
+    throw error(500, "Internal server error");
   }
 };
