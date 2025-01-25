@@ -32,39 +32,6 @@ declare module '$env/static/private' {
 	export const GJS_DEBUG_TOPICS: string;
 	export const LESSOPEN: string;
 	export const USER: string;
-<<<<<<< Updated upstream
-	export const COMMAND_MODE: string;
-	export const npm_config_globalconfig: string;
-	export const SSH_AUTH_SOCK: string;
-	export const __CF_USER_TEXT_ENCODING: string;
-	export const WARP_IS_LOCAL_SHELL_SESSION: string;
-	export const npm_execpath: string;
-	export const WARP_USE_SSH_WRAPPER: string;
-	export const PATH: string;
-	export const npm_package_json: string;
-	export const npm_config_userconfig: string;
-	export const npm_config_init_module: string;
-	export const __CFBundleIdentifier: string;
-	export const npm_command: string;
-	export const PWD: string;
-	export const npm_lifecycle_event: string;
-	export const EDITOR: string;
-	export const npm_package_name: string;
-	export const npm_config_npm_version: string;
-	export const XPC_FLAGS: string;
-	export const npm_config_node_gyp: string;
-	export const npm_package_version: string;
-	export const XPC_SERVICE_NAME: string;
-	export const SHLVL: string;
-	export const HOME: string;
-	export const HOMEBREW_PREFIX: string;
-	export const npm_config_cache: string;
-	export const LOGNAME: string;
-	export const npm_lifecycle_script: string;
-	export const LC_CTYPE: string;
-	export const SSH_SOCKET_DIR: string;
-=======
->>>>>>> Stashed changes
 	export const npm_config_user_agent: string;
 	export const XDG_SESSION_TYPE: string;
 	export const GIT_ASKPASS: string;
@@ -89,9 +56,6 @@ declare module '$env/static/private' {
 	export const GSM_SKIP_SSH_AGENT_WORKAROUND: string;
 	export const DBUS_SESSION_BUS_ADDRESS: string;
 	export const COLORTERM: string;
-<<<<<<< Updated upstream
-	export const _: string;
-=======
 	export const GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 	export const COLOR: string;
 	export const NVM_DIR: string;
@@ -153,7 +117,6 @@ declare module '$env/static/private' {
 	export const NVM_RC_VERSION: string;
 	export const INIT_CWD: string;
 	export const EDITOR: string;
->>>>>>> Stashed changes
 	export const NODE_ENV: string;
 }
 
@@ -192,39 +155,6 @@ declare module '$env/dynamic/private' {
 		GJS_DEBUG_TOPICS: string;
 		LESSOPEN: string;
 		USER: string;
-<<<<<<< Updated upstream
-		COMMAND_MODE: string;
-		npm_config_globalconfig: string;
-		SSH_AUTH_SOCK: string;
-		__CF_USER_TEXT_ENCODING: string;
-		WARP_IS_LOCAL_SHELL_SESSION: string;
-		npm_execpath: string;
-		WARP_USE_SSH_WRAPPER: string;
-		PATH: string;
-		npm_package_json: string;
-		npm_config_userconfig: string;
-		npm_config_init_module: string;
-		__CFBundleIdentifier: string;
-		npm_command: string;
-		PWD: string;
-		npm_lifecycle_event: string;
-		EDITOR: string;
-		npm_package_name: string;
-		npm_config_npm_version: string;
-		XPC_FLAGS: string;
-		npm_config_node_gyp: string;
-		npm_package_version: string;
-		XPC_SERVICE_NAME: string;
-		SHLVL: string;
-		HOME: string;
-		HOMEBREW_PREFIX: string;
-		npm_config_cache: string;
-		LOGNAME: string;
-		npm_lifecycle_script: string;
-		LC_CTYPE: string;
-		SSH_SOCKET_DIR: string;
-=======
->>>>>>> Stashed changes
 		npm_config_user_agent: string;
 		XDG_SESSION_TYPE: string;
 		GIT_ASKPASS: string;
@@ -249,9 +179,6 @@ declare module '$env/dynamic/private' {
 		GSM_SKIP_SSH_AGENT_WORKAROUND: string;
 		DBUS_SESSION_BUS_ADDRESS: string;
 		COLORTERM: string;
-<<<<<<< Updated upstream
-		_: string;
-=======
 		GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 		COLOR: string;
 		NVM_DIR: string;
@@ -313,7 +240,6 @@ declare module '$env/dynamic/private' {
 		NVM_RC_VERSION: string;
 		INIT_CWD: string;
 		EDITOR: string;
->>>>>>> Stashed changes
 		NODE_ENV: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;

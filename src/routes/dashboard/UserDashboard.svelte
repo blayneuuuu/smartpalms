@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Card, Badge, Alert, Spinner, Tabs, TabItem } from 'flowbite-svelte';
+	import { Button, Card, Badge, Alert, Spinner, Tabs, TabItem, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
 	import { formatDate, formatTimestamp } from '$lib/utils/date';
 	import { goto } from '$app/navigation';
 
@@ -102,6 +102,7 @@
 			loading = false;
 		}
 	}
+
 
 	async function resubmitRequest(requestId: string) {
 		try {
@@ -222,6 +223,7 @@
 														</Alert>
 													{/if}
 													<Button size="sm" on:click={() => generateOTP(subscription.lockerId)}>
+														
 														{#if loading}
 															<Spinner class="mr-3" size="4" />
 															Loading...
@@ -304,27 +306,32 @@
 						<p class="text-gray-600">No access history available.</p>
 					{:else}
 						<div class="space-y-4">
-							{#each accessHistory as access}
-								<Card>
-									<div class="flex justify-between items-center">
-										<div>
-											<h3 class="text-lg font-semibold">Locker #{access.lockerNumber}</h3>
-											<p class="text-sm text-gray-600">
-												Access Type: {access.accessType === 'otp' ? 'OTP' : 'Subscription'}
-											</p>
-											{#if access.otp}
-												<p class="text-sm text-gray-600">OTP: {access.otp}</p>
-											{/if}
-											<p class="text-sm text-gray-600">
-												Accessed on: {formatTimestamp(access.accessedAt)}
-											</p>
-										</div>
-										<Badge color={access.status === 'success' ? 'green' : 'red'}>
+							
+								<Table>
+									<TableHead>
+									  <TableHeadCell>Locker #</TableHeadCell>
+									  <TableHeadCell>Access Type</TableHeadCell>
+									  <TableHeadCell>OTP</TableHeadCell>
+									  <TableHeadCell>Access Date-Time</TableHeadCell>
+									  <TableHeadCell>Status</TableHeadCell>
+									</TableHead>
+									<TableBody tableBodyClass="divide-y">
+										{#each accessHistory as access}
+									  <TableBodyRow>
+										<TableBodyCell>{access.lockerNumber}</TableBodyCell>
+										<TableBodyCell>{access.accessType === 'otp' ? 'OTP' : 'Subscription'}</TableBodyCell>
+										<TableBodyCell>{#if access.otp}
+											{access.otp}
+										{/if}</TableBodyCell>
+										<TableBodyCell>{formatTimestamp(access.accessedAt)}</TableBodyCell>
+										<TableBodyCell><Badge color={access.status === 'success' ? 'green' : 'red'}>
 											{access.status}
-										</Badge>
-									</div>
-								</Card>
-							{/each}
+										</Badge></TableBodyCell>
+									  </TableBodyRow>
+									  {/each}
+									</TableBody>
+								  </Table>
+							
 						</div>
 					{/if}
 				</TabItem>

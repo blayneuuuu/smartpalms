@@ -62,7 +62,7 @@
             <!-- Dialog  -->
             <Dialog.Root>
               <Dialog.Trigger class="btn" on:click={() => openUserDetails(user)}>
-              View Details
+                <Button>View Details</Button>
             </Dialog.Trigger>
 
             <Dialog.Portal>
@@ -105,8 +105,10 @@
   {/if}
                 </Dialog.Description>
                 <div class="flex w-full justify-between mt-10">
-                  <Dialog.Close>Close</Dialog.Close>
-                  <Dialog.Close>Save</Dialog.Close>
+                  <Dialog.Close>
+                    <Button>Close</Button>
+                  </Dialog.Close>
+                  
                 </div>
               </Dialog.Content>
             </Dialog.Portal>
@@ -117,8 +119,3 @@
     </TableBody>
   </Table>
 {/if}
-
-<!-- User Details Dialog -->
-<Modal bind:open={showUserDetailsDialog} size="md">
-  
-</Modal> 

@@ -22,6 +22,7 @@
     updateSubscriptionType,
     deleteSubscriptionType,
   } from "$lib/services/admin";
+  import { Dialog } from "bits-ui";
 
   let showDialog = false;
   let isEditing = false;
@@ -100,9 +101,94 @@
 {/if}
 
 <div class="flex justify-end mb-4">
-  <Button color="blue" on:click={openCreateDialog}>
-    Create Subscription Type
-  </Button>
+  
+
+  <Dialog.Root>
+    <Dialog.Trigger>
+      <Button color="blue" on:click={openCreateDialog}>
+        Create Subscription Type
+      </Button>
+  </Dialog.Trigger>
+
+  <Dialog.Portal>
+    <Dialog.Overlay
+      transitionConfig={{ duration: 150 }}
+      class="fixed inset-0 z-50 bg-black/80"
+    />
+    <Dialog.Content
+      
+      class="fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full"
+    >
+     
+      
+      <Dialog.Description class="text-sm text-foreground-alt">
+        <div class="text-center">
+          <h3 class="mb-5 text-lg font-normal text-gray-500">
+            {isEditing ? "Edit" : "Create"} Subscription Type
+          </h3>
+        </div>
+      
+        <div class="space-y-4">
+          <div>
+            <Label for="name">Name</Label>
+            <Input
+              id="name"
+              placeholder="Enter subscription name"
+              bind:value={formData.name}
+            />
+          </div>
+      
+          <div>
+            <Label for="duration">Duration</Label>
+            <Select id="duration" bind:value={formData.duration}>
+              <option value="">Select duration</option>
+              {#each durations as {value, label}}
+                <option {value}>{label}</option>
+              {/each}
+            </Select>
+          </div>
+      
+          <div>
+            <Label for="amount">Amount (₱)</Label>
+            <Input
+              id="amount"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="Enter amount"
+              bind:value={formData.amount}
+            />
+          </div>
+        </div>
+      
+        <div class="flex justify-end gap-4 mt-6">
+          <Dialog.Close>
+            <Button
+            color="alternative"
+            disabled={processing}
+            on:click={() => {
+              showDialog = false;
+            }}
+          >
+            Cancel
+          </Button>
+          </Dialog.Close>
+          <Dialog.Close>
+            <Button
+            color="blue"
+            disabled={!formData.name || !formData.duration || formData.amount <= 0 || processing}
+            on:click={handleSubmit}
+          >
+            {isEditing ? "Save" : "Create"}
+          </Button>
+          </Dialog.Close>
+        </div>
+      </Dialog.Description>
+      
+    </Dialog.Content>
+  </Dialog.Portal>
+  </Dialog.Root>
+
 </div>
 
 {#if $loading.subscriptionTypes}
@@ -121,6 +207,7 @@
       <TableHeadCell>Actions</TableHeadCell>
     </TableHead>
     <TableBody>
+      
       {#each $subscriptionTypes as type}
         <TableBodyRow>
           <TableBodyCell>{type.name}</TableBodyCell>
@@ -139,9 +226,94 @@
           <TableBodyCell>{formatDate(type.createdAt, true)}</TableBodyCell>
           <TableBodyCell>
             <div class="flex space-x-2">
-              <Button size="xs" on:click={() => openEditDialog(type)}>
-                Edit
-              </Button>
+              
+
+              <Dialog.Root>
+                <Dialog.Trigger>
+                  <Button size="xs" on:click={() => openEditDialog(type)}>
+                    Edit
+                  </Button>
+              </Dialog.Trigger>
+            
+              <Dialog.Portal>
+                <Dialog.Overlay
+                  transitionConfig={{ duration: 150 }}
+                  class="fixed inset-0 z-50 bg-black/80"
+                />
+                <Dialog.Content
+                  
+                  class="fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full"
+                >
+                 
+                  
+                  <Dialog.Description class="text-sm text-foreground-alt">
+                    <div class="text-center">
+                      <h3 class="mb-5 text-lg font-normal text-gray-500">
+                        {isEditing ? "Edit" : "Create"} Subscription Type
+                      </h3>
+                    </div>
+                  
+                    <div class="space-y-4">
+                      <div>
+                        <Label for="name">Name</Label>
+                        <Input
+                          id="name"
+                          placeholder="Enter subscription name"
+                          bind:value={formData.name}
+                        />
+                      </div>
+                  
+                      <div>
+                        <Label for="duration">Duration</Label>
+                        <Select id="duration" bind:value={formData.duration}>
+                          <option value="">Select duration</option>
+                          {#each durations as {value, label}}
+                            <option {value}>{label}</option>
+                          {/each}
+                        </Select>
+                      </div>
+                  
+                      <div>
+                        <Label for="amount">Amount (₱)</Label>
+                        <Input
+                          id="amount"
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder="Enter amount"
+                          bind:value={formData.amount}
+                        />
+                      </div>
+                    </div>
+                  
+                    <div class="flex justify-end gap-4 mt-6">
+                      <Dialog.Close>
+                        <Button
+                        color="alternative"
+                        disabled={processing}
+                        on:click={() => {
+                          showDialog = false;
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      </Dialog.Close>
+                      <Dialog.Close>
+                        <Button
+                        color="blue"
+                        disabled={!formData.name || !formData.duration || formData.amount <= 0 || processing}
+                        on:click={handleSubmit}
+                      >
+                        {isEditing ? "Save" : "Create"}
+                      </Button>
+                      </Dialog.Close>
+                    </div>
+                  </Dialog.Description>
+                  
+                </Dialog.Content>
+              </Dialog.Portal>
+              </Dialog.Root>
+
               <Button
                 size="xs"
                 color="red"
@@ -159,61 +331,5 @@
 
 <!-- Create/Edit Dialog -->
 <Modal bind:open={showDialog} size="md" autoclose>
-  <div class="text-center">
-    <h3 class="mb-5 text-lg font-normal text-gray-500">
-      {isEditing ? "Edit" : "Create"} Subscription Type
-    </h3>
-  </div>
 
-  <div class="space-y-4">
-    <div>
-      <Label for="name">Name</Label>
-      <Input
-        id="name"
-        placeholder="Enter subscription name"
-        bind:value={formData.name}
-      />
-    </div>
-
-    <div>
-      <Label for="duration">Duration</Label>
-      <Select id="duration" bind:value={formData.duration}>
-        <option value="">Select duration</option>
-        {#each durations as {value, label}}
-          <option {value}>{label}</option>
-        {/each}
-      </Select>
-    </div>
-
-    <div>
-      <Label for="amount">Amount (₱)</Label>
-      <Input
-        id="amount"
-        type="number"
-        min="0"
-        step="1"
-        placeholder="Enter amount"
-        bind:value={formData.amount}
-      />
-    </div>
-  </div>
-
-  <div class="flex justify-end gap-4 mt-6">
-    <Button
-      color="alternative"
-      disabled={processing}
-      on:click={() => {
-        showDialog = false;
-      }}
-    >
-      Cancel
-    </Button>
-    <Button
-      color="blue"
-      disabled={!formData.name || !formData.duration || formData.amount <= 0 || processing}
-      on:click={handleSubmit}
-    >
-      {isEditing ? "Save" : "Create"}
-    </Button>
-  </div>
 </Modal> 
