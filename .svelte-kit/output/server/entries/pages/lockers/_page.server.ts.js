@@ -1,10 +1,10 @@
 import { e as error } from "../../../chunks/index.js";
-import { d as db, b as lockers, l as lockerRequests, c as subscriptionTypes } from "../../../chunks/index2.js";
-import { eq } from "drizzle-orm";
+import { d as db, l as lockers, a as lockerRequests, s as subscriptionTypes } from "../../../chunks/index2.js";
+import { asc, eq } from "drizzle-orm";
 const load = async ({ locals }) => {
   try {
     console.log("Loading data from database...");
-    const allLockers = await db.select().from(lockers);
+    const allLockers = await db.select().from(lockers).orderBy(lockers.size, asc(lockers.number));
     const pendingRequests = await db.select().from(lockerRequests).where(eq(lockerRequests.status, "pending"));
     const activeSubscriptionTypes = await db.select().from(subscriptionTypes).where(eq(subscriptionTypes.isActive, true));
     const lockersToPendingRequests = new Map(
@@ -18,10 +18,20 @@ const load = async ({ locals }) => {
         hasPendingRequest
       };
     });
-    console.log("Fetched lockers:", lockersWithAvailability);
+    const sizeOrder = {
+      small: 1,
+      medium: 2,
+      large: 3
+    };
+    const sortedLockers = lockersWithAvailability.sort((a, b) => {
+      const sizeCompare = sizeOrder[a.size] - sizeOrder[b.size];
+      if (sizeCompare !== 0) return sizeCompare;
+      return a.number.localeCompare(b.number);
+    });
+    console.log("Fetched lockers:", sortedLockers);
     console.log("Fetched subscription types:", activeSubscriptionTypes);
     return {
-      lockers: lockersWithAvailability,
+      lockers: sortedLockers,
       subscriptionTypes: activeSubscriptionTypes
     };
   } catch (err) {

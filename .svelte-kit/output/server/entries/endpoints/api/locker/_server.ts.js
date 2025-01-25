@@ -1,5 +1,5 @@
 import { j as json } from "../../../../chunks/index.js";
-import { d as db, b as lockers } from "../../../../chunks/index2.js";
+import { d as db, l as lockers } from "../../../../chunks/index2.js";
 const GET = async ({ locals }) => {
   try {
     const allLockers = await db.select().from(lockers);

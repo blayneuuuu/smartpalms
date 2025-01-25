@@ -7,11 +7,6 @@ var define_property = Object.defineProperty;
 var get_descriptor = Object.getOwnPropertyDescriptor;
 const noop = () => {
 };
-function run_all(arr) {
-  for (var i = 0; i < arr.length; i++) {
-    arr[i]();
-  }
-}
 function fallback(value, fallback2, lazy = false) {
   return value === void 0 ? lazy ? (
     /** @type {() => V} */
@@ -20,15 +15,6 @@ function fallback(value, fallback2, lazy = false) {
     /** @type {V} */
     fallback2
   ) : value;
-}
-function equals(value) {
-  return value === this.v;
-}
-function safe_not_equal(a, b) {
-  return a != a ? b == b : a !== b || a !== null && typeof a === "object" || typeof a === "function";
-}
-function safe_equals(value) {
-  return !safe_not_equal(value, this.v);
 }
 const DERIVED = 1 << 1;
 const EFFECT = 1 << 2;
@@ -1023,7 +1009,6 @@ function clsx(value) {
 function subscribe_to_store(store, run, invalidate) {
   if (store == null) {
     run(void 0);
-    if (invalidate) invalidate(void 0);
     return noop;
   }
   const unsub = untrack(
@@ -1201,7 +1186,7 @@ function unsubscribe_stores(store_values) {
 function slot(payload, $$props, name, slot_props, fallback_fn) {
   var slot_fn = $$props.$$slots?.[name];
   if (slot_fn === true) {
-    slot_fn = $$props["children"];
+    slot_fn = $$props[name === "default" ? "children" : name];
   }
   if (slot_fn !== void 0) {
     slot_fn(payload, slot_props);
@@ -1223,6 +1208,14 @@ function sanitize_props(props) {
   const { children, $$slots, ...sanitized } = props;
   return sanitized;
 }
+function sanitize_slots(props) {
+  const sanitized = {};
+  if (props.children) sanitized.default = true;
+  for (const key in props.$$slots) {
+    sanitized[key] = true;
+  }
+  return sanitized;
+}
 function bind_props(props_parent, props_now) {
   for (const key in props_now) {
     const initial_value = props_parent[key];
@@ -1239,76 +1232,71 @@ function ensure_array_like(array_like_or_iterator) {
   return [];
 }
 export {
-  pop$1 as $,
-  new_deps as A,
+  component_root as $,
+  increment_write_version as A,
   BLOCK_EFFECT as B,
-  CLEAN as C,
+  DIRTY as C,
   DERIVED as D,
-  untracked_writes as E,
-  set_untracked_writes as F,
-  equals as G,
-  HYDRATION_ERROR as H,
-  get_next_sibling as I,
-  define_property as J,
-  set_active_reaction as K,
-  set_active_effect as L,
+  set_signal_status as E,
+  CLEAN as F,
+  schedule_effect as G,
+  active_effect as H,
+  BRANCH_EFFECT as I,
+  new_deps as J,
+  untracked_writes as K,
+  set_untracked_writes as L,
   MAYBE_DIRTY as M,
-  is_array as N,
-  init_operations as O,
-  get_first_child as P,
-  HYDRATION_START as Q,
-  HYDRATION_END as R,
-  hydration_failed as S,
-  clear_text_content as T,
+  HYDRATION_ERROR as N,
+  get_next_sibling as O,
+  define_property as P,
+  set_active_reaction as Q,
+  set_active_effect as R,
+  is_array as S,
+  init_operations as T,
   UNOWNED as U,
-  array_from as V,
-  component_root as W,
-  is_passive_event as X,
-  create_text as Y,
-  branch as Z,
-  push$1 as _,
-  ensure_array_like as a,
-  component_context as a0,
-  get as a1,
-  LEGACY_PROPS as a2,
-  flush_sync as a3,
-  render as a4,
-  fallback as a5,
-  slot as a6,
-  bind_props as a7,
-  rest_props as a8,
-  spread_attributes as a9,
-  sanitize_props as aa,
-  spread_props as ab,
-  invalid_default_snippet as ac,
-  copy_payload as ad,
-  assign_payload as ae,
-  DEV as af,
-  element as ag,
-  clsx as ah,
-  attr as b,
-  push as c,
-  current_component as d,
+  get_first_child as V,
+  HYDRATION_START as W,
+  HYDRATION_END as X,
+  hydration_failed as Y,
+  clear_text_content as Z,
+  array_from as _,
+  assign_payload as a,
+  is_passive_event as a0,
+  create_text as a1,
+  branch as a2,
+  push$1 as a3,
+  pop$1 as a4,
+  component_context as a5,
+  get as a6,
+  LEGACY_PROPS as a7,
+  flush_sync as a8,
+  render as a9,
+  store_get as aa,
+  unsubscribe_stores as ab,
+  DEV as ac,
+  bind_props as b,
+  copy_payload as c,
+  push as d,
   escape_html as e,
-  subscribe_to_store as f,
-  safe_not_equal as g,
+  ensure_array_like as f,
+  attr as g,
   getContext as h,
-  store_get as i,
-  setContext as j,
-  active_reaction as k,
-  is_runes as l,
-  derived_sources as m,
+  fallback as i,
+  clsx as j,
+  slot as k,
+  sanitize_props as l,
+  spread_props as m,
   noop as n,
-  state_unsafe_mutation as o,
+  sanitize_slots as o,
   pop as p,
-  increment_write_version as q,
-  run_all as r,
-  stringify as s,
-  DIRTY as t,
-  unsubscribe_stores as u,
-  set_signal_status as v,
-  schedule_effect as w,
-  safe_equals as x,
-  active_effect as y,
-  BRANCH_EFFECT as z
+  stringify as q,
+  rest_props as r,
+  spread_attributes as s,
+  setContext as t,
+  element as u,
+  invalid_default_snippet as v,
+  active_reaction as w,
+  is_runes as x,
+  derived_sources as y,
+  state_unsafe_mutation as z
 };

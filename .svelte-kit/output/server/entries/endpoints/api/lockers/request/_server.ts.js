@@ -1,10 +1,9 @@
 import { e as error } from "../../../../../chunks/index.js";
-import { d as db, b as lockers, l as lockerRequests } from "../../../../../chunks/index2.js";
+import { d as db, l as lockers, a as lockerRequests } from "../../../../../chunks/index2.js";
 import { nanoid } from "nanoid";
 import { eq, and } from "drizzle-orm";
-const POST = async ({ request, locals }) => {
-  const userId = locals.auth?.userId;
-  if (!userId) {
+const POST = async ({ locals, request }) => {
+  if (!locals.user) {
     throw error(401, "Unauthorized");
   }
   const body = await request.json();
@@ -28,7 +27,7 @@ const POST = async ({ request, locals }) => {
     }
     const newRequest = {
       id: nanoid(),
-      userId,
+      userId: locals.user.id,
       lockerId,
       subscriptionTypeId,
       proofOfPayment,

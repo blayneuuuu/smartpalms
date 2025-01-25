@@ -1,13 +1,6 @@
 import "clsx";
-import "./exports.js";
-import { w as writable } from "./index4.js";
+import { w as writable } from "./exports.js";
 import { n as noop } from "./index3.js";
-function get(key, parse = JSON.parse) {
-  try {
-    return parse(sessionStorage[key]);
-  } catch {
-  }
-}
 const SNAPSHOT_KEY = "sveltekit:snapshot";
 const SCROLL_KEY = "sveltekit:scroll";
 function notifiable_store(value) {
@@ -60,6 +53,12 @@ if (is_legacy) {
     current = false;
   }();
 }
+function get(key, parse = JSON.parse) {
+  try {
+    return parse(sessionStorage[key]);
+  } catch {
+  }
+}
 get(SCROLL_KEY) ?? {};
 get(SNAPSHOT_KEY) ?? {};
 const stores = {
@@ -71,7 +70,13 @@ const stores = {
   ),
   updated: /* @__PURE__ */ create_updated_store()
 };
+function goto(url, opts = {}) {
+  {
+    throw new Error("Cannot call goto(...) on the server");
+  }
+}
 export {
+  goto as g,
   stores as s,
   updated as u
 };

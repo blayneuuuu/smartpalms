@@ -1,9 +1,8 @@
 import { e as error, j as json } from "../../../../../../chunks/index.js";
-import { d as db, l as lockerRequests, s as subscriptions, t as transactions, b as lockers } from "../../../../../../chunks/index2.js";
-import { eq } from "drizzle-orm";
+import { d as db, a as lockerRequests, s as subscriptionTypes, l as lockers, b as subscriptions, t as transactions } from "../../../../../../chunks/index2.js";
+import { eq, and } from "drizzle-orm";
 const PUT = async ({ params, request, locals }) => {
-  const { userId } = locals.auth;
-  if (!userId) {
+  if (!locals.user || locals.user.type !== "admin") {
     throw error(401, "Unauthorized");
   }
   const requestId = params.id;
@@ -12,46 +11,77 @@ const PUT = async ({ params, request, locals }) => {
   }
   try {
     const { status, rejectionReason } = await request.json();
-    const lockerRequest = await db.query.lockerRequests.findFirst({
-      where: eq(lockerRequests.id, requestId)
-    });
+    const lockerRequest = await db.select().from(lockerRequests).where(eq(lockerRequests.id, requestId)).get();
     if (!lockerRequest) {
       throw error(404, "Request not found");
     }
-    if (status === "approved") {
-      const subscription = await db.insert(subscriptions).values({
+    const subscriptionType = await db.select().from(subscriptionTypes).where(eq(subscriptionTypes.id, lockerRequest.subscriptionTypeId)).get();
+    if (!subscriptionType) {
+      throw error(404, "Subscription type not found");
+    }
+    const locker = await db.select().from(lockers).where(eq(lockers.id, lockerRequest.lockerId)).get();
+    if (!locker) {
+      throw error(404, "Locker not found");
+    }
+    if (status === "approve") {
+      const [existingSubscription] = await db.select().from(subscriptions).where(
+        and(
+          eq(subscriptions.lockerId, lockerRequest.lockerId),
+          eq(subscriptions.status, "active")
+        )
+      );
+      if (existingSubscription) {
+        throw error(400, "Locker is no longer available");
+      }
+      let daysToAdd = 0;
+      switch (subscriptionType.duration) {
+        case "1_day":
+          daysToAdd = 1;
+          break;
+        case "7_days":
+          daysToAdd = 7;
+          break;
+        case "30_days":
+          daysToAdd = 30;
+          break;
+        default:
+          throw error(400, "Invalid subscription duration");
+      }
+      const expiryDate = /* @__PURE__ */ new Date();
+      expiryDate.setDate(expiryDate.getDate() + daysToAdd);
+      const [subscription] = await db.insert(subscriptions).values({
         id: crypto.randomUUID(),
         userId: lockerRequest.userId,
         lockerId: lockerRequest.lockerId,
         status: "active",
-        createdAt: /* @__PURE__ */ new Date(),
-        expiresAt: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1e3
-        ).toISOString()
-        // 30 days from now
+        expiresAt: expiryDate.toISOString(),
+        createdAt: /* @__PURE__ */ new Date()
       }).returning();
       await db.insert(transactions).values({
         id: crypto.randomUUID(),
         userId: lockerRequest.userId,
-        amount: "29.99",
-        // You might want to make this configurable
-        subscriptionId: subscription[0].id,
+        amount: subscriptionType.amount.toString(),
+        subscriptionId: subscription.id,
         status: "success",
         proofOfPayment: lockerRequest.proofOfPayment,
         createdAt: /* @__PURE__ */ new Date()
       });
       await db.update(lockers).set({
         userId: lockerRequest.userId,
-        isOccupied: true,
-        lastAccessedAt: /* @__PURE__ */ new Date()
+        isOccupied: true
       }).where(eq(lockers.id, lockerRequest.lockerId));
+      await db.update(lockerRequests).set({
+        status: "approved",
+        processedAt: /* @__PURE__ */ new Date(),
+        processedBy: locals.user.id
+      }).where(eq(lockerRequests.id, requestId));
       await db.delete(lockerRequests).where(eq(lockerRequests.id, requestId));
-    } else if (status === "rejected") {
+    } else if (status === "reject") {
       await db.update(lockerRequests).set({
         status: "rejected",
         rejectionReason: rejectionReason || "No reason provided",
         processedAt: /* @__PURE__ */ new Date(),
-        processedBy: userId
+        processedBy: locals.user.id
       }).where(eq(lockerRequests.id, requestId));
     }
     return json({ success: true });

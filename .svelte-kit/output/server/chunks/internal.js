@@ -1,4 +1,5 @@
-import { k as active_reaction, l as is_runes, D as DERIVED, B as BLOCK_EFFECT, m as derived_sources, o as state_unsafe_mutation, q as increment_write_version, t as DIRTY, v as set_signal_status, C as CLEAN, U as UNOWNED, w as schedule_effect, M as MAYBE_DIRTY, x as safe_equals, y as active_effect, z as BRANCH_EFFECT, A as new_deps, E as untracked_writes, F as set_untracked_writes, G as equals, H as HYDRATION_ERROR, I as get_next_sibling, J as define_property, K as set_active_reaction, L as set_active_effect, N as is_array, O as init_operations, P as get_first_child, Q as HYDRATION_START, R as HYDRATION_END, S as hydration_failed, T as clear_text_content, V as array_from, W as component_root, X as is_passive_event, Y as create_text, Z as branch, _ as push, $ as pop, a0 as component_context, a1 as get, a2 as LEGACY_PROPS, a3 as flush_sync, a4 as render, c as push$1, j as setContext, p as pop$1 } from "./index3.js";
+import { w as active_reaction, x as is_runes, D as DERIVED, B as BLOCK_EFFECT, y as derived_sources, z as state_unsafe_mutation, A as increment_write_version, C as DIRTY, E as set_signal_status, F as CLEAN, U as UNOWNED, G as schedule_effect, M as MAYBE_DIRTY, H as active_effect, I as BRANCH_EFFECT, J as new_deps, K as untracked_writes, L as set_untracked_writes, N as HYDRATION_ERROR, O as get_next_sibling, P as define_property, Q as set_active_reaction, R as set_active_effect, S as is_array, T as init_operations, V as get_first_child, W as HYDRATION_START, X as HYDRATION_END, Y as hydration_failed, Z as clear_text_content, _ as array_from, $ as component_root, a0 as is_passive_event, a1 as create_text, a2 as branch, a3 as push, a4 as pop, a5 as component_context, a6 as get, a7 as LEGACY_PROPS, a8 as flush_sync, a9 as render, d as push$1, t as setContext, p as pop$1 } from "./index3.js";
+import { a as safe_equals, e as equals } from "./equality.js";
 import "clsx";
 import "./shared-server.js";
 let base = "";
@@ -528,7 +529,7 @@ const options = {
   app_dir: "_app",
   app_template_contains_nonce: false,
   csp: { "mode": "auto", "directives": { "upgrade-insecure-requests": false, "block-all-mixed-content": false }, "reportOnly": { "upgrade-insecure-requests": false, "block-all-mixed-content": false } },
-  csrf_check_origin: true,
+  csrf_check_origin: false,
   embedded: false,
   env_public_prefix: "PUBLIC_",
   env_private_prefix: "",
@@ -539,7 +540,7 @@ const options = {
   root,
   service_worker: false,
   templates: {
-    app: ({ head, body, assets: assets2, nonce, env }) => '<!doctype html>\r\n<html lang="en">\r\n  <head>\r\n    <meta charset="utf-8" />\r\n    <link rel="icon" href="' + assets2 + '/favicon.png" />\r\n    <meta name="viewport" content="width=device-width, initial-scale=1" />\r\n    ' + head + '\r\n  </head>\r\n  <body data-sveltekit-preload-data="hover">\r\n    <div style="display: contents">' + body + "</div>\r\n  </body>\r\n</html>\r\n",
+    app: ({ head, body, assets: assets2, nonce, env }) => '<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="utf-8" />\n    <link rel="icon" href="' + assets2 + '/favicon.png" />\n    <meta name="viewport" content="width=device-width, initial-scale=1" />\n    ' + head + '\n  </head>\n  <body data-sveltekit-preload-data="hover">\n    <div style="display: contents">' + body + "</div>\n  </body>\n</html>\n",
     error: ({ status, message }) => '<!doctype html>\n<html lang="en">\n	<head>\n		<meta charset="utf-8" />\n		<title>' + message + `</title>
 
 		<style>
@@ -611,7 +612,7 @@ const options = {
 		<div class="error">
 			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
   },
-  version_hash: "17fk9lp"
+  version_hash: "1pvlsqh"
 };
 async function get_hooks() {
   let handle;

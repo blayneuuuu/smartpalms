@@ -1,1673 +1,804 @@
+import { r as rest_props, d as push, i as fallback, s as spread_attributes, j as clsx, g as attr, b as bind_props, p as pop, l as sanitize_props, t as setContext, k as slot, h as getContext, aa as store_get, f as ensure_array_like, ab as unsubscribe_stores, e as escape_html, c as copy_payload, a as assign_payload } from "../../../chunks/index3.js";
 import "clsx";
-import { h as getContext, j as setContext, c as push, a5 as fallback, a6 as slot, i as store_get, u as unsubscribe_stores, a7 as bind_props, p as pop, a8 as rest_props, a9 as spread_attributes, aa as sanitize_props, e as escape_html, ab as spread_props, ac as invalid_default_snippet, ad as copy_payload, ae as assign_payload, a as ensure_array_like } from "../../../chunks/index3.js";
-import { U as UserButton, u as useClerkContext } from "../../../chunks/chunk-5JJNUDZC.js";
+import { A as Alert, B as Button, L as Label, I as Input } from "../../../chunks/Input.js";
+import { C as Card, B as Badge, M as Modal, S as Select } from "../../../chunks/Modal.js";
+import { w as writable } from "../../../chunks/exports.js";
+import { twMerge, twJoin } from "tailwind-merge";
 import "../../../chunks/client.js";
-import { i as isHTMLElement, e as isBrowser, s as sleep, w as withGet, f as wrapArray, g as getElementByMeltId, h as isElement, j as isHTMLLabelElement, n as noop, u as usePortal, k as createFocusTrap, l as useModal, m as useEscapeKeydown, o as executeCallbacks, p as overridable, t as toWritableStores, q as omit, r as createElHelpers, v as generateIds, x as isObject, y as stripValues, z as makeElement, A as disabledAttr, C as addMeltEventListener, E as kbd, F as isHTMLButtonElement, G as last, H as FIRST_LAST_KEYS, J as isElementDisabled, K as back, M as forward, N as prev, O as next, P as styleToString, Q as effect, S as getPortalDestination, T as createLabel, U as generateId, V as createHiddenInput, W as safeOnMount, X as removeScroll, Y as isHTMLInputElement, Z as toggle, _ as createBitAttrs, $ as removeUndefined, a0 as getOptionUpdater, a1 as Icon, a2 as cn, a3 as flyAndScale, a4 as scale, R as Root$1, D as Dialog_content, a as Dialog_header, b as Dialog_title, c as Dialog_description, L as Label, I as Input, d as Dialog_footer, B as Button } from "../../../chunks/label.js";
-import { tv } from "tailwind-variants";
-import { dequal } from "dequal";
-import { d as derived, w as writable, g as get, r as readonly } from "../../../chunks/index4.js";
-import { t as tick } from "../../../chunks/index-server.js";
-import { flip, offset, shift, arrow, size, autoUpdate, computePosition } from "@floating-ui/dom";
-import "../../../chunks/index.js";
-function addHighlight(element) {
-  element.setAttribute("data-highlighted", "");
-}
-function removeHighlight(element) {
-  element.removeAttribute("data-highlighted");
-}
-function getOptions(el) {
-  return Array.from(el.querySelectorAll('[role="option"]:not([data-disabled])')).filter((el2) => isHTMLElement(el2));
-}
-function debounce(fn, wait = 500) {
-  let timeout = null;
-  return function(...args) {
-    const later = () => {
-      timeout = null;
-      fn(...args);
-    };
-    timeout && clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-function derivedVisible(obj) {
-  const { open, forceVisible, activeTrigger } = obj;
-  return derived([open, forceVisible, activeTrigger], ([$open, $forceVisible, $activeTrigger]) => ($open || $forceVisible) && $activeTrigger !== null);
-}
-function handleRovingFocus(nextElement) {
-  if (!isBrowser)
-    return;
-  sleep(1).then(() => {
-    const currentFocusedElement = document.activeElement;
-    if (!isHTMLElement(currentFocusedElement) || currentFocusedElement === nextElement)
-      return;
-    currentFocusedElement.tabIndex = -1;
-    if (nextElement) {
-      nextElement.tabIndex = 0;
-      nextElement.focus();
-    }
-  });
-}
-const ignoredKeys = /* @__PURE__ */ new Set(["Shift", "Control", "Alt", "Meta", "CapsLock", "NumLock"]);
-const defaults$1 = {
-  onMatch: handleRovingFocus,
-  getCurrentItem: () => document.activeElement
-};
-function createTypeaheadSearch(args = {}) {
-  const withDefaults = { ...defaults$1, ...args };
-  const typed = withGet(writable([]));
-  const resetTyped = debounce(() => {
-    typed.update(() => []);
-  });
-  const handleTypeaheadSearch = (key, items) => {
-    if (ignoredKeys.has(key))
-      return;
-    const currentItem = withDefaults.getCurrentItem();
-    const $typed = get(typed);
-    if (!Array.isArray($typed)) {
-      return;
-    }
-    $typed.push(key.toLowerCase());
-    typed.set($typed);
-    const candidateItems = items.filter((item) => {
-      if (item.getAttribute("disabled") === "true" || item.getAttribute("aria-disabled") === "true" || item.hasAttribute("data-disabled")) {
-        return false;
-      }
-      return true;
-    });
-    const isRepeated = $typed.length > 1 && $typed.every((char) => char === $typed[0]);
-    const normalizeSearch = isRepeated ? $typed[0] : $typed.join("");
-    const currentItemIndex = isHTMLElement(currentItem) ? candidateItems.indexOf(currentItem) : -1;
-    let wrappedItems = wrapArray(candidateItems, Math.max(currentItemIndex, 0));
-    const excludeCurrentItem = normalizeSearch.length === 1;
-    if (excludeCurrentItem) {
-      wrappedItems = wrappedItems.filter((v) => v !== currentItem);
-    }
-    const nextItem = wrappedItems.find((item) => item?.innerText && item.innerText.toLowerCase().startsWith(normalizeSearch.toLowerCase()));
-    if (isHTMLElement(nextItem) && nextItem !== currentItem) {
-      withDefaults.onMatch(nextItem);
-    }
-    resetTyped();
-  };
-  return {
-    typed,
-    resetTyped,
-    handleTypeaheadSearch
-  };
-}
-function createClickOutsideIgnore(meltId) {
-  return (e) => {
-    const target = e.target;
-    const triggerEl = getElementByMeltId(meltId);
-    if (!triggerEl || !isElement(target))
-      return false;
-    const id = triggerEl.id;
-    if (isHTMLLabelElement(target) && id === target.htmlFor) {
-      return true;
-    }
-    if (target.closest(`label[for="${id}"]`)) {
-      return true;
-    }
-    return false;
-  };
-}
-const defaultConfig$1 = {
-  strategy: "absolute",
-  placement: "top",
-  gutter: 5,
-  flip: true,
-  sameWidth: false,
-  overflowPadding: 8
-};
-const ARROW_TRANSFORM = {
-  bottom: "rotate(45deg)",
-  left: "rotate(135deg)",
-  top: "rotate(225deg)",
-  right: "rotate(315deg)"
-};
-function useFloating(reference, floating, opts = {}) {
-  if (!floating || !reference || opts === null)
-    return {
-      destroy: noop
-    };
-  const options = { ...defaultConfig$1, ...opts };
-  const arrowEl = floating.querySelector("[data-arrow=true]");
-  const middleware = [];
-  if (options.flip) {
-    middleware.push(flip({
-      boundary: options.boundary,
-      padding: options.overflowPadding
-    }));
-  }
-  const arrowOffset = isHTMLElement(arrowEl) ? arrowEl.offsetHeight / 2 : 0;
-  if (options.gutter || options.offset) {
-    const data = options.gutter ? { mainAxis: options.gutter } : options.offset;
-    if (data?.mainAxis != null) {
-      data.mainAxis += arrowOffset;
-    }
-    middleware.push(offset(data));
-  }
-  middleware.push(shift({
-    boundary: options.boundary,
-    crossAxis: options.overlap,
-    padding: options.overflowPadding
-  }));
-  if (arrowEl) {
-    middleware.push(arrow({ element: arrowEl, padding: 8 }));
-  }
-  middleware.push(size({
-    padding: options.overflowPadding,
-    apply({ rects, availableHeight, availableWidth }) {
-      if (options.sameWidth) {
-        Object.assign(floating.style, {
-          width: `${Math.round(rects.reference.width)}px`,
-          minWidth: "unset"
-        });
-      }
-      if (options.fitViewport) {
-        Object.assign(floating.style, {
-          maxWidth: `${availableWidth}px`,
-          maxHeight: `${availableHeight}px`
-        });
-      }
-    }
-  }));
-  function compute() {
-    if (!reference || !floating)
-      return;
-    if (isHTMLElement(reference) && !reference.ownerDocument.documentElement.contains(reference))
-      return;
-    const { placement, strategy } = options;
-    computePosition(reference, floating, {
-      placement,
-      middleware,
-      strategy
-    }).then((data) => {
-      const x = Math.round(data.x);
-      const y = Math.round(data.y);
-      const [side, align] = getSideAndAlignFromPlacement(data.placement);
-      floating.setAttribute("data-side", side);
-      floating.setAttribute("data-align", align);
-      Object.assign(floating.style, {
-        position: options.strategy,
-        top: `${y}px`,
-        left: `${x}px`
-      });
-      if (isHTMLElement(arrowEl) && data.middlewareData.arrow) {
-        const { x: x2, y: y2 } = data.middlewareData.arrow;
-        const dir = data.placement.split("-")[0];
-        arrowEl.setAttribute("data-side", dir);
-        Object.assign(arrowEl.style, {
-          position: "absolute",
-          left: x2 != null ? `${x2}px` : "",
-          top: y2 != null ? `${y2}px` : "",
-          [dir]: `calc(100% - ${arrowOffset}px)`,
-          transform: ARROW_TRANSFORM[dir],
-          backgroundColor: "inherit",
-          zIndex: "inherit"
-        });
-      }
-      return data;
-    });
-  }
-  Object.assign(floating.style, {
-    position: options.strategy
-  });
-  return {
-    destroy: autoUpdate(reference, floating, compute)
-  };
-}
-function getSideAndAlignFromPlacement(placement) {
-  const [side, align = "center"] = placement.split("-");
-  return [side, align];
-}
-const defaultConfig = {
-  floating: {},
-  focusTrap: {},
-  modal: {},
-  escapeKeydown: {},
-  portal: "body"
-};
-const usePopper = (popperElement, args) => {
-  popperElement.dataset.escapee = "";
-  const { anchorElement, open, options } = args;
-  if (!anchorElement || !open || !options) {
-    return { destroy: noop };
-  }
-  const opts = { ...defaultConfig, ...options };
-  const callbacks = [];
-  if (opts.portal !== null) {
-    callbacks.push(usePortal(popperElement, opts.portal).destroy);
-  }
-  callbacks.push(useFloating(anchorElement, popperElement, opts.floating).destroy);
-  if (opts.focusTrap !== null) {
-    const { useFocusTrap } = createFocusTrap({
-      immediate: true,
-      escapeDeactivates: false,
-      allowOutsideClick: true,
-      returnFocusOnDeactivate: false,
-      fallbackFocus: popperElement,
-      ...opts.focusTrap
-    });
-    callbacks.push(useFocusTrap(popperElement).destroy);
-  }
-  if (opts.modal !== null) {
-    callbacks.push(useModal(popperElement, {
-      onClose: () => {
-        if (isHTMLElement(anchorElement)) {
-          open.set(false);
-          anchorElement.focus();
-        }
-      },
-      shouldCloseOnInteractOutside: (e) => {
-        if (e.defaultPrevented)
-          return false;
-        if (isHTMLElement(anchorElement) && anchorElement.contains(e.target)) {
-          return false;
-        }
-        return true;
-      },
-      ...opts.modal
-    }).destroy);
-  }
-  if (opts.escapeKeydown !== null) {
-    callbacks.push(useEscapeKeydown(popperElement, {
-      enabled: open,
-      handler: () => {
-        open.set(false);
-      },
-      ...opts.escapeKeydown
-    }).destroy);
-  }
-  const unsubscribe = executeCallbacks(...callbacks);
-  return {
-    destroy() {
-      unsubscribe();
-    }
-  };
-};
-const INTERACTION_KEYS = [kbd.ARROW_LEFT, kbd.ESCAPE, kbd.ARROW_RIGHT, kbd.SHIFT, kbd.CAPS_LOCK, kbd.CONTROL, kbd.ALT, kbd.META, kbd.ENTER, kbd.F1, kbd.F2, kbd.F3, kbd.F4, kbd.F5, kbd.F6, kbd.F7, kbd.F8, kbd.F9, kbd.F10, kbd.F11, kbd.F12];
-const defaults = {
-  positioning: {
-    placement: "bottom",
-    sameWidth: true
-  },
-  scrollAlignment: "nearest",
-  loop: true,
-  defaultOpen: false,
-  closeOnOutsideClick: true,
-  preventScroll: true,
-  closeOnEscape: true,
-  forceVisible: false,
-  portal: void 0,
-  builder: "listbox",
-  disabled: false,
-  required: false,
-  name: void 0,
-  typeahead: true,
-  highlightOnHover: true,
-  onOutsideClick: void 0
-};
-const listboxIdParts = ["trigger", "menu", "label"];
-function createListbox(props) {
-  const withDefaults = { ...defaults, ...props };
-  const activeTrigger = withGet(writable(null));
-  const highlightedItem = withGet(writable(null));
-  const selectedWritable = withDefaults.selected ?? writable(withDefaults.defaultSelected);
-  const selected = overridable(selectedWritable, withDefaults?.onSelectedChange);
-  const highlighted = derived(highlightedItem, ($highlightedItem) => $highlightedItem ? getOptionProps($highlightedItem) : void 0);
-  const openWritable = withDefaults.open ?? writable(withDefaults.defaultOpen);
-  const open = overridable(openWritable, withDefaults?.onOpenChange);
-  const options = toWritableStores({
-    ...omit(withDefaults, "open", "defaultOpen", "builder", "ids"),
-    multiple: withDefaults.multiple ?? false
-  });
-  const { scrollAlignment, loop, closeOnOutsideClick, closeOnEscape, preventScroll, portal, forceVisible, positioning, multiple, arrowSize, disabled, required, typeahead, name: nameProp, highlightOnHover, onOutsideClick } = options;
-  const { name, selector } = createElHelpers(withDefaults.builder);
-  const ids = toWritableStores({ ...generateIds(listboxIdParts), ...withDefaults.ids });
-  const { handleTypeaheadSearch } = createTypeaheadSearch({
-    onMatch: (element) => {
-      highlightedItem.set(element);
-      element.scrollIntoView({ block: scrollAlignment.get() });
-    },
-    getCurrentItem() {
-      return highlightedItem.get();
-    }
-  });
-  function getOptionProps(el) {
-    const value = el.getAttribute("data-value");
-    const label2 = el.getAttribute("data-label");
-    const disabled2 = el.hasAttribute("data-disabled");
-    return {
-      value: value ? JSON.parse(value) : value,
-      label: label2 ?? el.textContent ?? void 0,
-      disabled: disabled2 ? true : false
-    };
-  }
-  const setOption = (newOption) => {
-    selected.update(($option) => {
-      const $multiple = multiple.get();
-      if ($multiple) {
-        const optionArr = Array.isArray($option) ? [...$option] : [];
-        return toggle(newOption, optionArr, (itemA, itemB) => dequal(itemA.value, itemB.value));
-      }
-      return newOption;
-    });
-  };
-  function selectItem(item) {
-    const props2 = getOptionProps(item);
-    setOption(props2);
-  }
-  async function openMenu() {
-    open.set(true);
-    const triggerEl = document.getElementById(ids.trigger.get());
-    if (!triggerEl)
-      return;
-    if (triggerEl !== activeTrigger.get())
-      activeTrigger.set(triggerEl);
-    await tick();
-    const menuElement = document.getElementById(ids.menu.get());
-    if (!isHTMLElement(menuElement))
-      return;
-    const selectedItem = menuElement.querySelector("[aria-selected=true]");
-    if (!isHTMLElement(selectedItem))
-      return;
-    highlightedItem.set(selectedItem);
-  }
-  function closeMenu() {
-    open.set(false);
-    highlightedItem.set(null);
-  }
-  const isVisible = derivedVisible({ open, forceVisible, activeTrigger });
-  const isSelected = derived([selected], ([$selected]) => {
-    return (value) => {
-      if (Array.isArray($selected)) {
-        return $selected.some((o) => dequal(o.value, value));
-      }
-      if (isObject(value)) {
-        return dequal($selected?.value, stripValues(value, void 0));
-      }
-      return dequal($selected?.value, value);
-    };
-  });
-  const isHighlighted = derived([highlighted], ([$value]) => {
-    return (item) => {
-      return dequal($value?.value, item);
-    };
-  });
-  const trigger = makeElement(name("trigger"), {
-    stores: [open, highlightedItem, disabled, ids.menu, ids.trigger, ids.label],
-    returned: ([$open, $highlightedItem, $disabled, $menuId, $triggerId, $labelId]) => {
-      return {
-        "aria-activedescendant": $highlightedItem?.id,
-        "aria-autocomplete": "list",
-        "aria-controls": $menuId,
-        "aria-expanded": $open,
-        "aria-labelledby": $labelId,
-        // autocomplete: 'off',
-        id: $triggerId,
-        role: "combobox",
-        disabled: disabledAttr($disabled),
-        type: withDefaults.builder === "select" ? "button" : void 0
-      };
-    },
-    action: (node) => {
-      const isInput = isHTMLInputElement(node);
-      const unsubscribe = executeCallbacks(
-        addMeltEventListener(node, "click", () => {
-          node.focus();
-          const $open = open.get();
-          if ($open) {
-            closeMenu();
-          } else {
-            openMenu();
-          }
-        }),
-        // Handle all input key events including typing, meta, and navigation.
-        addMeltEventListener(node, "keydown", (e) => {
-          const $open = open.get();
-          if (!$open) {
-            if (INTERACTION_KEYS.includes(e.key)) {
-              return;
-            }
-            if (e.key === kbd.TAB) {
-              return;
-            }
-            if (e.key === kbd.BACKSPACE && isInput && node.value === "") {
-              return;
-            }
-            if (e.key === kbd.SPACE && isHTMLButtonElement(node)) {
-              return;
-            }
-            openMenu();
-            tick().then(() => {
-              const $selectedItem = selected.get();
-              if ($selectedItem)
-                return;
-              const menuEl = document.getElementById(ids.menu.get());
-              if (!isHTMLElement(menuEl))
-                return;
-              const enabledItems = Array.from(menuEl.querySelectorAll(`${selector("item")}:not([data-disabled]):not([data-hidden])`)).filter((item) => isHTMLElement(item));
-              if (!enabledItems.length)
-                return;
-              if (e.key === kbd.ARROW_DOWN) {
-                highlightedItem.set(enabledItems[0]);
-                enabledItems[0].scrollIntoView({ block: scrollAlignment.get() });
-              } else if (e.key === kbd.ARROW_UP) {
-                highlightedItem.set(last(enabledItems));
-                last(enabledItems).scrollIntoView({ block: scrollAlignment.get() });
-              }
-            });
-          }
-          if (e.key === kbd.TAB) {
-            closeMenu();
-            return;
-          }
-          if (e.key === kbd.ENTER && !e.isComposing || e.key === kbd.SPACE && isHTMLButtonElement(node)) {
-            e.preventDefault();
-            const $highlightedItem = highlightedItem.get();
-            if ($highlightedItem) {
-              selectItem($highlightedItem);
-            }
-            if (!multiple.get()) {
-              closeMenu();
-            }
-          }
-          if (e.key === kbd.ARROW_UP && e.altKey) {
-            closeMenu();
-          }
-          if (FIRST_LAST_KEYS.includes(e.key)) {
-            e.preventDefault();
-            const menuElement = document.getElementById(ids.menu.get());
-            if (!isHTMLElement(menuElement))
-              return;
-            const itemElements = getOptions(menuElement);
-            if (!itemElements.length)
-              return;
-            const candidateNodes = itemElements.filter((opt) => !isElementDisabled(opt) && opt.dataset.hidden === void 0);
-            const $currentItem = highlightedItem.get();
-            const currentIndex = $currentItem ? candidateNodes.indexOf($currentItem) : -1;
-            const $loop = loop.get();
-            const $scrollAlignment = scrollAlignment.get();
-            let nextItem;
-            switch (e.key) {
-              case kbd.ARROW_DOWN:
-                nextItem = next(candidateNodes, currentIndex, $loop);
-                break;
-              case kbd.ARROW_UP:
-                nextItem = prev(candidateNodes, currentIndex, $loop);
-                break;
-              case kbd.PAGE_DOWN:
-                nextItem = forward(candidateNodes, currentIndex, 10, $loop);
-                break;
-              case kbd.PAGE_UP:
-                nextItem = back(candidateNodes, currentIndex, 10, $loop);
-                break;
-              case kbd.HOME:
-                nextItem = candidateNodes[0];
-                break;
-              case kbd.END:
-                nextItem = last(candidateNodes);
-                break;
-              default:
-                return;
-            }
-            highlightedItem.set(nextItem);
-            nextItem?.scrollIntoView({ block: $scrollAlignment });
-          } else if (typeahead.get()) {
-            const menuEl = document.getElementById(ids.menu.get());
-            if (!isHTMLElement(menuEl))
-              return;
-            handleTypeaheadSearch(e.key, getOptions(menuEl));
-          }
-        })
-      );
-      let unsubEscapeKeydown = noop;
-      const escape = useEscapeKeydown(node, {
-        handler: closeMenu,
-        enabled: derived([open, closeOnEscape], ([$open, $closeOnEscape]) => {
-          return $open && $closeOnEscape;
-        })
-      });
-      {
-        unsubEscapeKeydown = escape.destroy;
-      }
-      return {
-        destroy() {
-          unsubscribe();
-          unsubEscapeKeydown();
-        }
-      };
-    }
-  });
-  const menu = makeElement(name("menu"), {
-    stores: [isVisible, ids.menu],
-    returned: ([$isVisible, $menuId]) => {
-      return {
-        hidden: $isVisible ? void 0 : true,
-        id: $menuId,
-        role: "listbox",
-        style: styleToString({ display: $isVisible ? void 0 : "none" })
-      };
-    },
-    action: (node) => {
-      let unsubPopper = noop;
-      const unsubscribe = executeCallbacks(
-        // Bind the popper portal to the input element.
-        effect([isVisible, portal, closeOnOutsideClick, positioning, activeTrigger], ([$isVisible, $portal, $closeOnOutsideClick, $positioning, $activeTrigger]) => {
-          unsubPopper();
-          if (!$isVisible || !$activeTrigger)
-            return;
-          tick().then(() => {
-            unsubPopper();
-            const ignoreHandler = createClickOutsideIgnore(ids.trigger.get());
-            unsubPopper = usePopper(node, {
-              anchorElement: $activeTrigger,
-              open,
-              options: {
-                floating: $positioning,
-                focusTrap: null,
-                modal: {
-                  closeOnInteractOutside: $closeOnOutsideClick,
-                  onClose: closeMenu,
-                  open: $isVisible,
-                  shouldCloseOnInteractOutside: (e) => {
-                    onOutsideClick.get()?.(e);
-                    if (e.defaultPrevented)
-                      return false;
-                    const target = e.target;
-                    if (!isElement(target))
-                      return false;
-                    if (target === $activeTrigger || $activeTrigger.contains(target)) {
-                      return false;
-                    }
-                    if (ignoreHandler(e))
-                      return false;
-                    return true;
-                  }
-                },
-                escapeKeydown: null,
-                portal: getPortalDestination(node, $portal)
-              }
-            }).destroy;
-          });
-        })
-      );
-      return {
-        destroy: () => {
-          unsubscribe();
-          unsubPopper();
-        }
-      };
-    }
-  });
-  const { elements: { root: labelBuilder } } = createLabel();
-  const { action: labelAction } = get(labelBuilder);
-  const label = makeElement(name("label"), {
-    stores: [ids.label, ids.trigger],
-    returned: ([$labelId, $triggerId]) => {
-      return {
-        id: $labelId,
-        for: $triggerId
-      };
-    },
-    action: labelAction
-  });
-  const option = makeElement(name("option"), {
-    stores: [isSelected],
-    returned: ([$isSelected]) => (props2) => {
-      const selected2 = $isSelected(props2.value);
-      return {
-        "data-value": JSON.stringify(props2.value),
-        "data-label": props2.label,
-        "data-disabled": disabledAttr(props2.disabled),
-        "aria-disabled": props2.disabled ? true : void 0,
-        "aria-selected": selected2,
-        "data-selected": selected2 ? "" : void 0,
-        id: generateId(),
-        role: "option"
-      };
-    },
-    action: (node) => {
-      const unsubscribe = executeCallbacks(addMeltEventListener(node, "click", (e) => {
-        if (isElementDisabled(node)) {
-          e.preventDefault();
-          return;
-        }
-        selectItem(node);
-        if (!multiple.get()) {
-          closeMenu();
-        }
-      }), effect(highlightOnHover, ($highlightOnHover) => {
-        if (!$highlightOnHover)
-          return;
-        const unsub = executeCallbacks(addMeltEventListener(node, "mouseover", () => {
-          highlightedItem.set(node);
-        }), addMeltEventListener(node, "mouseleave", () => {
-          highlightedItem.set(null);
-        }));
-        return unsub;
-      }));
-      return { destroy: unsubscribe };
-    }
-  });
-  const group = makeElement(name("group"), {
-    returned: () => {
-      return (groupId) => ({
-        role: "group",
-        "aria-labelledby": groupId
-      });
-    }
-  });
-  const groupLabel = makeElement(name("group-label"), {
-    returned: () => {
-      return (groupId) => ({
-        id: groupId
-      });
-    }
-  });
-  const hiddenInput = createHiddenInput({
-    value: derived([selected], ([$selected]) => {
-      const value = Array.isArray($selected) ? $selected.map((o) => o.value) : $selected?.value;
-      return typeof value === "string" ? value : JSON.stringify(value);
-    }),
-    name: readonly(nameProp),
-    required,
-    prefix: withDefaults.builder
-  });
-  const arrow2 = makeElement(name("arrow"), {
-    stores: arrowSize,
-    returned: ($arrowSize) => ({
-      "data-arrow": true,
-      style: styleToString({
-        position: "absolute",
-        width: `var(--arrow-size, ${$arrowSize}px)`,
-        height: `var(--arrow-size, ${$arrowSize}px)`
-      })
-    })
-  });
-  safeOnMount(() => {
-    if (!isBrowser)
-      return;
-    const menuEl = document.getElementById(ids.menu.get());
-    const triggerEl = document.getElementById(ids.trigger.get());
-    if (triggerEl) {
-      activeTrigger.set(triggerEl);
-    }
-    if (!menuEl)
-      return;
-    const selectedEl = menuEl.querySelector("[data-selected]");
-    if (!isHTMLElement(selectedEl))
-      return;
-  });
-  effect([highlightedItem], ([$highlightedItem]) => {
-    if (!isBrowser)
-      return;
-    const menuElement = document.getElementById(ids.menu.get());
-    if (!isHTMLElement(menuElement))
-      return;
-    getOptions(menuElement).forEach((node) => {
-      if (node === $highlightedItem) {
-        addHighlight(node);
-      } else {
-        removeHighlight(node);
-      }
-    });
-  });
-  effect([open], ([$open]) => {
-    if (!isBrowser)
-      return;
-    let unsubScroll = noop;
-    if (preventScroll.get() && $open) {
-      unsubScroll = removeScroll();
-    }
-    return () => {
-      unsubScroll();
-    };
-  });
-  return {
-    ids,
-    elements: {
-      trigger,
-      group,
-      option,
-      menu,
-      groupLabel,
-      label,
-      hiddenInput,
-      arrow: arrow2
-    },
-    states: {
-      open,
-      selected,
-      highlighted,
-      highlightedItem
-    },
-    helpers: {
-      isSelected,
-      isHighlighted,
-      closeMenu
-    },
-    options
-  };
-}
-function createSelect(props) {
-  const listbox = createListbox({ ...props, builder: "select" });
-  const selectedLabel = derived(listbox.states.selected, ($selected) => {
-    if (Array.isArray($selected)) {
-      return $selected.map((o) => o.label).join(", ");
-    }
-    return $selected?.label ?? "";
-  });
-  return {
-    ...listbox,
-    elements: {
-      ...listbox.elements
-    },
-    states: {
-      ...listbox.states,
-      selectedLabel
-    }
-  };
-}
-function arraysAreEqual(arr1, arr2) {
-  if (arr1.length !== arr2.length) {
-    return false;
-  }
-  return arr1.every((value, index) => value === arr2[index]);
-}
-function getPositioningUpdater(store) {
-  return (props = {}) => {
-    return updatePositioning$1(store, props);
-  };
-}
-function updatePositioning$1(store, props) {
-  const defaultPositioningProps = {
-    side: "bottom",
-    align: "center",
-    sideOffset: 0,
-    alignOffset: 0,
-    sameWidth: false,
-    avoidCollisions: true,
-    collisionPadding: 8,
-    fitViewport: false,
-    strategy: "absolute",
-    overlap: false
-  };
-  const withDefaults = { ...defaultPositioningProps, ...props };
-  store.update((prev2) => {
-    return {
-      ...prev2,
-      placement: joinPlacement(withDefaults.side, withDefaults.align),
-      offset: {
-        ...prev2.offset,
-        mainAxis: withDefaults.sideOffset,
-        crossAxis: withDefaults.alignOffset
-      },
-      gutter: 0,
-      sameWidth: withDefaults.sameWidth,
-      flip: withDefaults.avoidCollisions,
-      overflowPadding: withDefaults.collisionPadding,
-      boundary: withDefaults.collisionBoundary,
-      fitViewport: withDefaults.fitViewport,
-      strategy: withDefaults.strategy,
-      overlap: withDefaults.overlap
-    };
-  });
-}
-function joinPlacement(side, align) {
-  if (align === "center")
-    return side;
-  return `${side}-${align}`;
-}
-function getSelectData() {
-  const NAME = "select";
-  const GROUP_NAME = "select-group";
-  const ITEM_NAME = "select-item";
-  const PARTS = [
-    "arrow",
-    "content",
-    "group",
-    "item",
-    "indicator",
-    "input",
-    "label",
-    "trigger",
-    "value"
-  ];
-  return {
-    NAME,
-    GROUP_NAME,
-    ITEM_NAME,
-    PARTS
-  };
-}
-function getCtx() {
-  const { NAME } = getSelectData();
-  return getContext(NAME);
-}
-function setCtx(props) {
-  const { NAME, PARTS } = getSelectData();
-  const getAttrs = createBitAttrs(NAME, PARTS);
-  const select = {
-    ...createSelect({ ...removeUndefined(props), forceVisible: true }),
-    getAttrs
-  };
-  setContext(NAME, select);
-  return {
-    ...select,
-    updateOption: getOptionUpdater(select.options)
-  };
-}
-function setItemCtx(value) {
-  const { ITEM_NAME } = getSelectData();
-  const select = getCtx();
-  setContext(ITEM_NAME, value);
-  return select;
-}
-function getItemIndicator() {
-  const { ITEM_NAME } = getSelectData();
-  const { helpers: { isSelected }, getAttrs } = getCtx();
-  const value = getContext(ITEM_NAME);
-  return {
-    value,
-    isSelected,
-    getAttrs
-  };
-}
-function updatePositioning(props) {
-  const defaultPlacement = {
-    side: "bottom",
-    align: "center",
-    sameWidth: true
-  };
-  const withDefaults = { ...defaultPlacement, ...props };
-  const { options: { positioning } } = getCtx();
-  const updater = getPositioningUpdater(positioning);
-  updater(withDefaults);
-}
-function Select($$payload, $$props) {
+function Spinner($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, [
+    "color",
+    "bg",
+    "customColor",
+    "size",
+    "currentFill",
+    "currentColor"
+  ]);
   push();
-  var $$store_subs;
-  let required = fallback($$props["required"], () => void 0, true);
-  let disabled = fallback($$props["disabled"], () => void 0, true);
-  let preventScroll = fallback($$props["preventScroll"], () => void 0, true);
-  let loop = fallback($$props["loop"], () => void 0, true);
-  let closeOnEscape = fallback($$props["closeOnEscape"], () => void 0, true);
-  let closeOnOutsideClick = fallback($$props["closeOnOutsideClick"], () => void 0, true);
-  let portal = fallback($$props["portal"], () => void 0, true);
-  let name = fallback($$props["name"], () => void 0, true);
-  let multiple = fallback($$props["multiple"], false);
-  let selected = fallback($$props["selected"], () => void 0, true);
-  let onSelectedChange = fallback($$props["onSelectedChange"], () => void 0, true);
-  let open = fallback($$props["open"], () => void 0, true);
-  let onOpenChange = fallback($$props["onOpenChange"], () => void 0, true);
-  let items = fallback($$props["items"], () => [], true);
-  let onOutsideClick = fallback($$props["onOutsideClick"], () => void 0, true);
-  let typeahead = fallback($$props["typeahead"], () => void 0, true);
-  const {
-    states: { open: localOpen, selected: localSelected },
-    updateOption,
-    ids
-  } = setCtx({
-    required,
-    disabled,
-    preventScroll,
-    loop,
-    closeOnEscape,
-    closeOnOutsideClick,
-    portal,
-    name,
-    onOutsideClick,
-    multiple,
-    forceVisible: true,
-    defaultSelected: Array.isArray(selected) ? [...selected] : selected,
-    defaultOpen: open,
-    onSelectedChange: ({ next: next2 }) => {
-      if (Array.isArray(next2)) {
-        if (!Array.isArray(selected) || !arraysAreEqual(selected, next2)) {
-          onSelectedChange?.(next2);
-          selected = next2;
-          return next2;
-        }
-        return next2;
-      }
-      if (selected !== next2) {
-        onSelectedChange?.(next2);
-        selected = next2;
-      }
-      return next2;
-    },
-    onOpenChange: ({ next: next2 }) => {
-      if (open !== next2) {
-        onOpenChange?.(next2);
-        open = next2;
-      }
-      return next2;
-    },
-    items,
-    typeahead
-  });
-  const idValues = derived([ids.menu, ids.trigger, ids.label], ([$menuId, $triggerId, $labelId]) => ({
-    menu: $menuId,
-    trigger: $triggerId,
-    label: $labelId
-  }));
-  open !== void 0 && localOpen.set(open);
-  selected !== void 0 && localSelected.set(Array.isArray(selected) ? [...selected] : selected);
-  updateOption("required", required);
-  updateOption("disabled", disabled);
-  updateOption("preventScroll", preventScroll);
-  updateOption("loop", loop);
-  updateOption("closeOnEscape", closeOnEscape);
-  updateOption("closeOnOutsideClick", closeOnOutsideClick);
-  updateOption("portal", portal);
-  updateOption("name", name);
-  updateOption("multiple", multiple);
-  updateOption("onOutsideClick", onOutsideClick);
-  updateOption("typeahead", typeahead);
-  $$payload.out += `<!---->`;
-  slot(
-    $$payload,
-    $$props,
-    "default",
+  let color = fallback($$props["color"], "primary");
+  let bg = fallback($$props["bg"], "text-gray-300");
+  let customColor = fallback($$props["customColor"], "");
+  let size = fallback($$props["size"], "8");
+  let currentFill = fallback($$props["currentFill"], "currentFill");
+  let currentColor = fallback($$props["currentColor"], "currentColor");
+  let iconsize = `w-${size} h-${size}`;
+  if (currentFill !== "currentFill") {
+    color = void 0;
+  }
+  const fillColorClasses = {
+    primary: "fill-primary-600",
+    blue: "fill-blue-600",
+    gray: "fill-gray-600 dark:fill-gray-300",
+    green: "fill-green-500",
+    red: "fill-red-600",
+    yellow: "fill-yellow-400",
+    pink: "fill-pink-600",
+    purple: "fill-purple-600",
+    white: "fill-white",
+    custom: customColor
+  };
+  let fillColorClass = color === void 0 ? "" : fillColorClasses[color] ?? fillColorClasses.blue;
+  $$payload.out += `<svg${spread_attributes(
     {
-      ids: store_get($$store_subs ??= {}, "$idValues", idValues)
-    },
-    null
-  );
-  $$payload.out += `<!---->`;
-  if ($$store_subs) unsubscribe_stores($$store_subs);
-  bind_props($$props, {
-    required,
-    disabled,
-    preventScroll,
-    loop,
-    closeOnEscape,
-    closeOnOutsideClick,
-    portal,
-    name,
-    multiple,
-    selected,
-    onSelectedChange,
-    open,
-    onOpenChange,
-    items,
-    onOutsideClick,
-    typeahead
-  });
-  pop();
-}
-function Select_content$1($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, [
-    "transition",
-    "transitionConfig",
-    "inTransition",
-    "inTransitionConfig",
-    "outTransition",
-    "outTransitionConfig",
-    "asChild",
-    "id",
-    "side",
-    "align",
-    "sideOffset",
-    "alignOffset",
-    "collisionPadding",
-    "avoidCollisions",
-    "collisionBoundary",
-    "sameWidth",
-    "fitViewport",
-    "strategy",
-    "overlap",
-    "el"
-  ]);
-  push();
-  var $$store_subs;
-  let builder;
-  let transition = fallback($$props["transition"], () => void 0, true);
-  let transitionConfig = fallback($$props["transitionConfig"], () => void 0, true);
-  let inTransition = fallback($$props["inTransition"], () => void 0, true);
-  let inTransitionConfig = fallback($$props["inTransitionConfig"], () => void 0, true);
-  let outTransition = fallback($$props["outTransition"], () => void 0, true);
-  let outTransitionConfig = fallback($$props["outTransitionConfig"], () => void 0, true);
-  let asChild = fallback($$props["asChild"], false);
-  let id = fallback($$props["id"], () => void 0, true);
-  let side = fallback($$props["side"], "bottom");
-  let align = fallback($$props["align"], "center");
-  let sideOffset = fallback($$props["sideOffset"], 0);
-  let alignOffset = fallback($$props["alignOffset"], 0);
-  let collisionPadding = fallback($$props["collisionPadding"], 8);
-  let avoidCollisions = fallback($$props["avoidCollisions"], true);
-  let collisionBoundary = fallback($$props["collisionBoundary"], () => void 0, true);
-  let sameWidth = fallback($$props["sameWidth"], true);
-  let fitViewport = fallback($$props["fitViewport"], false);
-  let strategy = fallback($$props["strategy"], "absolute");
-  let overlap = fallback($$props["overlap"], false);
-  let el = fallback($$props["el"], () => void 0, true);
-  const {
-    elements: { menu },
-    states: { open },
-    ids,
-    getAttrs
-  } = getCtx();
-  const attrs = getAttrs("content");
-  if (id) {
-    ids.menu.set(id);
-  }
-  builder = store_get($$store_subs ??= {}, "$menu", menu);
-  Object.assign(builder, attrs);
-  if (store_get($$store_subs ??= {}, "$open", open)) {
-    updatePositioning({
-      side,
-      align,
-      sideOffset,
-      alignOffset,
-      collisionPadding,
-      avoidCollisions,
-      collisionBoundary,
-      sameWidth,
-      fitViewport,
-      strategy,
-      overlap
-    });
-  }
-  if (asChild && store_get($$store_subs ??= {}, "$open", open)) {
-    $$payload.out += "<!--[-->";
-    $$payload.out += `<!---->`;
-    slot($$payload, $$props, "default", { builder }, null);
-    $$payload.out += `<!---->`;
-  } else {
-    $$payload.out += "<!--[!-->";
-    if (transition && store_get($$store_subs ??= {}, "$open", open)) {
-      $$payload.out += "<!--[-->";
-      $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
-      slot($$payload, $$props, "default", { builder }, null);
-      $$payload.out += `<!----></div>`;
-    } else {
-      $$payload.out += "<!--[!-->";
-      if (inTransition && outTransition && store_get($$store_subs ??= {}, "$open", open)) {
-        $$payload.out += "<!--[-->";
-        $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
-        slot($$payload, $$props, "default", { builder }, null);
-        $$payload.out += `<!----></div>`;
-      } else {
-        $$payload.out += "<!--[!-->";
-        if (inTransition && store_get($$store_subs ??= {}, "$open", open)) {
-          $$payload.out += "<!--[-->";
-          $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
-          slot($$payload, $$props, "default", { builder }, null);
-          $$payload.out += `<!----></div>`;
-        } else {
-          $$payload.out += "<!--[!-->";
-          if (outTransition && store_get($$store_subs ??= {}, "$open", open)) {
-            $$payload.out += "<!--[-->";
-            $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
-            slot($$payload, $$props, "default", { builder }, null);
-            $$payload.out += `<!----></div>`;
-          } else {
-            $$payload.out += "<!--[!-->";
-            if (store_get($$store_subs ??= {}, "$open", open)) {
-              $$payload.out += "<!--[-->";
-              $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
-              slot($$payload, $$props, "default", { builder }, null);
-              $$payload.out += `<!----></div>`;
-            } else {
-              $$payload.out += "<!--[!-->";
-            }
-            $$payload.out += `<!--]-->`;
-          }
-          $$payload.out += `<!--]-->`;
-        }
-        $$payload.out += `<!--]-->`;
-      }
-      $$payload.out += `<!--]-->`;
-    }
-    $$payload.out += `<!--]-->`;
-  }
-  $$payload.out += `<!--]-->`;
-  if ($$store_subs) unsubscribe_stores($$store_subs);
-  bind_props($$props, {
-    transition,
-    transitionConfig,
-    inTransition,
-    inTransitionConfig,
-    outTransition,
-    outTransitionConfig,
-    asChild,
-    id,
-    side,
-    align,
-    sideOffset,
-    alignOffset,
-    collisionPadding,
-    avoidCollisions,
-    collisionBoundary,
-    sameWidth,
-    fitViewport,
-    strategy,
-    overlap,
-    el
-  });
-  pop();
-}
-function Select_item$1($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, [
-    "value",
-    "disabled",
-    "label",
-    "asChild",
-    "el"
-  ]);
-  push();
-  var $$store_subs;
-  let builder, isSelected;
-  let value = $$props["value"];
-  let disabled = fallback($$props["disabled"], () => void 0, true);
-  let label = fallback($$props["label"], () => void 0, true);
-  let asChild = fallback($$props["asChild"], false);
-  let el = fallback($$props["el"], () => void 0, true);
-  const {
-    elements: { option: item },
-    helpers: { isSelected: isSelectedStore },
-    getAttrs
-  } = setItemCtx(value);
-  const attrs = getAttrs("item");
-  builder = store_get($$store_subs ??= {}, "$item", item)({ value, disabled, label });
-  Object.assign(builder, attrs);
-  isSelected = store_get($$store_subs ??= {}, "$isSelectedStore", isSelectedStore)(value);
-  if (asChild) {
-    $$payload.out += "<!--[-->";
-    $$payload.out += `<!---->`;
-    slot($$payload, $$props, "default", { builder, isSelected }, null);
-    $$payload.out += `<!---->`;
-  } else {
-    $$payload.out += "<!--[!-->";
-    $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
-    slot($$payload, $$props, "default", { builder, isSelected }, () => {
-      $$payload.out += `${escape_html(label || value)}`;
-    });
-    $$payload.out += `<!----></div>`;
-  }
-  $$payload.out += `<!--]-->`;
-  if ($$store_subs) unsubscribe_stores($$store_subs);
-  bind_props($$props, { value, disabled, label, asChild, el });
-  pop();
-}
-function Select_item_indicator($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, ["asChild", "el"]);
-  push();
-  var $$store_subs;
-  let asChild = fallback($$props["asChild"], false);
-  let el = fallback($$props["el"], () => void 0, true);
-  const { isSelected, value, getAttrs } = getItemIndicator();
-  const attrs = getAttrs("indicator");
-  if (asChild) {
-    $$payload.out += "<!--[-->";
-    $$payload.out += `<!---->`;
-    slot(
-      $$payload,
-      $$props,
-      "default",
-      {
-        attrs,
-        isSelected: store_get($$store_subs ??= {}, "$isSelected", isSelected)(value)
-      },
-      null
-    );
-    $$payload.out += `<!---->`;
-  } else {
-    $$payload.out += "<!--[!-->";
-    $$payload.out += `<div${spread_attributes({ ...$$restProps, ...attrs })}>`;
-    if (store_get($$store_subs ??= {}, "$isSelected", isSelected)(value)) {
-      $$payload.out += "<!--[-->";
-      $$payload.out += `<!---->`;
-      slot(
-        $$payload,
-        $$props,
-        "default",
-        {
-          attrs,
-          isSelected: store_get($$store_subs ??= {}, "$isSelected", isSelected)(value)
-        },
-        null
-      );
-      $$payload.out += `<!---->`;
-    } else {
-      $$payload.out += "<!--[!-->";
-    }
-    $$payload.out += `<!--]--></div>`;
-  }
-  $$payload.out += `<!--]-->`;
-  if ($$store_subs) unsubscribe_stores($$store_subs);
-  bind_props($$props, { asChild, el });
-  pop();
-}
-function Select_trigger$1($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, ["asChild", "id", "el"]);
-  push();
-  var $$store_subs;
-  let builder;
-  let asChild = fallback($$props["asChild"], false);
-  let id = fallback($$props["id"], () => void 0, true);
-  let el = fallback($$props["el"], () => void 0, true);
-  const { elements: { trigger }, ids, getAttrs } = getCtx();
-  const attrs = getAttrs("trigger");
-  if (id) {
-    ids.trigger.set(id);
-  }
-  builder = store_get($$store_subs ??= {}, "$trigger", trigger);
-  Object.assign(builder, attrs);
-  if (asChild) {
-    $$payload.out += "<!--[-->";
-    $$payload.out += `<!---->`;
-    slot($$payload, $$props, "default", { builder }, null);
-    $$payload.out += `<!---->`;
-  } else {
-    $$payload.out += "<!--[!-->";
-    $$payload.out += `<button${spread_attributes({ ...builder, type: "button", ...$$restProps })}><!---->`;
-    slot($$payload, $$props, "default", { builder }, null);
-    $$payload.out += `<!----></button>`;
-  }
-  $$payload.out += `<!--]-->`;
-  if ($$store_subs) unsubscribe_stores($$store_subs);
-  bind_props($$props, { asChild, id, el });
-  pop();
-}
-function Select_value($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, ["placeholder", "asChild", "el"]);
-  push();
-  var $$store_subs;
-  let label;
-  let placeholder = fallback($$props["placeholder"], "");
-  let asChild = fallback($$props["asChild"], false);
-  let el = fallback($$props["el"], () => void 0, true);
-  const { states: { selectedLabel }, getAttrs } = getCtx();
-  const attrs = getAttrs("value");
-  label = store_get($$store_subs ??= {}, "$selectedLabel", selectedLabel);
-  if (asChild) {
-    $$payload.out += "<!--[-->";
-    $$payload.out += `<!---->`;
-    slot($$payload, $$props, "default", { label, attrs }, null);
-    $$payload.out += `<!---->`;
-  } else {
-    $$payload.out += "<!--[!-->";
-    $$payload.out += `<span${spread_attributes({
       ...$$restProps,
-      ...attrs,
-      "data-placeholder": !label ? "" : void 0
-    })}>${escape_html(label || placeholder)}</span>`;
-  }
-  $$payload.out += `<!--]-->`;
-  if ($$store_subs) unsubscribe_stores($$store_subs);
-  bind_props($$props, { placeholder, asChild, el });
-  pop();
-}
-tv({
-  base: "focus:ring-ring inline-flex select-none items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
-  variants: {
-    variant: {
-      default: "bg-primary text-primary-foreground hover:bg-primary/80 border-transparent",
-      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent",
-      destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/80 border-transparent",
-      outline: "text-foreground"
-    }
-  },
-  defaultVariants: {
-    variant: "default"
-  }
-});
-function Check($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const iconNode = [["path", { "d": "M20 6 9 17l-5-5" }]];
-  Icon($$payload, spread_props([
-    { name: "check" },
-    $$sanitized_props,
-    {
-      iconNode,
-      children: ($$payload2) => {
-        $$payload2.out += `<!---->`;
-        slot($$payload2, $$props, "default", {}, null);
-        $$payload2.out += `<!---->`;
-      },
-      $$slots: { default: true }
-    }
-  ]));
-}
-function Chevron_down($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const iconNode = [["path", { "d": "m6 9 6 6 6-6" }]];
-  Icon($$payload, spread_props([
-    { name: "chevron-down" },
-    $$sanitized_props,
-    {
-      iconNode,
-      children: ($$payload2) => {
-        $$payload2.out += `<!---->`;
-        slot($$payload2, $$props, "default", {}, null);
-        $$payload2.out += `<!---->`;
-      },
-      $$slots: { default: true }
-    }
-  ]));
-}
-function Select_item($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, ["class", "value", "label", "disabled"]);
-  push();
-  let className = fallback($$props["class"], void 0);
-  let value = $$props["value"];
-  let label = fallback($$props["label"], void 0);
-  let disabled = fallback($$props["disabled"], void 0);
-  Select_item$1($$payload, spread_props([
-    {
-      value,
-      disabled,
-      label,
-      class: cn("data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50", className)
+      role: "status",
+      class: clsx(twMerge("inline -mt-px animate-spin dark:text-gray-600", iconsize, bg, fillColorClass, $$sanitized_props.class)),
+      viewBox: "0 0 100 101",
+      fill: "none",
+      xmlns: "http://www.w3.org/2000/svg"
     },
-    $$restProps,
-    {
-      children: ($$payload2) => {
-        $$payload2.out += `<span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">`;
-        Select_item_indicator($$payload2, {
-          children: ($$payload3) => {
-            Check($$payload3, { class: "h-4 w-4" });
-          },
-          $$slots: { default: true }
-        });
-        $$payload2.out += `<!----></span> <!---->`;
-        slot($$payload2, $$props, "default", {}, () => {
-          $$payload2.out += `${escape_html(label || value)}`;
-        });
-        $$payload2.out += `<!---->`;
-      },
-      $$slots: { default: true }
-    }
-  ]));
-  bind_props($$props, { class: className, value, label, disabled });
-  pop();
-}
-function Select_content($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, [
-    "sideOffset",
-    "inTransition",
-    "inTransitionConfig",
-    "outTransition",
-    "outTransitionConfig",
-    "class"
-  ]);
-  push();
-  let sideOffset = fallback($$props["sideOffset"], 4);
-  let inTransition = fallback($$props["inTransition"], flyAndScale);
-  let inTransitionConfig = fallback($$props["inTransitionConfig"], void 0);
-  let outTransition = fallback($$props["outTransition"], scale);
-  let outTransitionConfig = fallback($$props["outTransitionConfig"], () => ({ start: 0.95, opacity: 0, duration: 50 }), true);
-  let className = fallback($$props["class"], void 0);
-  Select_content$1($$payload, spread_props([
-    {
-      inTransition,
-      inTransitionConfig,
-      outTransition,
-      outTransitionConfig,
-      sideOffset,
-      class: cn("bg-popover text-popover-foreground relative z-50 min-w-[8rem] overflow-hidden rounded-md border shadow-md outline-none", className)
-    },
-    $$restProps,
-    {
-      children: ($$payload2) => {
-        $$payload2.out += `<div class="w-full p-1"><!---->`;
-        slot($$payload2, $$props, "default", {}, null);
-        $$payload2.out += `<!----></div>`;
-      },
-      $$slots: { default: true }
-    }
-  ]));
+    void 0,
+    void 0,
+    3
+  )}><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"${attr("fill", currentColor)}></path><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"${attr("fill", currentFill)}></path></svg>`;
   bind_props($$props, {
-    sideOffset,
-    inTransition,
-    inTransitionConfig,
-    outTransition,
-    outTransitionConfig,
-    class: className
+    color,
+    bg,
+    customColor,
+    size,
+    currentFill,
+    currentColor
   });
   pop();
 }
-function Select_trigger($$payload, $$props) {
+function Table($$payload, $$props) {
   const $$sanitized_props = sanitize_props($$props);
-  const $$restProps = rest_props($$sanitized_props, ["class"]);
+  const $$restProps = rest_props($$sanitized_props, [
+    "divClass",
+    "striped",
+    "hoverable",
+    "noborder",
+    "shadow",
+    "color",
+    "customeColor",
+    "items",
+    "filter",
+    "placeholder",
+    "innerDivClass",
+    "searchClass",
+    "svgDivClass",
+    "svgClass",
+    "inputClass",
+    "classInput",
+    "classSvgDiv"
+  ]);
   push();
-  let className = fallback($$props["class"], void 0);
-  Select_trigger$1($$payload, spread_props([
-    {
-      class: cn("border-input bg-background ring-offset-background focus-visible:ring-ring aria-[invalid]:border-destructive data-[placeholder]:[&>span]:text-muted-foreground flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1", className)
-    },
-    $$restProps,
-    {
-      children: invalid_default_snippet,
-      $$slots: {
-        default: ($$payload2, { builder }) => {
-          $$payload2.out += `<!---->`;
-          slot($$payload2, $$props, "default", { builder }, null);
-          $$payload2.out += `<!----> <div>`;
-          Chevron_down($$payload2, { class: "h-4 w-4 opacity-50" });
-          $$payload2.out += `<!----></div>`;
-        }
-      }
-    }
-  ]));
-  bind_props($$props, { class: className });
+  let divClass = fallback($$props["divClass"], "relative overflow-x-auto");
+  let striped = fallback($$props["striped"], false);
+  let hoverable = fallback($$props["hoverable"], false);
+  let noborder = fallback($$props["noborder"], false);
+  let shadow = fallback($$props["shadow"], false);
+  let color = fallback($$props["color"], "default");
+  let customeColor = fallback($$props["customeColor"], "");
+  let items = fallback($$props["items"], () => [], true);
+  let filter = fallback($$props["filter"], null);
+  let placeholder = fallback($$props["placeholder"], "Search");
+  let innerDivClass = fallback($$props["innerDivClass"], "p-4");
+  let searchClass = fallback($$props["searchClass"], "relative mt-1");
+  let svgDivClass = fallback($$props["svgDivClass"], "absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none");
+  let svgClass = fallback($$props["svgClass"], "w-5 h-5 text-gray-500 dark:text-gray-400");
+  let inputClass = fallback($$props["inputClass"], "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-80 p-2.5 ps-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500");
+  let classInput = fallback($$props["classInput"], "");
+  let classSvgDiv = fallback($$props["classSvgDiv"], "");
+  let searchTerm = "";
+  let inputCls = twMerge(inputClass, classInput);
+  let svgDivCls = twMerge(svgDivClass, classSvgDiv);
+  const colors = {
+    default: "text-gray-500 dark:text-gray-400",
+    blue: "text-blue-100 dark:text-blue-100",
+    green: "text-green-100 dark:text-green-100",
+    red: "text-red-100 dark:text-red-100",
+    yellow: "text-yellow-100 dark:text-yellow-100",
+    purple: "text-purple-100 dark:text-purple-100",
+    indigo: "text-indigo-100 dark:text-indigo-100",
+    pink: "text-pink-100 dark:text-pink-100",
+    custom: customeColor
+  };
+  const searchTermStore = writable(searchTerm);
+  const filterStore = writable(filter);
+  setContext("searchTerm", searchTermStore);
+  setContext("filter", filterStore);
+  setContext("sorter", writable(null));
+  setContext("striped", striped);
+  setContext("hoverable", hoverable);
+  setContext("noborder", noborder);
+  setContext("color", color);
+  setContext("items", items);
+  searchTermStore.set(searchTerm);
+  {
+    if (filter) filterStore.set(filter);
+  }
+  $$payload.out += `<div${attr("class", clsx(twJoin(divClass, shadow && "shadow-md sm:rounded-lg")))}>`;
+  if (filter) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "search", {}, () => {
+      $$payload.out += `<div${attr("class", clsx(innerDivClass))}><label for="table-search" class="sr-only">Search</label> <div${attr("class", clsx(searchClass))}><div${attr("class", clsx(svgDivCls))}><!---->`;
+      slot($$payload, $$props, "svgSearch", {}, () => {
+        $$payload.out += `<svg${attr("class", clsx(svgClass))} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>`;
+      });
+      $$payload.out += `<!----></div> <input${attr("value", searchTerm)} type="text" id="table-search"${attr("class", clsx(inputCls))}${attr("placeholder", placeholder)}></div> <!---->`;
+      slot($$payload, $$props, "header", {}, null);
+      $$payload.out += `<!----></div>`;
+    });
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> <table${spread_attributes({
+    ...$$restProps,
+    class: clsx(twMerge("w-full text-left text-sm", colors[color], $$sanitized_props.class))
+  })}><!---->`;
+  slot($$payload, $$props, "default", {}, null);
+  $$payload.out += `<!----></table></div>`;
+  bind_props($$props, {
+    divClass,
+    striped,
+    hoverable,
+    noborder,
+    shadow,
+    color,
+    customeColor,
+    items,
+    filter,
+    placeholder,
+    innerDivClass,
+    searchClass,
+    svgDivClass,
+    svgClass,
+    inputClass,
+    classInput,
+    classSvgDiv
+  });
   pop();
 }
-const Root = Select;
-const Value = Select_value;
-function UserDashboard($$payload, $$props) {
+function TableBody($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["tableBodyClass"]);
   push();
-  let { userData } = $$props;
-  let rentedLockers = 0;
-  let loading = true;
-  let error = null;
-  let showRentDialog = false;
-  let selectedLocker = null;
-  let selectedSubscriptionType = null;
-  let subscriptionTypes = [];
-  subscriptionTypes = [
-    {
-      id: "1",
-      name: "1 Day Access",
-      duration: "1_day",
-      amount: 5e3
+  var $$store_subs;
+  let items, filtered, sorted;
+  let tableBodyClass = fallback($$props["tableBodyClass"], () => void 0, true);
+  let filter = getContext("filter");
+  let searchTerm = getContext("searchTerm");
+  let sorter = getContext("sorter");
+  items = getContext("items") || [];
+  filtered = store_get($$store_subs ??= {}, "$filter", filter) ? items.filter((item) => store_get($$store_subs ??= {}, "$filter", filter)(item, store_get($$store_subs ??= {}, "$searchTerm", searchTerm))) : items;
+  sorted = store_get($$store_subs ??= {}, "$sorter", sorter) ? filtered.toSorted((a, b) => store_get($$store_subs ??= {}, "$sorter", sorter).sortDirection * store_get($$store_subs ??= {}, "$sorter", sorter).sort(a, b)) : filtered;
+  const each_array = ensure_array_like(sorted);
+  $$payload.out += `<tbody${spread_attributes({
+    ...$$restProps,
+    class: clsx(tableBodyClass)
+  })}><!---->`;
+  slot($$payload, $$props, "default", {}, null);
+  $$payload.out += `<!----><!--[-->`;
+  for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+    let item = each_array[$$index];
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "row", { item }, null);
+    $$payload.out += `<!---->`;
+  }
+  $$payload.out += `<!--]--></tbody>`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, { tableBodyClass });
+  pop();
+}
+function TableBodyCell($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["tdClass"]);
+  push();
+  let tdClass = fallback($$props["tdClass"], "px-6 py-4 whitespace-nowrap font-medium ");
+  let color = "default";
+  color = getContext("color");
+  let tdClassfinal;
+  tdClassfinal = twMerge(tdClass, color === "default" ? "text-gray-900 dark:text-white" : "text-blue-50 whitespace-nowrap dark:text-blue-100", $$sanitized_props.class);
+  $$payload.out += `<td${spread_attributes({
+    ...$$restProps,
+    class: clsx(tdClassfinal)
+  })}>`;
+  if ($$sanitized_props.onclick) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<button><!---->`;
+    slot($$payload, $$props, "default", {}, null);
+    $$payload.out += `<!----></button>`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", {}, null);
+    $$payload.out += `<!---->`;
+  }
+  $$payload.out += `<!--]--></td>`;
+  bind_props($$props, { tdClass });
+  pop();
+}
+function TableBodyRow($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["color"]);
+  push();
+  let color = fallback($$props["color"], () => getContext("color"), true);
+  const colors = {
+    default: "bg-white dark:bg-gray-800 dark:border-gray-700",
+    blue: "bg-blue-500 border-blue-400",
+    green: "bg-green-500 border-green-400",
+    red: "bg-red-500 border-red-400",
+    yellow: "bg-yellow-500 border-yellow-400",
+    purple: "bg-purple-500 border-purple-400",
+    custom: ""
+  };
+  const hoverColors = {
+    default: "hover:bg-gray-50 dark:hover:bg-gray-600",
+    blue: "hover:bg-blue-400",
+    green: "hover:bg-green-400",
+    red: "hover:bg-red-400",
+    yellow: "hover:bg-yellow-400",
+    purple: "hover:bg-purple-400",
+    custom: ""
+  };
+  const stripColors = {
+    default: "odd:bg-white even:bg-gray-50 odd:dark:bg-gray-800 even:dark:bg-gray-700",
+    blue: "odd:bg-blue-800 even:bg-blue-700 odd:dark:bg-blue-800 even:dark:bg-blue-700",
+    green: "odd:bg-green-800 even:bg-green-700 odd:dark:bg-green-800 even:dark:bg-green-700",
+    red: "odd:bg-red-800 even:bg-red-700 odd:dark:bg-red-800 even:dark:bg-red-700",
+    yellow: "odd:bg-yellow-800 even:bg-yellow-700 odd:dark:bg-yellow-800 even:dark:bg-yellow-700",
+    purple: "odd:bg-purple-800 even:bg-purple-700 odd:dark:bg-purple-800 even:dark:bg-purple-700",
+    custom: ""
+  };
+  let trClass;
+  trClass = twMerge([
+    !getContext("noborder") && "border-b last:border-b-0",
+    colors[color],
+    getContext("hoverable") && hoverColors[color],
+    getContext("striped") && stripColors[color],
+    $$sanitized_props.class
+  ]);
+  $$payload.out += `<tr${spread_attributes({ ...$$restProps, class: clsx(trClass) })}><!---->`;
+  slot($$payload, $$props, "default", {}, null);
+  $$payload.out += `<!----></tr>`;
+  bind_props($$props, { color });
+  pop();
+}
+function TableHead($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["theadClass", "defaultRow"]);
+  push();
+  let theadClassfinal;
+  let theadClass = fallback($$props["theadClass"], "text-xs uppercase");
+  let defaultRow = fallback($$props["defaultRow"], true);
+  let color;
+  color = getContext("color");
+  let noborder = getContext("noborder");
+  let striped = getContext("striped");
+  let defaultBgColor = noborder || striped ? "" : "bg-gray-50 dark:bg-gray-700";
+  const bgColors = {
+    default: defaultBgColor,
+    blue: "bg-blue-600",
+    green: "bg-green-600",
+    red: "bg-red-600",
+    yellow: "bg-yellow-600",
+    purple: "bg-purple-600",
+    custom: ""
+  };
+  let textColor = color === "default" ? "text-gray-700 dark:text-gray-400" : color === "custom" ? "" : "text-white  dark:text-white";
+  let borderColors = striped ? "" : color === "default" ? "border-gray-700" : color === "custom" ? "" : `border-${color}-400`;
+  theadClassfinal = twMerge(theadClass, textColor, striped && borderColors, bgColors[color], $$sanitized_props.class);
+  $$payload.out += `<thead${spread_attributes({
+    ...$$restProps,
+    class: clsx(theadClassfinal)
+  })}>`;
+  if (defaultRow) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<tr><!---->`;
+    slot($$payload, $$props, "default", {}, null);
+    $$payload.out += `<!----></tr>`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", {}, null);
+    $$payload.out += `<!---->`;
+  }
+  $$payload.out += `<!--]--></thead>`;
+  bind_props($$props, { theadClass, defaultRow });
+  pop();
+}
+function TableHeadCell($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, [
+    "padding",
+    "sort",
+    "defaultDirection",
+    "defaultSort",
+    "direction"
+  ]);
+  push();
+  var $$store_subs;
+  let padding = fallback($$props["padding"], "px-6 py-3");
+  let sort = fallback($$props["sort"], null);
+  let defaultDirection = fallback($$props["defaultDirection"], "asc");
+  let defaultSort = fallback($$props["defaultSort"], false);
+  let direction = fallback($$props["direction"], defaultSort ? defaultDirection : null);
+  let sorter = getContext("sorter");
+  let sortId = Math.random().toString(36).substring(2);
+  if (defaultSort) {
+    sortItems();
+  }
+  function sortItems() {
+    if (!sort || !sorter) return;
+    sorter.update((sorter2) => {
+      return {
+        id: sortId,
+        sort,
+        sortDirection: sorter2?.id === sortId ? -sorter2.sortDirection : defaultDirection === "asc" ? 1 : -1
+      };
+    });
+  }
+  direction = store_get($$store_subs ??= {}, "$sorter", sorter)?.id === sortId ? store_get($$store_subs ??= {}, "$sorter", sorter).sortDirection === 1 ? "asc" : "desc" : null;
+  if (sort && sorter) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<th${spread_attributes({
+      ...$$restProps,
+      class: clsx($$sanitized_props.class),
+      "aria-sort": direction ? `${direction}ending` : void 0
+    })}><button${attr("class", clsx(twMerge("w-full text-left", "after:absolute after:pl-3", direction === "asc" && 'after:content-["▲"]', direction === "desc" && 'after:content-["▼"]', padding)))}><!---->`;
+    slot($$payload, $$props, "default", {}, null);
+    $$payload.out += `<!----></button></th>`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<th${spread_attributes({
+      ...$$restProps,
+      class: clsx(twMerge(padding, $$sanitized_props.class))
+    })}><!---->`;
+    slot($$payload, $$props, "default", {}, null);
+    $$payload.out += `<!----></th>`;
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, {
+    padding,
+    sort,
+    defaultDirection,
+    defaultSort,
+    direction
+  });
+  pop();
+}
+function TabItem($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, [
+    "open",
+    "title",
+    "activeClasses",
+    "inactiveClasses",
+    "defaultClass",
+    "divClass"
+  ]);
+  push();
+  let open = fallback($$props["open"], false);
+  let title = fallback($$props["title"], "Tab title");
+  let activeClasses = fallback($$props["activeClasses"], () => void 0, true);
+  let inactiveClasses = fallback($$props["inactiveClasses"], () => void 0, true);
+  let defaultClass = fallback($$props["defaultClass"], "inline-block text-sm font-medium text-center disabled:cursor-not-allowed");
+  let divClass = fallback($$props["divClass"], "");
+  const ctx = getContext("ctx") ?? {};
+  ctx.selected ?? writable();
+  let buttonClass;
+  buttonClass = twMerge(defaultClass, open ? activeClasses ?? ctx.activeClasses : inactiveClasses ?? ctx.inactiveClasses, open && "active");
+  $$payload.out += `<li${attr("class", clsx(twMerge("group", $$sanitized_props.class)))} role="presentation"><button${spread_attributes({
+    type: "button",
+    role: "tab",
+    ...$$restProps,
+    class: clsx(buttonClass)
+  })}><!---->`;
+  slot($$payload, $$props, "title", {}, () => {
+    $$payload.out += `${escape_html(title)}`;
+  });
+  $$payload.out += `<!----></button> `;
+  if (open) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<div class="hidden tab_content_placeholder"><div${attr("class", clsx(divClass))}><!---->`;
+    slot($$payload, $$props, "default", {}, null);
+    $$payload.out += `<!----></div></div>`;
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--></li>`;
+  bind_props($$props, {
+    open,
+    title,
+    activeClasses,
+    inactiveClasses,
+    defaultClass,
+    divClass
+  });
+  pop();
+}
+function Tabs($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, [
+    "tabStyle",
+    "defaultClass",
+    "contentClass",
+    "divider",
+    "activeClasses",
+    "inactiveClasses"
+  ]);
+  push();
+  let ulClass;
+  let tabStyle = fallback($$props["tabStyle"], "none");
+  let defaultClass = fallback($$props["defaultClass"], "flex flex-wrap space-x-2 rtl:space-x-reverse");
+  let contentClass = fallback($$props["contentClass"], "p-4 bg-gray-50 rounded-lg dark:bg-gray-800 mt-4");
+  let divider = fallback($$props["divider"], true);
+  let activeClasses = fallback($$props["activeClasses"], "p-4 text-primary-600 bg-gray-100 rounded-t-lg dark:bg-gray-800 dark:text-primary-500");
+  let inactiveClasses = fallback($$props["inactiveClasses"], "p-4 text-gray-500 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300");
+  const styledActiveClasses = {
+    full: "p-4 w-full group-first:rounded-s-lg group-last:rounded-e-lg text-gray-900 bg-gray-100 focus:ring-4 focus:ring-primary-300 focus:outline-none dark:bg-gray-700 dark:text-white",
+    pill: "py-3 px-4 text-white bg-primary-600 rounded-lg",
+    underline: "p-4 text-primary-600 border-b-2 border-primary-600 dark:text-primary-500 dark:border-primary-500",
+    none: ""
+  };
+  const styledInactiveClasses = {
+    full: "p-4 w-full group-first:rounded-s-lg group-last:rounded-e-lg text-gray-500 dark:text-gray-400 bg-white hover:text-gray-700 hover:bg-gray-50 focus:ring-4 focus:ring-primary-300 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700",
+    pill: "py-3 px-4 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white",
+    underline: "p-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 text-gray-500 dark:text-gray-400",
+    none: ""
+  };
+  const ctx = {
+    activeClasses: styledActiveClasses[tabStyle] || activeClasses,
+    inactiveClasses: styledInactiveClasses[tabStyle] || inactiveClasses,
+    selected: writable()
+  };
+  setContext("ctx", ctx);
+  divider = ["full", "pill"].includes(tabStyle) ? false : divider;
+  ulClass = twMerge(defaultClass, tabStyle === "underline" && "-mb-px", $$sanitized_props.class);
+  $$payload.out += `<ul${spread_attributes({ ...$$restProps, class: clsx(ulClass) })}><!---->`;
+  slot($$payload, $$props, "default", { tabStyle }, null);
+  $$payload.out += `<!----></ul> `;
+  if (divider) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "divider", {}, () => {
+      $$payload.out += `<div class="h-px bg-gray-200 dark:bg-gray-700"></div>`;
+    });
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> <div${attr("class", clsx(contentClass))} role="tabpanel" aria-labelledby="id-tab"></div>`;
+  bind_props($$props, {
+    tabStyle,
+    defaultClass,
+    contentClass,
+    divider,
+    activeClasses,
+    inactiveClasses
+  });
+  pop();
+}
+function StatsCard($$payload, $$props) {
+  let { title, value, loading: loading2 } = $$props;
+  Card($$payload, {
+    padding: "sm",
+    children: ($$payload2) => {
+      $$payload2.out += `<div class="flex flex-col items-center"><h3 class="text-lg font-semibold text-gray-900">${escape_html(title)}</h3> `;
+      if (loading2) {
+        $$payload2.out += "<!--[-->";
+        $$payload2.out += `<div class="animate-pulse h-8 w-16 bg-gray-200 rounded mt-2"></div>`;
+      } else {
+        $$payload2.out += "<!--[!-->";
+        $$payload2.out += `<p class="text-3xl font-bold text-gray-700">${escape_html(value)}</p>`;
+      }
+      $$payload2.out += `<!--]--></div>`;
     },
-    {
-      id: "2",
-      name: "7 Days Access",
-      duration: "7_days",
-      amount: 3e4
-    },
-    {
-      id: "3",
-      name: "30 Days Access",
-      duration: "30_days",
-      amount: 1e5
-    }
-  ];
-  async function fetchRentedLockers() {
-    if (!userData.id) return;
-    loading = true;
-    error = null;
-    try {
-      const response = await fetch(`/api/lockers/user/${userData.id}`);
-      if (!response.ok) throw new Error("Failed to fetch locker data");
-      const data = await response.json();
-      rentedLockers = data.count ?? 0;
-    } catch (err) {
-      console.error("Error fetching locker data:", err);
-      error = err instanceof Error ? err.message : "Failed to fetch locker data";
-      rentedLockers = 0;
-    } finally {
-      loading = false;
-    }
+    $$slots: { default: true }
+  });
+}
+function formatDate(date, includeTime = false) {
+  const d = new Date(date);
+  const dateOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  };
+  if (includeTime) {
+    dateOptions.hour = "2-digit";
+    dateOptions.minute = "2-digit";
+    dateOptions.hour12 = true;
   }
-  function formatAmount(amount) {
-    return `₱${(amount / 100).toFixed(2)}`;
+  return d.toLocaleString("en-US", dateOptions);
+}
+function formatTimestamp(timestamp) {
+  if (typeof timestamp === "string" && !isNaN(Number(timestamp))) {
+    timestamp = Number(timestamp);
   }
-  if (userData.id) {
-    fetchRentedLockers();
+  if (typeof timestamp === "number" && timestamp < 1e12) {
+    timestamp = timestamp * 1e3;
   }
+  return formatDate(new Date(timestamp), true);
+}
+const stats = writable({
+  totalLockers: 0,
+  occupiedLockers: 0,
+  totalUsers: 0,
+  pendingRequests: 0
+});
+const requests = writable([]);
+const lockers = writable([]);
+const users = writable([]);
+const subscriptionTypes = writable([]);
+const loading = writable({
+  stats: false,
+  requests: false,
+  lockers: false,
+  users: false,
+  subscriptionTypes: false,
+  transactions: false
+});
+const errors = writable({
+  stats: null,
+  requests: null,
+  lockers: null,
+  users: null,
+  subscriptionTypes: null,
+  transactions: null
+});
+function RequestsTab($$payload, $$props) {
+  push();
+  var $$store_subs;
+  let showRejectDialog = false;
+  let rejectionReason = "";
+  let processingRequest = false;
   let $$settled = true;
   let $$inner_payload;
   function $$render_inner($$payload2) {
-    $$payload2.out += `<div class="min-h-screen bg-gray-50"><header class="bg-white shadow-sm"><div class="flex flex-row justify-between py-4 px-6 md:px-20 items-center"><h1 class="text-2xl font-extrabold text-gray-900">Dashboard</h1> <div class="flex flex-row items-center space-x-4"><div class="flex items-center space-x-3"><span class="text-lg font-semibold text-gray-700">${escape_html(userData.fullName)}</span></div> `;
-    UserButton($$payload2, { afterSignOutUrl: "/" });
-    $$payload2.out += `<!----></div></div></header> <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">`;
-    if (error) {
+    if (store_get($$store_subs ??= {}, "$errors", errors).requests) {
       $$payload2.out += "<!--[-->";
-      $$payload2.out += `<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6"><p>${escape_html(error)}</p> <button class="bg-red-100 text-red-800 px-3 py-1 rounded mt-2 hover:bg-red-200">Retry</button></div>`;
+      Alert($$payload2, {
+        color: "red",
+        class: "mb-4",
+        children: ($$payload3) => {
+          $$payload3.out += `<!---->${escape_html(store_get($$store_subs ??= {}, "$errors", errors).requests)}`;
+        },
+        $$slots: { default: true }
+      });
     } else {
       $$payload2.out += "<!--[!-->";
     }
     $$payload2.out += `<!--]--> `;
-    Root$1($$payload2, {
-      get open() {
-        return showRentDialog;
-      },
-      set open($$value) {
-        showRentDialog = $$value;
-        $$settled = false;
-      },
-      children: ($$payload3) => {
-        Dialog_content($$payload3, {
-          children: ($$payload4) => {
-            Dialog_header($$payload4, {
-              children: ($$payload5) => {
-                Dialog_title($$payload5, {
-                  children: ($$payload6) => {
-                    $$payload6.out += `<!---->Rent Locker ${escape_html(selectedLocker?.number)}`;
+    if (store_get($$store_subs ??= {}, "$loading", loading).requests) {
+      $$payload2.out += "<!--[-->";
+      $$payload2.out += `<div class="flex justify-center py-8">`;
+      Spinner($$payload2, { size: "8" });
+      $$payload2.out += `<!----></div>`;
+    } else {
+      $$payload2.out += "<!--[!-->";
+      if (store_get($$store_subs ??= {}, "$requests", requests).length === 0) {
+        $$payload2.out += "<!--[-->";
+        $$payload2.out += `<p class="text-gray-600">No pending requests found.</p>`;
+      } else {
+        $$payload2.out += "<!--[!-->";
+        Table($$payload2, {
+          children: ($$payload3) => {
+            TableHead($$payload3, {
+              children: ($$payload4) => {
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->User`;
                   },
                   $$slots: { default: true }
                 });
-                $$payload5.out += `<!----> `;
-                Dialog_description($$payload5, {
-                  children: ($$payload6) => {
-                    $$payload6.out += `<!---->Please select a subscription plan and upload your proof of payment.`;
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Locker`;
                   },
                   $$slots: { default: true }
                 });
-                $$payload5.out += `<!---->`;
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Subscription`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Requested At`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Status`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Actions`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!---->`;
               },
               $$slots: { default: true }
             });
-            $$payload4.out += `<!----> <div class="grid gap-4 py-4"><div class="grid gap-2">`;
-            Label($$payload4, {
-              for: "subscription",
-              children: ($$payload5) => {
-                $$payload5.out += `<!---->Subscription Plan`;
-              },
-              $$slots: { default: true }
-            });
-            $$payload4.out += `<!----> `;
-            Root($$payload4, {
-              onValueChange: (value) => selectedSubscriptionType = value,
-              children: ($$payload5) => {
-                Select_trigger($$payload5, {
-                  children: ($$payload6) => {
-                    Value($$payload6, { placeholder: "Select a plan" });
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload5.out += `<!----> `;
-                Select_content($$payload5, {
-                  children: ($$payload6) => {
-                    const each_array = ensure_array_like(subscriptionTypes);
-                    $$payload6.out += `<!--[-->`;
-                    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-                      let type = each_array[$$index];
-                      Select_item($$payload6, {
-                        value: type.id,
-                        children: ($$payload7) => {
-                          $$payload7.out += `<!---->${escape_html(type.name)} - ${escape_html(formatAmount(type.amount))}`;
+            $$payload3.out += `<!----> `;
+            TableBody($$payload3, {
+              children: ($$payload4) => {
+                const each_array = ensure_array_like(store_get($$store_subs ??= {}, "$requests", requests));
+                $$payload4.out += `<!--[-->`;
+                for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+                  let request = each_array[$$index];
+                  TableBodyRow($$payload4, {
+                    children: ($$payload5) => {
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(request.userName)}`;
                         },
                         $$slots: { default: true }
                       });
-                    }
-                    $$payload6.out += `<!--]-->`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload5.out += `<!---->`;
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->#${escape_html(request.lockerNumber)} (${escape_html(request.lockerSize)})`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(request.subscriptionName)}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(formatDate(request.requestedAt, true))}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          Badge($$payload6, {
+                            color: request.status === "pending" ? "yellow" : request.status === "approved" ? "green" : "red",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->${escape_html(request.status)}`;
+                            },
+                            $$slots: { default: true }
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          if (request.status === "pending") {
+                            $$payload6.out += "<!--[-->";
+                            $$payload6.out += `<div class="flex space-x-2">`;
+                            Button($$payload6, {
+                              size: "xs",
+                              color: "green",
+                              disabled: processingRequest,
+                              children: ($$payload7) => {
+                                $$payload7.out += `<!---->Approve`;
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!----> `;
+                            Button($$payload6, {
+                              size: "xs",
+                              color: "red",
+                              disabled: processingRequest,
+                              children: ($$payload7) => {
+                                $$payload7.out += `<!---->Reject`;
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!----></div>`;
+                          } else {
+                            $$payload6.out += "<!--[!-->";
+                          }
+                          $$payload6.out += `<!--]-->`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!---->`;
+                    },
+                    $$slots: { default: true }
+                  });
+                }
+                $$payload4.out += `<!--]-->`;
               },
               $$slots: { default: true }
             });
-            $$payload4.out += `<!----></div> <div class="grid gap-2">`;
-            Label($$payload4, {
-              for: "proof",
-              children: ($$payload5) => {
-                $$payload5.out += `<!---->Proof of Payment`;
-              },
-              $$slots: { default: true }
-            });
-            $$payload4.out += `<!----> `;
-            Input($$payload4, { id: "proof", type: "file", accept: "image/*" });
-            $$payload4.out += `<!----> `;
-            {
-              $$payload4.out += "<!--[!-->";
-            }
-            $$payload4.out += `<!--]--></div></div> `;
-            Dialog_footer($$payload4, {
-              children: ($$payload5) => {
-                Button($$payload5, {
-                  variant: "outline",
-                  children: ($$payload6) => {
-                    $$payload6.out += `<!---->Cancel`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload5.out += `<!----> `;
-                Button($$payload5, {
-                  disabled: !selectedSubscriptionType || true,
-                  children: ($$payload6) => {
-                    $$payload6.out += `<!---->Submit Request`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload5.out += `<!---->`;
-              },
-              $$slots: { default: true }
-            });
-            $$payload4.out += `<!---->`;
+            $$payload3.out += `<!---->`;
           },
           $$slots: { default: true }
         });
-      },
-      $$slots: { default: true }
-    });
-    $$payload2.out += `<!----> <div class="bg-white shadow rounded-lg p-6"><div class="border rounded-lg p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-xl text-gray-700">Rented Lockers: `;
-    if (loading) {
-      $$payload2.out += "<!--[-->";
-      $$payload2.out += `<span class="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse"></span>`;
-    } else {
-      $$payload2.out += "<!--[!-->";
-      $$payload2.out += `<span class="font-semibold text-black">${escape_html(rentedLockers)}</span>`;
-    }
-    $$payload2.out += `<!--]--></h2> <a href="/lockers" class="bg-blue-500 hover:bg-blue-600 text-white text-lg px-6 py-2 rounded-md transition-colors duration-200 inline-flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path></svg> Rent a Locker</a></div> `;
-    if (!loading && rentedLockers > 0) {
-      $$payload2.out += "<!--[-->";
-      $$payload2.out += `<div class="mt-4"></div>`;
-    } else {
-      $$payload2.out += "<!--[!-->";
-      if (!loading) {
-        $$payload2.out += "<!--[-->";
-        $$payload2.out += `<p class="text-gray-500 text-center py-8">You haven't rented any lockers yet. Click the button above to get started!</p>`;
-      } else {
-        $$payload2.out += "<!--[!-->";
       }
       $$payload2.out += `<!--]-->`;
     }
-    $$payload2.out += `<!--]--></div></div></main></div>`;
+    $$payload2.out += `<!--]--> `;
+    Modal($$payload2, {
+      size: "md",
+      autoclose: true,
+      get open() {
+        return showRejectDialog;
+      },
+      set open($$value) {
+        showRejectDialog = $$value;
+        $$settled = false;
+      },
+      children: ($$payload3) => {
+        $$payload3.out += `<div class="text-center"><h3 class="mb-5 text-lg font-normal text-gray-500">Reject Request</h3></div> <div class="space-y-4"><div>`;
+        Label($$payload3, {
+          for: "rejectionReason",
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Reason for Rejection`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Input($$payload3, {
+          id: "rejectionReason",
+          placeholder: "Enter reason for rejection",
+          get value() {
+            return rejectionReason;
+          },
+          set value($$value) {
+            rejectionReason = $$value;
+            $$settled = false;
+          }
+        });
+        $$payload3.out += `<!----></div></div> <div class="flex justify-end gap-4 mt-6">`;
+        Button($$payload3, {
+          color: "alternative",
+          disabled: processingRequest,
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Cancel`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Button($$payload3, {
+          color: "red",
+          disabled: !rejectionReason || processingRequest,
+          loading: processingRequest,
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Reject`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----></div>`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload2.out += `<!---->`;
   }
   do {
     $$settled = true;
@@ -1675,35 +806,1069 @@ function UserDashboard($$payload, $$props) {
     $$render_inner($$inner_payload);
   } while (!$$settled);
   assign_payload($$payload, $$inner_payload);
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  pop();
+}
+function LockersTab($$payload, $$props) {
+  push();
+  var $$store_subs;
+  let showCreateDialog = false;
+  let newLocker = { number: "", size: "" };
+  let creatingLocker = false;
+  const lockerSizes = ["small", "medium", "large"];
+  let $$settled = true;
+  let $$inner_payload;
+  function $$render_inner($$payload2) {
+    if (store_get($$store_subs ??= {}, "$errors", errors).lockers) {
+      $$payload2.out += "<!--[-->";
+      Alert($$payload2, {
+        color: "red",
+        class: "mb-4",
+        children: ($$payload3) => {
+          $$payload3.out += `<!---->${escape_html(store_get($$store_subs ??= {}, "$errors", errors).lockers)}`;
+        },
+        $$slots: { default: true }
+      });
+    } else {
+      $$payload2.out += "<!--[!-->";
+    }
+    $$payload2.out += `<!--]--> <div class="flex justify-end mb-4">`;
+    Button($$payload2, {
+      color: "blue",
+      children: ($$payload3) => {
+        $$payload3.out += `<!---->Create Locker`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload2.out += `<!----></div> `;
+    if (store_get($$store_subs ??= {}, "$loading", loading).lockers) {
+      $$payload2.out += "<!--[-->";
+      $$payload2.out += `<div class="flex justify-center py-8">`;
+      Spinner($$payload2, { size: "8" });
+      $$payload2.out += `<!----></div>`;
+    } else {
+      $$payload2.out += "<!--[!-->";
+      if (store_get($$store_subs ??= {}, "$lockers", lockers).length === 0) {
+        $$payload2.out += "<!--[-->";
+        $$payload2.out += `<p class="text-gray-600">No lockers found.</p>`;
+      } else {
+        $$payload2.out += "<!--[!-->";
+        Table($$payload2, {
+          children: ($$payload3) => {
+            TableHead($$payload3, {
+              children: ($$payload4) => {
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Number`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Size`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Status`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->User`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!---->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload3.out += `<!----> `;
+            TableBody($$payload3, {
+              children: ($$payload4) => {
+                const each_array = ensure_array_like(store_get($$store_subs ??= {}, "$lockers", lockers));
+                $$payload4.out += `<!--[-->`;
+                for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+                  let locker = each_array[$$index];
+                  TableBodyRow($$payload4, {
+                    children: ($$payload5) => {
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->#${escape_html(locker.number)}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          Badge($$payload6, {
+                            color: locker.size === "small" ? "blue" : locker.size === "medium" ? "yellow" : "red",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->${escape_html(locker.size)}`;
+                            },
+                            $$slots: { default: true }
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          Badge($$payload6, {
+                            color: locker.userId ? "red" : "green",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->${escape_html(locker.userId ? "Occupied" : "Available")}`;
+                            },
+                            $$slots: { default: true }
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          if (locker.userId) {
+                            $$payload6.out += "<!--[-->";
+                            $$payload6.out += `<div class="flex flex-col"><span>${escape_html(locker.userName)}</span> <span class="text-sm text-gray-500">${escape_html(locker.userEmail)}</span></div>`;
+                          } else {
+                            $$payload6.out += "<!--[!-->";
+                            $$payload6.out += `<span class="text-gray-500">-</span>`;
+                          }
+                          $$payload6.out += `<!--]-->`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!---->`;
+                    },
+                    $$slots: { default: true }
+                  });
+                }
+                $$payload4.out += `<!--]-->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload3.out += `<!---->`;
+          },
+          $$slots: { default: true }
+        });
+      }
+      $$payload2.out += `<!--]-->`;
+    }
+    $$payload2.out += `<!--]--> `;
+    Modal($$payload2, {
+      size: "md",
+      autoclose: true,
+      get open() {
+        return showCreateDialog;
+      },
+      set open($$value) {
+        showCreateDialog = $$value;
+        $$settled = false;
+      },
+      children: ($$payload3) => {
+        $$payload3.out += `<div class="text-center"><h3 class="mb-5 text-lg font-normal text-gray-500">Create New Locker</h3></div> <div class="space-y-4"><div>`;
+        Label($$payload3, {
+          for: "lockerNumber",
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Locker Number`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Input($$payload3, {
+          id: "lockerNumber",
+          placeholder: "Enter locker number",
+          get value() {
+            return newLocker.number;
+          },
+          set value($$value) {
+            newLocker.number = $$value;
+            $$settled = false;
+          }
+        });
+        $$payload3.out += `<!----></div> <div>`;
+        Label($$payload3, {
+          for: "lockerSize",
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Size`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Select($$payload3, {
+          id: "lockerSize",
+          get value() {
+            return newLocker.size;
+          },
+          set value($$value) {
+            newLocker.size = $$value;
+            $$settled = false;
+          },
+          children: ($$payload4) => {
+            const each_array_1 = ensure_array_like(lockerSizes);
+            $$payload4.out += `<option value="">Select size</option> <!--[-->`;
+            for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+              let size = each_array_1[$$index_1];
+              $$payload4.out += `<option${attr("value", size)}>${escape_html(size)}</option>`;
+            }
+            $$payload4.out += `<!--]-->`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----></div></div> <div class="flex justify-end gap-4 mt-6">`;
+        Button($$payload3, {
+          color: "alternative",
+          disabled: creatingLocker,
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Cancel`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Button($$payload3, {
+          color: "blue",
+          disabled: !newLocker.number || !newLocker.size || creatingLocker,
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->${escape_html("Create")}`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----></div>`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload2.out += `<!---->`;
+  }
+  do {
+    $$settled = true;
+    $$inner_payload = copy_payload($$payload);
+    $$render_inner($$inner_payload);
+  } while (!$$settled);
+  assign_payload($$payload, $$inner_payload);
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  pop();
+}
+function UsersTab($$payload, $$props) {
+  push();
+  var $$store_subs;
+  let showUserDetailsDialog = false;
+  let $$settled = true;
+  let $$inner_payload;
+  function $$render_inner($$payload2) {
+    if (store_get($$store_subs ??= {}, "$errors", errors).users) {
+      $$payload2.out += "<!--[-->";
+      Alert($$payload2, {
+        color: "red",
+        class: "mb-4",
+        children: ($$payload3) => {
+          $$payload3.out += `<!---->${escape_html(store_get($$store_subs ??= {}, "$errors", errors).users)}`;
+        },
+        $$slots: { default: true }
+      });
+    } else {
+      $$payload2.out += "<!--[!-->";
+    }
+    $$payload2.out += `<!--]--> `;
+    if (store_get($$store_subs ??= {}, "$loading", loading).users) {
+      $$payload2.out += "<!--[-->";
+      $$payload2.out += `<div class="flex justify-center py-8">`;
+      Spinner($$payload2, { size: "8" });
+      $$payload2.out += `<!----></div>`;
+    } else {
+      $$payload2.out += "<!--[!-->";
+      if (store_get($$store_subs ??= {}, "$users", users).length === 0) {
+        $$payload2.out += "<!--[-->";
+        $$payload2.out += `<p class="text-gray-600">No users found.</p>`;
+      } else {
+        $$payload2.out += "<!--[!-->";
+        Table($$payload2, {
+          children: ($$payload3) => {
+            TableHead($$payload3, {
+              children: ($$payload4) => {
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Name`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Email`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Type`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Created At`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Actions`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!---->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload3.out += `<!----> `;
+            TableBody($$payload3, {
+              children: ($$payload4) => {
+                const each_array = ensure_array_like(store_get($$store_subs ??= {}, "$users", users));
+                $$payload4.out += `<!--[-->`;
+                for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+                  let user = each_array[$$index];
+                  TableBodyRow($$payload4, {
+                    children: ($$payload5) => {
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(user.name)}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(user.email)}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          Badge($$payload6, {
+                            color: user.type === "admin" ? "red" : "blue",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->${escape_html(user.type)}`;
+                            },
+                            $$slots: { default: true }
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(formatDate(user.createdAt, true))}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          Button($$payload6, {
+                            size: "xs",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->View Details`;
+                            },
+                            $$slots: { default: true }
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!---->`;
+                    },
+                    $$slots: { default: true }
+                  });
+                }
+                $$payload4.out += `<!--]-->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload3.out += `<!---->`;
+          },
+          $$slots: { default: true }
+        });
+      }
+      $$payload2.out += `<!--]-->`;
+    }
+    $$payload2.out += `<!--]--> `;
+    Modal($$payload2, {
+      size: "md",
+      get open() {
+        return showUserDetailsDialog;
+      },
+      set open($$value) {
+        showUserDetailsDialog = $$value;
+        $$settled = false;
+      },
+      children: ($$payload3) => {
+        {
+          $$payload3.out += "<!--[!-->";
+        }
+        $$payload3.out += `<!--]-->`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload2.out += `<!---->`;
+  }
+  do {
+    $$settled = true;
+    $$inner_payload = copy_payload($$payload);
+    $$render_inner($$inner_payload);
+  } while (!$$settled);
+  assign_payload($$payload, $$inner_payload);
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  pop();
+}
+function SubscriptionTypesTab($$payload, $$props) {
+  push();
+  var $$store_subs;
+  let showDialog = false;
+  let formData = { name: "", duration: "", amount: 0 };
+  let processing = false;
+  const durations = [
+    { value: "1_day", label: "1 Day" },
+    { value: "7_days", label: "7 Days" },
+    { value: "30_days", label: "30 Days" }
+  ];
+  let $$settled = true;
+  let $$inner_payload;
+  function $$render_inner($$payload2) {
+    if (store_get($$store_subs ??= {}, "$errors", errors).subscriptionTypes) {
+      $$payload2.out += "<!--[-->";
+      Alert($$payload2, {
+        color: "red",
+        class: "mb-4",
+        children: ($$payload3) => {
+          $$payload3.out += `<!---->${escape_html(store_get($$store_subs ??= {}, "$errors", errors).subscriptionTypes)}`;
+        },
+        $$slots: { default: true }
+      });
+    } else {
+      $$payload2.out += "<!--[!-->";
+    }
+    $$payload2.out += `<!--]--> <div class="flex justify-end mb-4">`;
+    Button($$payload2, {
+      color: "blue",
+      children: ($$payload3) => {
+        $$payload3.out += `<!---->Create Subscription Type`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload2.out += `<!----></div> `;
+    if (store_get($$store_subs ??= {}, "$loading", loading).subscriptionTypes) {
+      $$payload2.out += "<!--[-->";
+      $$payload2.out += `<div class="flex justify-center py-8">`;
+      Spinner($$payload2, { size: "8" });
+      $$payload2.out += `<!----></div>`;
+    } else {
+      $$payload2.out += "<!--[!-->";
+      if (store_get($$store_subs ??= {}, "$subscriptionTypes", subscriptionTypes).length === 0) {
+        $$payload2.out += "<!--[-->";
+        $$payload2.out += `<p class="text-gray-600">No subscription types found.</p>`;
+      } else {
+        $$payload2.out += "<!--[!-->";
+        Table($$payload2, {
+          children: ($$payload3) => {
+            TableHead($$payload3, {
+              children: ($$payload4) => {
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Name`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Duration`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Amount`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Created At`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!----> `;
+                TableHeadCell($$payload4, {
+                  children: ($$payload5) => {
+                    $$payload5.out += `<!---->Actions`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload4.out += `<!---->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload3.out += `<!----> `;
+            TableBody($$payload3, {
+              children: ($$payload4) => {
+                const each_array = ensure_array_like(store_get($$store_subs ??= {}, "$subscriptionTypes", subscriptionTypes));
+                $$payload4.out += `<!--[-->`;
+                for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+                  let type = each_array[$$index];
+                  TableBodyRow($$payload4, {
+                    children: ($$payload5) => {
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(type.name)}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          Badge($$payload6, {
+                            color: type.duration === "1_day" ? "blue" : type.duration === "7_days" ? "yellow" : "red",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->${escape_html(type.duration.replace("_", " "))}`;
+                            },
+                            $$slots: { default: true }
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->₱${escape_html(type.amount)}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->${escape_html(formatDate(type.createdAt, true))}`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableBodyCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<div class="flex space-x-2">`;
+                          Button($$payload6, {
+                            size: "xs",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->Edit`;
+                            },
+                            $$slots: { default: true }
+                          });
+                          $$payload6.out += `<!----> `;
+                          Button($$payload6, {
+                            size: "xs",
+                            color: "red",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->Delete`;
+                            },
+                            $$slots: { default: true }
+                          });
+                          $$payload6.out += `<!----></div>`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!---->`;
+                    },
+                    $$slots: { default: true }
+                  });
+                }
+                $$payload4.out += `<!--]-->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload3.out += `<!---->`;
+          },
+          $$slots: { default: true }
+        });
+      }
+      $$payload2.out += `<!--]-->`;
+    }
+    $$payload2.out += `<!--]--> `;
+    Modal($$payload2, {
+      size: "md",
+      autoclose: true,
+      get open() {
+        return showDialog;
+      },
+      set open($$value) {
+        showDialog = $$value;
+        $$settled = false;
+      },
+      children: ($$payload3) => {
+        $$payload3.out += `<div class="text-center"><h3 class="mb-5 text-lg font-normal text-gray-500">${escape_html("Create")} Subscription Type</h3></div> <div class="space-y-4"><div>`;
+        Label($$payload3, {
+          for: "name",
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Name`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Input($$payload3, {
+          id: "name",
+          placeholder: "Enter subscription name",
+          get value() {
+            return formData.name;
+          },
+          set value($$value) {
+            formData.name = $$value;
+            $$settled = false;
+          }
+        });
+        $$payload3.out += `<!----></div> <div>`;
+        Label($$payload3, {
+          for: "duration",
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Duration`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Select($$payload3, {
+          id: "duration",
+          get value() {
+            return formData.duration;
+          },
+          set value($$value) {
+            formData.duration = $$value;
+            $$settled = false;
+          },
+          children: ($$payload4) => {
+            const each_array_1 = ensure_array_like(durations);
+            $$payload4.out += `<option value="">Select duration</option> <!--[-->`;
+            for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+              let { value, label } = each_array_1[$$index_1];
+              $$payload4.out += `<option${attr("value", value)}>${escape_html(label)}</option>`;
+            }
+            $$payload4.out += `<!--]-->`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----></div> <div>`;
+        Label($$payload3, {
+          for: "amount",
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Amount (₱)`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Input($$payload3, {
+          id: "amount",
+          type: "number",
+          min: "0",
+          step: "1",
+          placeholder: "Enter amount",
+          get value() {
+            return formData.amount;
+          },
+          set value($$value) {
+            formData.amount = $$value;
+            $$settled = false;
+          }
+        });
+        $$payload3.out += `<!----></div></div> <div class="flex justify-end gap-4 mt-6">`;
+        Button($$payload3, {
+          color: "alternative",
+          disabled: processing,
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Cancel`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> `;
+        Button($$payload3, {
+          color: "blue",
+          disabled: !formData.name || !formData.duration || formData.amount <= 0 || processing,
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->${escape_html("Create")}`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----></div>`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload2.out += `<!---->`;
+  }
+  do {
+    $$settled = true;
+    $$inner_payload = copy_payload($$payload);
+    $$render_inner($$inner_payload);
+  } while (!$$settled);
+  assign_payload($$payload, $$inner_payload);
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  pop();
+}
+function AdminDashboard($$payload, $$props) {
+  push();
+  var $$store_subs;
+  let { userData } = $$props;
+  $$payload.out += `<div class="min-h-screen bg-gray-50"><header class="bg-white shadow-sm"><div class="flex flex-row justify-between py-4 px-6 md:px-20 items-center"><h1 class="text-2xl font-extrabold text-gray-900">Admin Dashboard</h1> <div class="flex flex-row items-center space-x-4"><div class="flex items-center space-x-3"><span class="text-lg font-semibold text-gray-700">${escape_html(userData.name)}</span> `;
+  Badge($$payload, {
+    color: "red",
+    children: ($$payload2) => {
+      $$payload2.out += `<!---->Admin`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----></div> `;
+  Button($$payload, {
+    href: "/profile",
+    color: "light",
+    children: ($$payload2) => {
+      $$payload2.out += `<!---->Profile`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----> `;
+  Button($$payload, {
+    href: "/logout",
+    color: "light",
+    children: ($$payload2) => {
+      $$payload2.out += `<!---->Sign out`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----></div></div></header> <main class="container mx-auto px-4 py-8"><div class="space-y-6">`;
+  if (store_get($$store_subs ??= {}, "$errors", errors).stats) {
+    $$payload.out += "<!--[-->";
+    Alert($$payload, {
+      color: "red",
+      children: ($$payload2) => {
+        $$payload2.out += `<!---->${escape_html(store_get($$store_subs ??= {}, "$errors", errors).stats)} `;
+        Button($$payload2, {
+          color: "red",
+          class: "ml-4",
+          children: ($$payload3) => {
+            $$payload3.out += `<!---->Retry`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload2.out += `<!---->`;
+      },
+      $$slots: { default: true }
+    });
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> <div class="grid grid-cols-1 md:grid-cols-4 gap-4">`;
+  StatsCard($$payload, {
+    title: "Total Lockers",
+    value: store_get($$store_subs ??= {}, "$stats", stats).totalLockers,
+    loading: store_get($$store_subs ??= {}, "$loading", loading).stats
+  });
+  $$payload.out += `<!----> `;
+  StatsCard($$payload, {
+    title: "Occupied Lockers",
+    value: store_get($$store_subs ??= {}, "$stats", stats).occupiedLockers,
+    loading: store_get($$store_subs ??= {}, "$loading", loading).stats
+  });
+  $$payload.out += `<!----> `;
+  StatsCard($$payload, {
+    title: "Total Users",
+    value: store_get($$store_subs ??= {}, "$stats", stats).totalUsers,
+    loading: store_get($$store_subs ??= {}, "$loading", loading).stats
+  });
+  $$payload.out += `<!----> `;
+  StatsCard($$payload, {
+    title: "Pending Requests",
+    value: store_get($$store_subs ??= {}, "$stats", stats).pendingRequests,
+    loading: store_get($$store_subs ??= {}, "$loading", loading).stats
+  });
+  $$payload.out += `<!----></div> `;
+  Tabs($$payload, {
+    style: "underline",
+    children: ($$payload2) => {
+      TabItem($$payload2, {
+        open: true,
+        title: "Requests",
+        activeClasses: "text-blue-600 border-blue-600",
+        children: ($$payload3) => {
+          RequestsTab($$payload3);
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      TabItem($$payload2, {
+        title: "Lockers",
+        activeClasses: "",
+        children: ($$payload3) => {
+          LockersTab($$payload3);
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      TabItem($$payload2, {
+        title: "Users",
+        activeClasses: "",
+        children: ($$payload3) => {
+          UsersTab($$payload3);
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      TabItem($$payload2, {
+        title: "Subscription Types",
+        activeClasses: "",
+        children: ($$payload3) => {
+          SubscriptionTypesTab($$payload3);
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!---->`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----></div></main></div>`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  pop();
+}
+function UserDashboard($$payload, $$props) {
+  push();
+  let { userData } = $$props;
+  let lockerData = {
+    subscriptionsCount: 0,
+    requestsCount: 0,
+    subscriptions: [],
+    requests: []
+  };
+  let accessHistory = [];
+  $$payload.out += `<div class="min-h-screen bg-gray-50"><header class="bg-white shadow-sm"><div class="flex flex-row justify-between py-4 px-6 md:px-20 items-center"><h1 class="text-2xl font-extrabold text-gray-900">Dashboard</h1> <div class="flex flex-row items-center space-x-4"><div class="flex items-center space-x-3"><span class="text-lg font-semibold text-gray-700">${escape_html(userData.name)}</span></div> `;
+  Button($$payload, {
+    href: "/profile",
+    color: "light",
+    children: ($$payload2) => {
+      $$payload2.out += `<!---->Profile`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----> `;
+  Button($$payload, {
+    color: "light",
+    children: ($$payload2) => {
+      $$payload2.out += `<!---->Sign out`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----></div></div></header> <main class="container mx-auto px-4 py-8"><div class="space-y-6">`;
+  {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> `;
+  Tabs($$payload, {
+    style: "underline",
+    children: ($$payload2) => {
+      TabItem($$payload2, {
+        open: true,
+        title: "My Lockers",
+        children: ($$payload3) => {
+          $$payload3.out += `<div class="w-full flex flex-col"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold text-gray-900">Active Lockers</h2> `;
+          Button($$payload3, {
+            href: "/lockers",
+            color: "blue",
+            children: ($$payload4) => {
+              $$payload4.out += `<!---->Rent a Locker`;
+            },
+            $$slots: { default: true }
+          });
+          $$payload3.out += `<!----></div> `;
+          {
+            $$payload3.out += "<!--[!-->";
+            if (!lockerData.subscriptions || lockerData.subscriptions.length === 0) {
+              $$payload3.out += "<!--[-->";
+              $$payload3.out += `<p class="text-gray-600">You don't have any active locker subscriptions.</p>`;
+            } else {
+              $$payload3.out += "<!--[!-->";
+              const each_array = ensure_array_like(lockerData.subscriptions);
+              $$payload3.out += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><!--[-->`;
+              for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+                let subscription = each_array[$$index];
+                $$payload3.out += `<div class="bg-white shadow-md rounded-lg p-4"><div class="flex flex-col space-y-4"><div class="flex justify-between items-start"><div><h3 class="text-lg font-semibold">Locker #${escape_html(subscription.lockerNumber)}</h3> <p class="text-sm text-gray-600">Size: ${escape_html(subscription.lockerSize)}</p> <p class="text-sm text-gray-600">Valid until: ${escape_html(formatDate(subscription.expiresAt, true))}</p></div> `;
+                Badge($$payload3, {
+                  color: subscription.status === "active" ? "green" : "red",
+                  children: ($$payload4) => {
+                    $$payload4.out += `<!---->${escape_html(subscription.status)}`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload3.out += `<!----></div> `;
+                if (subscription.status === "active") {
+                  $$payload3.out += "<!--[-->";
+                  $$payload3.out += `<div class="flex flex-col space-y-2">`;
+                  {
+                    $$payload3.out += "<!--[!-->";
+                  }
+                  $$payload3.out += `<!--]--> `;
+                  Button($$payload3, {
+                    size: "sm",
+                    children: ($$payload4) => {
+                      {
+                        $$payload4.out += "<!--[!-->";
+                        $$payload4.out += `Generate OTP`;
+                      }
+                      $$payload4.out += `<!--]-->`;
+                    },
+                    $$slots: { default: true }
+                  });
+                  $$payload3.out += `<!----></div>`;
+                } else {
+                  $$payload3.out += "<!--[!-->";
+                }
+                $$payload3.out += `<!--]--></div></div>`;
+              }
+              $$payload3.out += `<!--]--></div>`;
+            }
+            $$payload3.out += `<!--]-->`;
+          }
+          $$payload3.out += `<!--]--></div>`;
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      TabItem($$payload2, {
+        title: "Requests",
+        children: ($$payload3) => {
+          $$payload3.out += `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-gray-900">Requests</h2> `;
+          {
+            $$payload3.out += "<!--[!-->";
+          }
+          $$payload3.out += `<!--]--></div> `;
+          {
+            $$payload3.out += "<!--[!-->";
+            if (!lockerData.requests || lockerData.requests.length === 0) {
+              $$payload3.out += "<!--[-->";
+              $$payload3.out += `<p class="text-gray-600">You don't have any pending requests.</p>`;
+            } else {
+              $$payload3.out += "<!--[!-->";
+              const each_array_1 = ensure_array_like(lockerData.requests);
+              $$payload3.out += `<div class="space-y-4"><!--[-->`;
+              for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+                let request = each_array_1[$$index_1];
+                Card($$payload3, {
+                  children: ($$payload4) => {
+                    $$payload4.out += `<div class="flex justify-between items-center"><div><h3 class="text-lg font-semibold">Locker #${escape_html(request.lockerNumber)}</h3> <p class="text-sm text-gray-600">Size: ${escape_html(request.lockerSize)}</p> <p class="text-sm text-gray-600">Subscription: ${escape_html(request.subscriptionName)}</p> <p class="text-sm text-gray-600">Requested on: ${escape_html(formatDate(request.requestedAt, true))}</p> `;
+                    if (request.status === "rejected" && request.rejectionReason) {
+                      $$payload4.out += "<!--[-->";
+                      $$payload4.out += `<p class="text-sm text-red-600">Reason: ${escape_html(request.rejectionReason)}</p>`;
+                    } else {
+                      $$payload4.out += "<!--[!-->";
+                    }
+                    $$payload4.out += `<!--]--></div> <div class="flex items-center space-x-4">`;
+                    Badge($$payload4, {
+                      color: request.status === "pending" ? "yellow" : request.status === "approved" ? "green" : "red",
+                      children: ($$payload5) => {
+                        $$payload5.out += `<!---->${escape_html(request.status)}`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload4.out += `<!----> `;
+                    if (request.status === "rejected") {
+                      $$payload4.out += "<!--[-->";
+                      Button($$payload4, {
+                        size: "sm",
+                        children: ($$payload5) => {
+                          $$payload5.out += `<!---->Resubmit`;
+                        },
+                        $$slots: { default: true }
+                      });
+                    } else {
+                      $$payload4.out += "<!--[!-->";
+                    }
+                    $$payload4.out += `<!--]--></div></div>`;
+                  },
+                  $$slots: { default: true }
+                });
+              }
+              $$payload3.out += `<!--]--></div>`;
+            }
+            $$payload3.out += `<!--]-->`;
+          }
+          $$payload3.out += `<!--]-->`;
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      TabItem($$payload2, {
+        title: "Access History",
+        children: ($$payload3) => {
+          {
+            $$payload3.out += "<!--[!-->";
+            if (!accessHistory || accessHistory.length === 0) {
+              $$payload3.out += "<!--[-->";
+              $$payload3.out += `<p class="text-gray-600">No access history available.</p>`;
+            } else {
+              $$payload3.out += "<!--[!-->";
+              const each_array_2 = ensure_array_like(accessHistory);
+              $$payload3.out += `<div class="space-y-4"><!--[-->`;
+              for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
+                let access = each_array_2[$$index_2];
+                Card($$payload3, {
+                  children: ($$payload4) => {
+                    $$payload4.out += `<div class="flex justify-between items-center"><div><h3 class="text-lg font-semibold">Locker #${escape_html(access.lockerNumber)}</h3> <p class="text-sm text-gray-600">Access Type: ${escape_html(access.accessType === "otp" ? "OTP" : "Subscription")}</p> `;
+                    if (access.otp) {
+                      $$payload4.out += "<!--[-->";
+                      $$payload4.out += `<p class="text-sm text-gray-600">OTP: ${escape_html(access.otp)}</p>`;
+                    } else {
+                      $$payload4.out += "<!--[!-->";
+                    }
+                    $$payload4.out += `<!--]--> <p class="text-sm text-gray-600">Accessed on: ${escape_html(formatTimestamp(access.accessedAt))}</p></div> `;
+                    Badge($$payload4, {
+                      color: access.status === "success" ? "green" : "red",
+                      children: ($$payload5) => {
+                        $$payload5.out += `<!---->${escape_html(access.status)}`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload4.out += `<!----></div>`;
+                  },
+                  $$slots: { default: true }
+                });
+              }
+              $$payload3.out += `<!--]--></div>`;
+            }
+            $$payload3.out += `<!--]-->`;
+          }
+          $$payload3.out += `<!--]-->`;
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!---->`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----></div></main></div>`;
   pop();
 }
 function _page($$payload, $$props) {
-  push();
-  let userData = {
-    email: "",
-    fullName: "",
-    imageUrl: "",
-    id: null
-  };
-  const ctx = useClerkContext();
-  const user = ctx?.user;
-  if (!user) {
+  let data = $$props["data"];
+  const { userData } = data;
+  if (userData.type === "admin") {
     $$payload.out += "<!--[-->";
-    $$payload.out += `<div class="flex justify-center items-center h-screen"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div></div>`;
+    AdminDashboard($$payload, { userData });
   } else {
     $$payload.out += "<!--[!-->";
-    {
-      $$payload.out += "<!--[!-->";
-      {
-        $$payload.out += "<!--[!-->";
-        UserDashboard($$payload, { userData });
-      }
-      $$payload.out += `<!--]-->`;
-    }
-    $$payload.out += `<!--]-->`;
+    UserDashboard($$payload, { userData });
   }
   $$payload.out += `<!--]-->`;
-  pop();
+  bind_props($$props, { data });
 }
 export {
   _page as default

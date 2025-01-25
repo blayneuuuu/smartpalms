@@ -1,4 +1,4 @@
-import { h as getContext, e as escape_html, p as pop, c as push } from "../../chunks/index3.js";
+import { h as getContext, e as escape_html, p as pop, d as push } from "../../chunks/index3.js";
 import "clsx";
 import { u as updated, s as stores } from "../../chunks/client.js";
 ({
