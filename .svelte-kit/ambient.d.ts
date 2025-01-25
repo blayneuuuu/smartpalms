@@ -28,20 +28,11 @@
 declare module '$env/static/private' {
 	export const DATABASE_URL: string;
 	export const DATABASE_AUTH_TOKEN: string;
-	export const TERM_PROGRAM: string;
-	export const NODE: string;
-	export const INIT_CWD: string;
-	export const WARP_HONOR_PS1: string;
-	export const TERM: string;
-	export const SHELL: string;
-	export const HOMEBREW_REPOSITORY: string;
-	export const TMPDIR: string;
-	export const npm_config_global_prefix: string;
-	export const TERM_PROGRAM_VERSION: string;
-	export const COLOR: string;
-	export const npm_config_noproxy: string;
-	export const npm_config_local_prefix: string;
+	export const CLERK_SECRET_KEY: string;
+	export const GJS_DEBUG_TOPICS: string;
+	export const LESSOPEN: string;
 	export const USER: string;
+<<<<<<< Updated upstream
 	export const COMMAND_MODE: string;
 	export const npm_config_globalconfig: string;
 	export const SSH_AUTH_SOCK: string;
@@ -72,14 +63,97 @@ declare module '$env/static/private' {
 	export const npm_lifecycle_script: string;
 	export const LC_CTYPE: string;
 	export const SSH_SOCKET_DIR: string;
+=======
+>>>>>>> Stashed changes
 	export const npm_config_user_agent: string;
-	export const INFOPATH: string;
-	export const HOMEBREW_CELLAR: string;
-	export const CONDA_CHANGEPS1: string;
+	export const XDG_SESSION_TYPE: string;
+	export const GIT_ASKPASS: string;
 	export const npm_node_execpath: string;
-	export const npm_config_prefix: string;
+	export const SHLVL: string;
+	export const npm_config_noproxy: string;
+	export const HOME: string;
+	export const CHROME_DESKTOP: string;
+	export const TERM_PROGRAM_VERSION: string;
+	export const DESKTOP_SESSION: string;
+	export const npm_package_json: string;
+	export const GIO_LAUNCHED_DESKTOP_FILE: string;
+	export const GNOME_SHELL_SESSION_MODE: string;
+	export const GTK_MODULES: string;
+	export const VSCODE_GIT_ASKPASS_MAIN: string;
+	export const VSCODE_GIT_ASKPASS_NODE: string;
+	export const MANAGERPID: string;
+	export const npm_config_userconfig: string;
+	export const npm_config_local_prefix: string;
+	export const SYSTEMD_EXEC_PID: string;
+	export const IM_CONFIG_CHECK_ENV: string;
+	export const GSM_SKIP_SSH_AGENT_WORKAROUND: string;
+	export const DBUS_SESSION_BUS_ADDRESS: string;
 	export const COLORTERM: string;
+<<<<<<< Updated upstream
 	export const _: string;
+=======
+	export const GIO_LAUNCHED_DESKTOP_FILE_PID: string;
+	export const COLOR: string;
+	export const NVM_DIR: string;
+	export const DEBUGINFOD_URLS: string;
+	export const IM_CONFIG_PHASE: string;
+	export const WAYLAND_DISPLAY: string;
+	export const LOGNAME: string;
+	export const JOURNAL_STREAM: string;
+	export const _: string;
+	export const npm_config_prefix: string;
+	export const npm_config_npm_version: string;
+	export const MEMORY_PRESSURE_WATCH: string;
+	export const XDG_SESSION_CLASS: string;
+	export const USERNAME: string;
+	export const TERM: string;
+	export const npm_config_cache: string;
+	export const GNOME_DESKTOP_SESSION_ID: string;
+	export const npm_config_node_gyp: string;
+	export const PATH: string;
+	export const SESSION_MANAGER: string;
+	export const INVOCATION_ID: string;
+	export const NODE: string;
+	export const npm_package_name: string;
+	export const XDG_MENU_PREFIX: string;
+	export const GNOME_SETUP_DISPLAY: string;
+	export const XDG_RUNTIME_DIR: string;
+	export const GDK_BACKEND: string;
+	export const DISPLAY: string;
+	export const LANG: string;
+	export const XDG_CURRENT_DESKTOP: string;
+	export const XMODIFIERS: string;
+	export const XDG_SESSION_DESKTOP: string;
+	export const XAUTHORITY: string;
+	export const LS_COLORS: string;
+	export const VSCODE_GIT_IPC_HANDLE: string;
+	export const TERM_PROGRAM: string;
+	export const npm_lifecycle_script: string;
+	export const SSH_AUTH_SOCK: string;
+	export const ORIGINAL_XDG_CURRENT_DESKTOP: string;
+	export const SHELL: string;
+	export const npm_package_version: string;
+	export const npm_lifecycle_event: string;
+	export const QT_ACCESSIBILITY: string;
+	export const GDMSESSION: string;
+	export const LESSCLOSE: string;
+	export const GJS_DEBUG_OUTPUT: string;
+	export const VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
+	export const QT_IM_MODULE: string;
+	export const npm_config_globalconfig: string;
+	export const npm_config_init_module: string;
+	export const PWD: string;
+	export const npm_execpath: string;
+	export const XDG_CONFIG_DIRS: string;
+	export const NVM_CD_FLAGS: string;
+	export const XDG_DATA_DIRS: string;
+	export const npm_config_global_prefix: string;
+	export const npm_command: string;
+	export const MEMORY_PRESSURE_WRITE: string;
+	export const NVM_RC_VERSION: string;
+	export const INIT_CWD: string;
+	export const EDITOR: string;
+>>>>>>> Stashed changes
 	export const NODE_ENV: string;
 }
 
@@ -93,7 +167,7 @@ declare module '$env/static/private' {
  * ```
  */
 declare module '$env/static/public' {
-	
+	export const PUBLIC_CLERK_PUBLISHABLE_KEY: string;
 }
 
 /**
@@ -114,20 +188,11 @@ declare module '$env/dynamic/private' {
 	export const env: {
 		DATABASE_URL: string;
 		DATABASE_AUTH_TOKEN: string;
-		TERM_PROGRAM: string;
-		NODE: string;
-		INIT_CWD: string;
-		WARP_HONOR_PS1: string;
-		TERM: string;
-		SHELL: string;
-		HOMEBREW_REPOSITORY: string;
-		TMPDIR: string;
-		npm_config_global_prefix: string;
-		TERM_PROGRAM_VERSION: string;
-		COLOR: string;
-		npm_config_noproxy: string;
-		npm_config_local_prefix: string;
+		CLERK_SECRET_KEY: string;
+		GJS_DEBUG_TOPICS: string;
+		LESSOPEN: string;
 		USER: string;
+<<<<<<< Updated upstream
 		COMMAND_MODE: string;
 		npm_config_globalconfig: string;
 		SSH_AUTH_SOCK: string;
@@ -158,14 +223,97 @@ declare module '$env/dynamic/private' {
 		npm_lifecycle_script: string;
 		LC_CTYPE: string;
 		SSH_SOCKET_DIR: string;
+=======
+>>>>>>> Stashed changes
 		npm_config_user_agent: string;
-		INFOPATH: string;
-		HOMEBREW_CELLAR: string;
-		CONDA_CHANGEPS1: string;
+		XDG_SESSION_TYPE: string;
+		GIT_ASKPASS: string;
 		npm_node_execpath: string;
-		npm_config_prefix: string;
+		SHLVL: string;
+		npm_config_noproxy: string;
+		HOME: string;
+		CHROME_DESKTOP: string;
+		TERM_PROGRAM_VERSION: string;
+		DESKTOP_SESSION: string;
+		npm_package_json: string;
+		GIO_LAUNCHED_DESKTOP_FILE: string;
+		GNOME_SHELL_SESSION_MODE: string;
+		GTK_MODULES: string;
+		VSCODE_GIT_ASKPASS_MAIN: string;
+		VSCODE_GIT_ASKPASS_NODE: string;
+		MANAGERPID: string;
+		npm_config_userconfig: string;
+		npm_config_local_prefix: string;
+		SYSTEMD_EXEC_PID: string;
+		IM_CONFIG_CHECK_ENV: string;
+		GSM_SKIP_SSH_AGENT_WORKAROUND: string;
+		DBUS_SESSION_BUS_ADDRESS: string;
 		COLORTERM: string;
+<<<<<<< Updated upstream
 		_: string;
+=======
+		GIO_LAUNCHED_DESKTOP_FILE_PID: string;
+		COLOR: string;
+		NVM_DIR: string;
+		DEBUGINFOD_URLS: string;
+		IM_CONFIG_PHASE: string;
+		WAYLAND_DISPLAY: string;
+		LOGNAME: string;
+		JOURNAL_STREAM: string;
+		_: string;
+		npm_config_prefix: string;
+		npm_config_npm_version: string;
+		MEMORY_PRESSURE_WATCH: string;
+		XDG_SESSION_CLASS: string;
+		USERNAME: string;
+		TERM: string;
+		npm_config_cache: string;
+		GNOME_DESKTOP_SESSION_ID: string;
+		npm_config_node_gyp: string;
+		PATH: string;
+		SESSION_MANAGER: string;
+		INVOCATION_ID: string;
+		NODE: string;
+		npm_package_name: string;
+		XDG_MENU_PREFIX: string;
+		GNOME_SETUP_DISPLAY: string;
+		XDG_RUNTIME_DIR: string;
+		GDK_BACKEND: string;
+		DISPLAY: string;
+		LANG: string;
+		XDG_CURRENT_DESKTOP: string;
+		XMODIFIERS: string;
+		XDG_SESSION_DESKTOP: string;
+		XAUTHORITY: string;
+		LS_COLORS: string;
+		VSCODE_GIT_IPC_HANDLE: string;
+		TERM_PROGRAM: string;
+		npm_lifecycle_script: string;
+		SSH_AUTH_SOCK: string;
+		ORIGINAL_XDG_CURRENT_DESKTOP: string;
+		SHELL: string;
+		npm_package_version: string;
+		npm_lifecycle_event: string;
+		QT_ACCESSIBILITY: string;
+		GDMSESSION: string;
+		LESSCLOSE: string;
+		GJS_DEBUG_OUTPUT: string;
+		VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
+		QT_IM_MODULE: string;
+		npm_config_globalconfig: string;
+		npm_config_init_module: string;
+		PWD: string;
+		npm_execpath: string;
+		XDG_CONFIG_DIRS: string;
+		NVM_CD_FLAGS: string;
+		XDG_DATA_DIRS: string;
+		npm_config_global_prefix: string;
+		npm_command: string;
+		MEMORY_PRESSURE_WRITE: string;
+		NVM_RC_VERSION: string;
+		INIT_CWD: string;
+		EDITOR: string;
+>>>>>>> Stashed changes
 		NODE_ENV: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
@@ -186,6 +334,7 @@ declare module '$env/dynamic/private' {
  */
 declare module '$env/dynamic/public' {
 	export const env: {
+		PUBLIC_CLERK_PUBLISHABLE_KEY: string;
 		[key: `PUBLIC_${string}`]: string | undefined;
 	}
 }

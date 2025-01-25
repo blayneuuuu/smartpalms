@@ -14,6 +14,7 @@
   } from "flowbite-svelte";
   import {formatDate} from "$lib/utils/date";
   import {users, loading, errors} from "$lib/stores/admin";
+  import { Dialog } from "bits-ui";
 
   let showUserDetailsDialog = false;
   let selectedUser = $state<(typeof $users)[0] | null>(null);
@@ -57,21 +58,28 @@
           </TableBodyCell>
           <TableBodyCell>{formatDate(user.createdAt, true)}</TableBodyCell>
           <TableBodyCell>
-            <Button size="xs" on:click={() => openUserDetails(user)}>
-              View Details
-            </Button>
-          </TableBodyCell>
-        </TableBodyRow>
-      {/each}
-    </TableBody>
-  </Table>
-{/if}
 
-<!-- User Details Dialog -->
-<Modal bind:open={showUserDetailsDialog} size="md">
-  {#if selectedUser}
+            <!-- Dialog  -->
+            <Dialog.Root>
+              <Dialog.Trigger class="btn" on:click={() => openUserDetails(user)}>
+              View Details
+            </Dialog.Trigger>
+
+            <Dialog.Portal>
+              <Dialog.Overlay
+                transitionConfig={{ duration: 150 }}
+                class="fixed inset-0 z-50 bg-black/80"
+              />
+              <Dialog.Content
+                
+                class="fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full"
+              >
+                <Dialog.Title><h3 class="text-xl font-semibold mb-5">User Details</h3></Dialog.Title>
+                
+                <Dialog.Description class="text-sm text-foreground-alt">
+                  {#if selectedUser}
     <div class="space-y-4">
-      <h3 class="text-xl font-semibold">User Details</h3>
+      
 
       <div class="grid grid-cols-2 gap-4">
         <div>
@@ -93,18 +101,24 @@
           <p class="font-medium">{formatDate(selectedUser.createdAt, true)}</p>
         </div>
       </div>
-
-      <div class="flex justify-end mt-6">
-        <Button
-          color="alternative"
-          on:click={() => {
-            showUserDetailsDialog = false;
-            selectedUser = null;
-          }}
-        >
-          Close
-        </Button>
-      </div>
     </div>
   {/if}
+                </Dialog.Description>
+                <div class="flex w-full justify-between mt-10">
+                  <Dialog.Close>Close</Dialog.Close>
+                  <Dialog.Close>Save</Dialog.Close>
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+            </Dialog.Root>
+          </TableBodyCell>
+        </TableBodyRow>
+      {/each}
+    </TableBody>
+  </Table>
+{/if}
+
+<!-- User Details Dialog -->
+<Modal bind:open={showUserDetailsDialog} size="md">
+  
 </Modal> 
