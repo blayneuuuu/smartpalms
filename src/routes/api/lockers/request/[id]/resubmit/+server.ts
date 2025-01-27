@@ -6,8 +6,7 @@ import {lockerRequests} from "$lib/server/db/schema";
 import {eq} from "drizzle-orm";
 
 export const POST: RequestHandler = async ({params, request, locals}) => {
-  const userId = locals.auth?.userId;
-  if (!userId) {
+  if (!locals.user) {
     throw error(401, "Unauthorized");
   }
 
@@ -28,7 +27,7 @@ export const POST: RequestHandler = async ({params, request, locals}) => {
       throw error(404, "Request not found");
     }
 
-    if (lockerRequest.userId !== userId) {
+    if (lockerRequest.userId !== locals.user.id) {
       throw error(403, "You don't have access to this request");
     }
 

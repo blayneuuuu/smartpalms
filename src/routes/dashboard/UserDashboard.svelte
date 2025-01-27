@@ -13,7 +13,7 @@
 	let { userData } = $props<{ userData: UserData }>();
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-	let currentOTP = $state<{otp: string; expiryDate: string} | null>(null);
+	let otpMap = $state<Record<string, {otp: string; expiryDate: string}>>({});
 
 	type LockerData = {
 		subscriptionsCount: number;
@@ -94,7 +94,8 @@
 				throw new Error(data.message || 'Failed to generate OTP');
 			}
 			const data = await response.json();
-			currentOTP = data;
+			otpMap[lockerId] = data;
+			otpMap = otpMap; // Trigger reactivity
 		} catch (err) {
 			console.error('Error generating OTP:', err);
 			error = err instanceof Error ? err.message : 'Failed to generate OTP';
@@ -103,11 +104,11 @@
 		}
 	}
 
-
 	async function resubmitRequest(requestId: string) {
 		try {
-			const response = await fetch(`/api/locker-requests/${requestId}/resubmit`, {
+			const response = await fetch(`/api/lockers/request/${requestId}/resubmit`, {
 				method: 'POST',
+				credentials: 'include'
 			});
 
 			if (!response.ok) {
@@ -216,14 +217,13 @@
 
 											{#if subscription.status === 'active'}
 												<div class="flex flex-col space-y-2">
-													{#if currentOTP && !loading}
+													{#if otpMap[subscription.lockerId] && !loading}
 														<Alert color="green">
-															<span class="text-lg">OTP: <span class="font-bold tracking-widest">{currentOTP.otp}</span></span>
-															<p class="text-sm">Expires at: {formatDate(currentOTP.expiryDate, true)}</p>
+															<span class="text-lg">OTP: <span class="font-bold tracking-widest">{otpMap[subscription.lockerId].otp}</span></span>
+															<p class="text-sm">Expires at: {formatDate(otpMap[subscription.lockerId].expiryDate, true)}</p>
 														</Alert>
 													{/if}
 													<Button size="sm" on:click={() => generateOTP(subscription.lockerId)}>
-														
 														{#if loading}
 															<Spinner class="mr-3" size="4" />
 															Loading...
@@ -306,32 +306,34 @@
 						<p class="text-gray-600">No access history available.</p>
 					{:else}
 						<div class="space-y-4">
-							
-								<Table>
-									<TableHead>
-									  <TableHeadCell>Locker #</TableHeadCell>
-									  <TableHeadCell>Access Type</TableHeadCell>
-									  <TableHeadCell>OTP</TableHeadCell>
-									  <TableHeadCell>Access Date-Time</TableHeadCell>
-									  <TableHeadCell>Status</TableHeadCell>
-									</TableHead>
-									<TableBody tableBodyClass="divide-y">
-										{#each accessHistory as access}
-									  <TableBodyRow>
-										<TableBodyCell>{access.lockerNumber}</TableBodyCell>
-										<TableBodyCell>{access.accessType === 'otp' ? 'OTP' : 'Subscription'}</TableBodyCell>
-										<TableBodyCell>{#if access.otp}
-											{access.otp}
-										{/if}</TableBodyCell>
-										<TableBodyCell>{formatTimestamp(access.accessedAt)}</TableBodyCell>
-										<TableBodyCell><Badge color={access.status === 'success' ? 'green' : 'red'}>
-											{access.status}
-										</Badge></TableBodyCell>
-									  </TableBodyRow>
-									  {/each}
-									</TableBody>
-								  </Table>
-							
+							<Table>
+								<TableHead>
+									<TableHeadCell>Locker #</TableHeadCell>
+									<TableHeadCell>Access Type</TableHeadCell>
+									<TableHeadCell>OTP</TableHeadCell>
+									<TableHeadCell>Access Date-Time</TableHeadCell>
+									<TableHeadCell>Status</TableHeadCell>
+								</TableHead>
+								<TableBody tableBodyClass="divide-y">
+									{#each accessHistory as access}
+										<TableBodyRow>
+											<TableBodyCell>{access.lockerNumber}</TableBodyCell>
+											<TableBodyCell>{access.accessType === 'otp' ? 'OTP' : 'Subscription'}</TableBodyCell>
+											<TableBodyCell>
+												{#if access.otp}
+													{access.otp}
+												{/if}
+											</TableBodyCell>
+											<TableBodyCell>{formatTimestamp(access.accessedAt)}</TableBodyCell>
+											<TableBodyCell>
+												<Badge color={access.status === 'success' ? 'green' : 'red'}>
+													{access.status}
+												</Badge>
+											</TableBodyCell>
+										</TableBodyRow>
+									{/each}
+								</TableBody>
+							</Table>
 						</div>
 					{/if}
 				</TabItem>
