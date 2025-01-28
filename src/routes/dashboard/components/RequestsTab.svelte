@@ -22,6 +22,8 @@
   let selectedRequestId = "";
   let rejectionReason = "";
   let processingRequest = false;
+  let showDetailsDialog = false;
+  let selectedRequest: typeof $requests[number] | null = null;
 
   async function handleApprove(requestId: string) {
     processingRequest = true;
@@ -117,6 +119,16 @@
                 </Button>
               </div>
             {/if}
+            <Button
+              size="xs"
+              color="blue"
+              on:click={() => {
+                showDetailsDialog = true;
+                selectedRequest = request;
+              }}
+            >
+              See Details
+            </Button>
           </TableBodyCell>
         </TableBodyRow>
       {/each}
@@ -161,6 +173,70 @@
       on:click={handleReject}
     >
       Reject
+    </Button>
+  </div>
+</Modal>
+
+<!-- Details Dialog -->
+<Modal bind:open={showDetailsDialog} size="lg" autoclose>
+  {#if selectedRequest}
+    <div class="space-y-4">
+      <h3 class="text-xl font-semibold">Request Details</h3>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <h4 class="font-medium text-gray-700">User Information</h4>
+          <p>Name: {selectedRequest.userName}</p>
+        </div>
+        
+        <div>
+          <h4 class="font-medium text-gray-700">Locker Information</h4>
+          <p>Number: #{selectedRequest.lockerNumber}</p>
+          <p>Size: {selectedRequest.lockerSize}</p>
+        </div>
+        
+        <div>
+          <h4 class="font-medium text-gray-700">Subscription</h4>
+          <p>{selectedRequest.subscriptionName}</p>
+        </div>
+        
+        <div>
+          <h4 class="font-medium text-gray-700">Status</h4>
+          <Badge
+            color={selectedRequest.status === "pending"
+              ? "yellow"
+              : selectedRequest.status === "approved"
+              ? "green"
+              : "red"}
+          >
+            {selectedRequest.status}
+          </Badge>
+        </div>
+      </div>
+
+      {#if selectedRequest.proofOfPayment}
+        <div>
+          <h4 class="font-medium text-gray-700 mb-2">Proof of Payment</h4>
+          <img
+            src={`data:image/jpeg;base64,${selectedRequest.proofOfPayment}`}
+            alt="Proof of Payment"
+            class="max-w-full h-auto rounded-lg"
+          />
+        </div>
+      {/if}
+
+      {#if selectedRequest.status === "rejected" && selectedRequest.rejectionReason}
+        <div>
+          <h4 class="font-medium text-gray-700">Rejection Reason</h4>
+          <p class="text-red-600">{selectedRequest.rejectionReason}</p>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  <div class="flex justify-end mt-6">
+    <Button color="alternative" on:click={() => showDetailsDialog = false}>
+      Close
     </Button>
   </div>
 </Modal> 

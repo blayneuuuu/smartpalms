@@ -1,10 +1,22 @@
-import { r as rest_props, d as push, i as fallback, s as spread_attributes, j as clsx, g as attr, b as bind_props, p as pop, l as sanitize_props, t as setContext, k as slot, h as getContext, aa as store_get, f as ensure_array_like, ab as unsubscribe_stores, e as escape_html, c as copy_payload, a as assign_payload } from "../../../chunks/index3.js";
+import { ad as current_component, i as rest_props, j as fallback, k as spread_attributes, l as clsx, g as attr, b as bind_props, p as pop, o as sanitize_props, d as push, v as setContext, m as slot, h as getContext, ae as store_get, f as ensure_array_like, af as unsubscribe_stores, e as escape_html, c as copy_payload, a as assign_payload, w as element } from "../../../chunks/index3.js";
 import "clsx";
 import { A as Alert, B as Button, L as Label, I as Input } from "../../../chunks/Input.js";
 import { C as Card, B as Badge, M as Modal, S as Select } from "../../../chunks/Modal.js";
-import { w as writable } from "../../../chunks/exports.js";
+import { w as writable, k as derived, l as get, r as readable, o as readonly } from "../../../chunks/exports.js";
 import { twMerge, twJoin } from "tailwind-merge";
+import "dequal";
+import { nanoid } from "nanoid/non-secure";
+import { createFocusTrap as createFocusTrap$1 } from "focus-trap";
 import "../../../chunks/client.js";
+function onDestroy(fn) {
+  var context = (
+    /** @type {Component} */
+    current_component
+  );
+  (context.d ??= []).push(fn);
+}
+async function tick() {
+}
 function Spinner($$payload, $$props) {
   const $$sanitized_props = sanitize_props($$props);
   const $$restProps = rest_props($$sanitized_props, [
@@ -567,6 +579,7 @@ function RequestsTab($$payload, $$props) {
   let showRejectDialog = false;
   let rejectionReason = "";
   let processingRequest = false;
+  let showDetailsDialog = false;
   let $$settled = true;
   let $$inner_payload;
   function $$render_inner($$payload2) {
@@ -723,7 +736,16 @@ function RequestsTab($$payload, $$props) {
                           } else {
                             $$payload6.out += "<!--[!-->";
                           }
-                          $$payload6.out += `<!--]-->`;
+                          $$payload6.out += `<!--]--> `;
+                          Button($$payload6, {
+                            size: "xs",
+                            color: "blue",
+                            children: ($$payload7) => {
+                              $$payload7.out += `<!---->See Details`;
+                            },
+                            $$slots: { default: true }
+                          });
+                          $$payload6.out += `<!---->`;
                         },
                         $$slots: { default: true }
                       });
@@ -791,6 +813,33 @@ function RequestsTab($$payload, $$props) {
           loading: processingRequest,
           children: ($$payload4) => {
             $$payload4.out += `<!---->Reject`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----></div>`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload2.out += `<!----> `;
+    Modal($$payload2, {
+      size: "lg",
+      autoclose: true,
+      get open() {
+        return showDetailsDialog;
+      },
+      set open($$value) {
+        showDetailsDialog = $$value;
+        $$settled = false;
+      },
+      children: ($$payload3) => {
+        {
+          $$payload3.out += "<!--[!-->";
+        }
+        $$payload3.out += `<!--]--> <div class="flex justify-end mt-6">`;
+        Button($$payload3, {
+          color: "alternative",
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->Close`;
           },
           $$slots: { default: true }
         });
@@ -1053,178 +1102,1769 @@ function LockersTab($$payload, $$props) {
   if ($$store_subs) unsubscribe_stores($$store_subs);
   pop();
 }
+function last(array) {
+  return array[array.length - 1];
+}
+function styleToString(style) {
+  return Object.keys(style).reduce((str, key) => {
+    if (style[key] === void 0)
+      return str;
+    return str + `${key}:${style[key]};`;
+  }, "");
+}
+({
+  type: "hidden",
+  "aria-hidden": true,
+  hidden: true,
+  tabIndex: -1,
+  style: styleToString({
+    position: "absolute",
+    opacity: 0,
+    "pointer-events": "none",
+    margin: 0,
+    transform: "translateX(-100%)"
+  })
+});
+function portalAttr(portal) {
+  if (portal !== null) {
+    return "";
+  }
+  return void 0;
+}
+function lightable(value) {
+  function subscribe(run) {
+    run(value);
+    return () => {
+    };
+  }
+  return { subscribe };
+}
+const hiddenAction = (obj) => {
+  return new Proxy(obj, {
+    get(target, prop, receiver) {
+      return Reflect.get(target, prop, receiver);
+    },
+    ownKeys(target) {
+      return Reflect.ownKeys(target).filter((key) => key !== "action");
+    }
+  });
+};
+const isFunctionWithParams = (fn) => {
+  return typeof fn === "function";
+};
+makeElement("empty");
+function makeElement(name2, args) {
+  const { stores, action, returned } = args ?? {};
+  const derivedStore = (() => {
+    if (stores && returned) {
+      return derived(stores, (values) => {
+        const result = returned(values);
+        if (isFunctionWithParams(result)) {
+          const fn = (...args2) => {
+            return hiddenAction({
+              ...result(...args2),
+              [`data-melt-${name2}`]: "",
+              action: action ?? noop
+            });
+          };
+          fn.action = action ?? noop;
+          return fn;
+        }
+        return hiddenAction({
+          ...result,
+          [`data-melt-${name2}`]: "",
+          action: action ?? noop
+        });
+      });
+    } else {
+      const returnedFn = returned;
+      const result = returnedFn?.();
+      if (isFunctionWithParams(result)) {
+        const resultFn = (...args2) => {
+          return hiddenAction({
+            ...result(...args2),
+            [`data-melt-${name2}`]: "",
+            action: action ?? noop
+          });
+        };
+        resultFn.action = action ?? noop;
+        return lightable(resultFn);
+      }
+      return lightable(hiddenAction({
+        ...result,
+        [`data-melt-${name2}`]: "",
+        action: action ?? noop
+      }));
+    }
+  })();
+  const actionFn = action ?? (() => {
+  });
+  actionFn.subscribe = derivedStore.subscribe;
+  return actionFn;
+}
+function createElHelpers(prefix) {
+  const name2 = (part) => part ? `${prefix}-${part}` : prefix;
+  const attribute = (part) => `data-melt-${prefix}${part ? `-${part}` : ""}`;
+  const selector = (part) => `[data-melt-${prefix}${part ? `-${part}` : ""}]`;
+  const getEl = (part) => document.querySelector(selector(part));
+  return {
+    name: name2,
+    attribute,
+    selector,
+    getEl
+  };
+}
+const isBrowser = typeof document !== "undefined";
+const isFunction = (v) => typeof v === "function";
+function isElement(element2) {
+  return element2 instanceof Element;
+}
+function isHTMLElement(element2) {
+  return element2 instanceof HTMLElement;
+}
+function isObject(value) {
+  return value !== null && typeof value === "object";
+}
+function isReadable(value) {
+  return isObject(value) && "subscribe" in value;
+}
+function executeCallbacks(...callbacks) {
+  return (...args) => {
+    for (const callback of callbacks) {
+      if (typeof callback === "function") {
+        callback(...args);
+      }
+    }
+  };
+}
+function noop() {
+}
+function addEventListener(target, event, handler, options) {
+  const events = Array.isArray(event) ? event : [event];
+  events.forEach((_event) => target.addEventListener(_event, handler, options));
+  return () => {
+    events.forEach((_event) => target.removeEventListener(_event, handler, options));
+  };
+}
+function addMeltEventListener(target, event, handler, options) {
+  const events = Array.isArray(event) ? event : [event];
+  if (typeof handler === "function") {
+    const handlerWithMelt = withMelt((_event) => handler(_event));
+    events.forEach((_event) => target.addEventListener(_event, handlerWithMelt, options));
+    return () => {
+      events.forEach((_event) => target.removeEventListener(_event, handlerWithMelt, options));
+    };
+  }
+  return () => noop();
+}
+function dispatchMeltEvent(originalEvent) {
+  const node = originalEvent.currentTarget;
+  if (!isHTMLElement(node))
+    return null;
+  const customMeltEvent = new CustomEvent(`m-${originalEvent.type}`, {
+    detail: {
+      originalEvent
+    },
+    cancelable: true
+  });
+  node.dispatchEvent(customMeltEvent);
+  return customMeltEvent;
+}
+function withMelt(handler) {
+  return (event) => {
+    const customEvent = dispatchMeltEvent(event);
+    if (customEvent?.defaultPrevented)
+      return;
+    return handler(event);
+  };
+}
+const safeOnDestroy = (fn) => {
+  try {
+    onDestroy(fn);
+  } catch {
+    return fn;
+  }
+};
+function omit(obj, ...keys) {
+  const result = {};
+  for (const key of Object.keys(obj)) {
+    if (!keys.includes(key)) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}
+function withGet(store) {
+  return {
+    ...store,
+    get: () => get(store)
+  };
+}
+withGet.writable = function(initial) {
+  const internal = writable(initial);
+  let value = initial;
+  return {
+    subscribe: internal.subscribe,
+    set(newValue) {
+      internal.set(newValue);
+      value = newValue;
+    },
+    update(updater) {
+      const newValue = updater(value);
+      internal.set(newValue);
+      value = newValue;
+    },
+    get() {
+      return value;
+    }
+  };
+};
+withGet.derived = function(stores, fn) {
+  const subscribers = /* @__PURE__ */ new Map();
+  const get2 = () => {
+    const values = Array.isArray(stores) ? stores.map((store) => store.get()) : stores.get();
+    return fn(values);
+  };
+  const subscribe = (subscriber) => {
+    const unsubscribers = [];
+    const storesArr = Array.isArray(stores) ? stores : [stores];
+    storesArr.forEach((store) => {
+      unsubscribers.push(store.subscribe(() => {
+        subscriber(get2());
+      }));
+    });
+    subscriber(get2());
+    subscribers.set(subscriber, unsubscribers);
+    return () => {
+      const unsubscribers2 = subscribers.get(subscriber);
+      if (unsubscribers2) {
+        for (const unsubscribe of unsubscribers2) {
+          unsubscribe();
+        }
+      }
+      subscribers.delete(subscriber);
+    };
+  };
+  return {
+    get: get2,
+    subscribe
+  };
+};
+const overridable = (_store, onChange) => {
+  const store = withGet(_store);
+  const update = (updater, sideEffect) => {
+    store.update((curr) => {
+      const next = updater(curr);
+      let res = next;
+      if (onChange) {
+        res = onChange({ curr, next });
+      }
+      sideEffect?.(res);
+      return res;
+    });
+  };
+  const set = (curr) => {
+    update(() => curr);
+  };
+  return {
+    ...store,
+    update,
+    set
+  };
+};
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function generateId() {
+  return nanoid(10);
+}
+function generateIds(args) {
+  return args.reduce((acc, curr) => {
+    acc[curr] = generateId();
+    return acc;
+  }, {});
+}
+const kbd = {
+  ALT: "Alt",
+  ARROW_DOWN: "ArrowDown",
+  ARROW_LEFT: "ArrowLeft",
+  ARROW_RIGHT: "ArrowRight",
+  ARROW_UP: "ArrowUp",
+  BACKSPACE: "Backspace",
+  CAPS_LOCK: "CapsLock",
+  CONTROL: "Control",
+  DELETE: "Delete",
+  END: "End",
+  ENTER: "Enter",
+  ESCAPE: "Escape",
+  F1: "F1",
+  F10: "F10",
+  F11: "F11",
+  F12: "F12",
+  F2: "F2",
+  F3: "F3",
+  F4: "F4",
+  F5: "F5",
+  F6: "F6",
+  F7: "F7",
+  F8: "F8",
+  F9: "F9",
+  HOME: "Home",
+  META: "Meta",
+  PAGE_DOWN: "PageDown",
+  PAGE_UP: "PageUp",
+  SHIFT: "Shift",
+  SPACE: " ",
+  TAB: "Tab",
+  CTRL: "Control",
+  ASTERISK: "*",
+  A: "a",
+  P: "p"
+};
+const isDom = () => typeof window !== "undefined";
+function getPlatform() {
+  const agent = navigator.userAgentData;
+  return agent?.platform ?? navigator.platform;
+}
+const pt = (v) => isDom() && v.test(getPlatform().toLowerCase());
+const isTouchDevice = () => isDom() && !!navigator.maxTouchPoints;
+const isMac = () => pt(/^mac/) && !isTouchDevice();
+const isApple = () => pt(/mac|iphone|ipad|ipod/i);
+const isIos = () => isApple() && !isMac();
+const LOCK_CLASSNAME = "data-melt-scroll-lock";
+function assignStyle(el, style) {
+  if (!el)
+    return;
+  const previousStyle = el.style.cssText;
+  Object.assign(el.style, style);
+  return () => {
+    el.style.cssText = previousStyle;
+  };
+}
+function setCSSProperty(el, property, value) {
+  if (!el)
+    return;
+  const previousValue = el.style.getPropertyValue(property);
+  el.style.setProperty(property, value);
+  return () => {
+    if (previousValue) {
+      el.style.setProperty(property, previousValue);
+    } else {
+      el.style.removeProperty(property);
+    }
+  };
+}
+function getPaddingProperty(documentElement) {
+  const documentLeft = documentElement.getBoundingClientRect().left;
+  const scrollbarX = Math.round(documentLeft) + documentElement.scrollLeft;
+  return scrollbarX ? "paddingLeft" : "paddingRight";
+}
+function removeScroll(_document) {
+  const doc = document;
+  const win = doc.defaultView ?? window;
+  const { documentElement, body } = doc;
+  const locked = body.hasAttribute(LOCK_CLASSNAME);
+  if (locked)
+    return noop;
+  body.setAttribute(LOCK_CLASSNAME, "");
+  const scrollbarWidth = win.innerWidth - documentElement.clientWidth;
+  const setScrollbarWidthProperty = () => setCSSProperty(documentElement, "--scrollbar-width", `${scrollbarWidth}px`);
+  const paddingProperty = getPaddingProperty(documentElement);
+  const scrollbarSidePadding = win.getComputedStyle(body)[paddingProperty];
+  const setStyle = () => assignStyle(body, {
+    overflow: "hidden",
+    [paddingProperty]: `calc(${scrollbarSidePadding} + ${scrollbarWidth}px)`
+  });
+  const setIOSStyle = () => {
+    const { scrollX, scrollY, visualViewport } = win;
+    const offsetLeft = visualViewport?.offsetLeft ?? 0;
+    const offsetTop = visualViewport?.offsetTop ?? 0;
+    const restoreStyle = assignStyle(body, {
+      position: "fixed",
+      overflow: "hidden",
+      top: `${-(scrollY - Math.floor(offsetTop))}px`,
+      left: `${-(scrollX - Math.floor(offsetLeft))}px`,
+      right: "0",
+      [paddingProperty]: `calc(${scrollbarSidePadding} + ${scrollbarWidth}px)`
+    });
+    return () => {
+      restoreStyle?.();
+      win.scrollTo(scrollX, scrollY);
+    };
+  };
+  const cleanups = [setScrollbarWidthProperty(), isIos() ? setIOSStyle() : setStyle()];
+  return () => {
+    cleanups.forEach((fn) => fn?.());
+    body.removeAttribute(LOCK_CLASSNAME);
+  };
+}
+function effect(stores, fn) {
+  let cb = void 0;
+  const destroy = derived(stores, (stores2) => {
+    cb?.();
+    cb = fn(stores2);
+  }).subscribe(noop);
+  const unsub = () => {
+    destroy();
+    cb?.();
+  };
+  safeOnDestroy(unsub);
+  return unsub;
+}
+function toWritableStores(properties) {
+  const result = {};
+  Object.keys(properties).forEach((key) => {
+    const propertyKey = key;
+    const value = properties[propertyKey];
+    result[propertyKey] = withGet(writable(value));
+  });
+  return result;
+}
+function getPortalParent(node) {
+  let parent = node.parentElement;
+  while (isHTMLElement(parent) && !parent.hasAttribute("data-portal")) {
+    parent = parent.parentElement;
+  }
+  return parent || "body";
+}
+function getPortalDestination(node, portalProp) {
+  if (portalProp !== void 0)
+    return portalProp;
+  const portalParent = getPortalParent(node);
+  if (portalParent === "body")
+    return document.body;
+  return null;
+}
+async function handleFocus(args) {
+  const { prop, defaultEl } = args;
+  await Promise.all([sleep(1), tick]);
+  if (prop === void 0) {
+    defaultEl?.focus();
+    return;
+  }
+  const returned = isFunction(prop) ? prop(defaultEl) : prop;
+  if (typeof returned === "string") {
+    const el = document.querySelector(returned);
+    if (!isHTMLElement(el))
+      return;
+    el.focus();
+  } else if (isHTMLElement(returned)) {
+    returned.focus();
+  }
+}
+readable(void 0, (set) => {
+  function clicked(event) {
+    set(event);
+    set(void 0);
+  }
+  const unsubscribe = addEventListener(document, "pointerup", clicked, {
+    passive: false,
+    capture: true
+  });
+  return unsubscribe;
+});
+const documentEscapeKeyStore = readable(void 0, (set) => {
+  function keydown(event) {
+    if (event && event.key === kbd.ESCAPE) {
+      set(event);
+    }
+    set(void 0);
+  }
+  const unsubscribe = addEventListener(document, "keydown", keydown, {
+    passive: false
+  });
+  return unsubscribe;
+});
+const useEscapeKeydown = (node, config = {}) => {
+  let unsub = noop;
+  function update(config2 = {}) {
+    unsub();
+    const options = { enabled: true, ...config2 };
+    const enabled = isReadable(options.enabled) ? options.enabled : readable(options.enabled);
+    unsub = executeCallbacks(
+      // Handle escape keydowns
+      documentEscapeKeyStore.subscribe((e) => {
+        if (!e || !get(enabled))
+          return;
+        const target = e.target;
+        if (!isHTMLElement(target) || target.closest("[data-escapee]") !== node) {
+          return;
+        }
+        e.preventDefault();
+        if (options.ignore) {
+          if (isFunction(options.ignore)) {
+            if (options.ignore(e))
+              return;
+          } else if (Array.isArray(options.ignore)) {
+            if (options.ignore.length > 0 && options.ignore.some((ignoreEl) => {
+              return ignoreEl && target === ignoreEl;
+            }))
+              return;
+          }
+        }
+        options.handler?.(e);
+      }),
+      effect(enabled, ($enabled) => {
+        if ($enabled) {
+          node.dataset.escapee = "";
+        } else {
+          delete node.dataset.escapee;
+        }
+      })
+    );
+  }
+  update(config);
+  return {
+    update,
+    destroy() {
+      node.removeAttribute("data-escapee");
+      unsub();
+    }
+  };
+};
+function createFocusTrap(config = {}) {
+  let trap;
+  const { immediate, ...focusTrapOptions } = config;
+  const hasFocus = writable(false);
+  const isPaused = writable(false);
+  const activate = (opts) => trap?.activate(opts);
+  const deactivate = (opts) => {
+    trap?.deactivate(opts);
+  };
+  const pause = () => {
+    if (trap) {
+      trap.pause();
+      isPaused.set(true);
+    }
+  };
+  const unpause = () => {
+    if (trap) {
+      trap.unpause();
+      isPaused.set(false);
+    }
+  };
+  const useFocusTrap = (node) => {
+    trap = createFocusTrap$1(node, {
+      ...focusTrapOptions,
+      onActivate() {
+        hasFocus.set(true);
+        config.onActivate?.();
+      },
+      onDeactivate() {
+        hasFocus.set(false);
+        config.onDeactivate?.();
+      }
+    });
+    if (immediate) {
+      activate();
+    }
+    return {
+      destroy() {
+        deactivate();
+        trap = void 0;
+      }
+    };
+  };
+  return {
+    useFocusTrap,
+    hasFocus: readonly(hasFocus),
+    isPaused: readonly(isPaused),
+    activate,
+    deactivate,
+    pause,
+    unpause
+  };
+}
+const visibleModals = [];
+const useModal = (node, config) => {
+  let unsubInteractOutside = noop;
+  function removeNodeFromVisibleModals() {
+    const index = visibleModals.indexOf(node);
+    if (index >= 0) {
+      visibleModals.splice(index, 1);
+    }
+  }
+  function update(config2) {
+    unsubInteractOutside();
+    const { open, onClose, shouldCloseOnInteractOutside, closeOnInteractOutside } = config2;
+    sleep(100).then(() => {
+      if (open) {
+        visibleModals.push(node);
+      } else {
+        removeNodeFromVisibleModals();
+      }
+    });
+    function isLastModal() {
+      return last(visibleModals) === node;
+    }
+    function closeModal() {
+      if (isLastModal() && onClose) {
+        onClose();
+        removeNodeFromVisibleModals();
+      }
+    }
+    function onInteractOutsideStart(e) {
+      const target = e.target;
+      if (!isElement(target))
+        return;
+      if (target && isLastModal()) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    }
+    function onInteractOutside(e) {
+      if (shouldCloseOnInteractOutside?.(e) && isLastModal()) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        closeModal();
+      }
+    }
+    unsubInteractOutside = useInteractOutside(node, {
+      onInteractOutsideStart,
+      onInteractOutside: closeOnInteractOutside ? onInteractOutside : void 0,
+      enabled: open
+    }).destroy;
+  }
+  update(config);
+  return {
+    update,
+    destroy() {
+      removeNodeFromVisibleModals();
+      unsubInteractOutside();
+    }
+  };
+};
+const usePortal = (el, target = "body") => {
+  let targetEl;
+  if (!isHTMLElement(target) && typeof target !== "string") {
+    return {
+      destroy: noop
+    };
+  }
+  async function update(newTarget) {
+    target = newTarget;
+    if (typeof target === "string") {
+      targetEl = document.querySelector(target);
+      if (targetEl === null) {
+        await tick();
+        targetEl = document.querySelector(target);
+      }
+      if (targetEl === null) {
+        throw new Error(`No element found matching css selector: "${target}"`);
+      }
+    } else if (target instanceof HTMLElement) {
+      targetEl = target;
+    } else {
+      throw new TypeError(`Unknown portal target type: ${target === null ? "null" : typeof target}. Allowed types: string (CSS selector) or HTMLElement.`);
+    }
+    el.dataset.portal = "";
+    targetEl.appendChild(el);
+    el.hidden = false;
+  }
+  function destroy() {
+    el.remove();
+  }
+  update(target);
+  return {
+    update,
+    destroy
+  };
+};
+const useInteractOutside = (node, config) => {
+  let unsub = noop;
+  let unsubClick = noop;
+  let isPointerDown = false;
+  let isPointerDownInside = false;
+  let ignoreEmulatedMouseEvents = false;
+  function update(config2) {
+    unsub();
+    unsubClick();
+    const { onInteractOutside, onInteractOutsideStart, enabled } = config2;
+    if (!enabled)
+      return;
+    function onPointerDown(e) {
+      if (onInteractOutside && isValidEvent(e, node)) {
+        onInteractOutsideStart?.(e);
+      }
+      const target = e.target;
+      if (isElement(target) && isOrContainsTarget(node, target)) {
+        isPointerDownInside = true;
+      }
+      isPointerDown = true;
+    }
+    function triggerInteractOutside(e) {
+      onInteractOutside?.(e);
+    }
+    const documentObj = getOwnerDocument(node);
+    if (typeof PointerEvent !== "undefined") {
+      const onPointerUp = (e) => {
+        unsubClick();
+        const handler = (e2) => {
+          if (shouldTriggerInteractOutside(e2)) {
+            triggerInteractOutside(e2);
+          }
+          resetPointerState();
+        };
+        if (e.pointerType === "touch") {
+          unsubClick = addEventListener(documentObj, "click", handler, {
+            capture: true,
+            once: true
+          });
+          return;
+        }
+        handler(e);
+      };
+      unsub = executeCallbacks(addEventListener(documentObj, "pointerdown", onPointerDown, true), addEventListener(documentObj, "pointerup", onPointerUp, true));
+    } else {
+      const onMouseUp = (e) => {
+        if (ignoreEmulatedMouseEvents) {
+          ignoreEmulatedMouseEvents = false;
+        } else if (shouldTriggerInteractOutside(e)) {
+          triggerInteractOutside(e);
+        }
+        resetPointerState();
+      };
+      const onTouchEnd = (e) => {
+        ignoreEmulatedMouseEvents = true;
+        if (shouldTriggerInteractOutside(e)) {
+          triggerInteractOutside(e);
+        }
+        resetPointerState();
+      };
+      unsub = executeCallbacks(addEventListener(documentObj, "mousedown", onPointerDown, true), addEventListener(documentObj, "mouseup", onMouseUp, true), addEventListener(documentObj, "touchstart", onPointerDown, true), addEventListener(documentObj, "touchend", onTouchEnd, true));
+    }
+  }
+  function shouldTriggerInteractOutside(e) {
+    if (isPointerDown && !isPointerDownInside && isValidEvent(e, node)) {
+      return true;
+    }
+    return false;
+  }
+  function resetPointerState() {
+    isPointerDown = false;
+    isPointerDownInside = false;
+  }
+  update(config);
+  return {
+    update,
+    destroy() {
+      unsub();
+      unsubClick();
+    }
+  };
+};
+function isValidEvent(e, node) {
+  if ("button" in e && e.button > 0)
+    return false;
+  const target = e.target;
+  if (!isElement(target))
+    return false;
+  const ownerDocument = target.ownerDocument;
+  if (!ownerDocument || !ownerDocument.documentElement.contains(target)) {
+    return false;
+  }
+  return node && !isOrContainsTarget(node, target);
+}
+function isOrContainsTarget(node, target) {
+  return node === target || node.contains(target);
+}
+function getOwnerDocument(el) {
+  return el?.ownerDocument ?? document;
+}
+({
+  prefix: "",
+  disabled: readable(false),
+  required: readable(false),
+  name: readable(void 0)
+});
+const defaults$1 = {
+  isDateDisabled: void 0,
+  isDateUnavailable: void 0,
+  value: void 0,
+  preventDeselect: false,
+  numberOfMonths: 1,
+  pagedNavigation: false,
+  weekStartsOn: 0,
+  fixedWeeks: false,
+  calendarLabel: "Event Date",
+  locale: "en",
+  minValue: void 0,
+  maxValue: void 0,
+  disabled: false,
+  readonly: false,
+  weekdayFormat: "narrow"
+};
+({
+  isDateDisabled: void 0,
+  isDateUnavailable: void 0,
+  value: void 0,
+  positioning: {
+    placement: "bottom"
+  },
+  closeOnEscape: true,
+  closeOnOutsideClick: true,
+  onOutsideClick: void 0,
+  preventScroll: false,
+  forceVisible: false,
+  locale: "en",
+  granularity: void 0,
+  disabled: false,
+  readonly: false,
+  minValue: void 0,
+  maxValue: void 0,
+  weekdayFormat: "narrow",
+  ...omit(defaults$1, "isDateDisabled", "isDateUnavailable", "value", "locale", "disabled", "readonly", "minValue", "maxValue", "weekdayFormat")
+});
+const { name } = createElHelpers("dialog");
+const defaults = {
+  preventScroll: true,
+  closeOnEscape: true,
+  closeOnOutsideClick: true,
+  role: "dialog",
+  defaultOpen: false,
+  portal: void 0,
+  forceVisible: false,
+  openFocus: void 0,
+  closeFocus: void 0,
+  onOutsideClick: void 0
+};
+const dialogIdParts = ["content", "title", "description"];
+function createDialog(props) {
+  const withDefaults = { ...defaults, ...props };
+  const options = toWritableStores(omit(withDefaults, "ids"));
+  const { preventScroll, closeOnEscape, closeOnOutsideClick, role, portal, forceVisible, openFocus, closeFocus, onOutsideClick } = options;
+  const activeTrigger = withGet.writable(null);
+  const ids = toWritableStores({
+    ...generateIds(dialogIdParts),
+    ...withDefaults.ids
+  });
+  const openWritable = withDefaults.open ?? writable(withDefaults.defaultOpen);
+  const open = overridable(openWritable, withDefaults?.onOpenChange);
+  const isVisible = derived([open, forceVisible], ([$open, $forceVisible]) => {
+    return $open || $forceVisible;
+  });
+  let unsubScroll = noop;
+  function handleOpen(e) {
+    const el = e.currentTarget;
+    const triggerEl = e.currentTarget;
+    if (!isHTMLElement(el) || !isHTMLElement(triggerEl))
+      return;
+    open.set(true);
+    activeTrigger.set(triggerEl);
+  }
+  function handleClose() {
+    open.set(false);
+    handleFocus({
+      prop: closeFocus.get(),
+      defaultEl: activeTrigger.get()
+    });
+  }
+  const trigger = makeElement(name("trigger"), {
+    stores: [open],
+    returned: ([$open]) => {
+      return {
+        "aria-haspopup": "dialog",
+        "aria-expanded": $open,
+        type: "button"
+      };
+    },
+    action: (node) => {
+      const unsub = executeCallbacks(addMeltEventListener(node, "click", (e) => {
+        handleOpen(e);
+      }), addMeltEventListener(node, "keydown", (e) => {
+        if (e.key !== kbd.ENTER && e.key !== kbd.SPACE)
+          return;
+        e.preventDefault();
+        handleOpen(e);
+      }));
+      return {
+        destroy: unsub
+      };
+    }
+  });
+  const overlay = makeElement(name("overlay"), {
+    stores: [isVisible, open],
+    returned: ([$isVisible, $open]) => {
+      return {
+        hidden: $isVisible ? void 0 : true,
+        tabindex: -1,
+        style: styleToString({
+          display: $isVisible ? void 0 : "none"
+        }),
+        "aria-hidden": true,
+        "data-state": $open ? "open" : "closed"
+      };
+    },
+    action: (node) => {
+      let unsubEscapeKeydown = noop;
+      if (closeOnEscape.get()) {
+        const escapeKeydown = useEscapeKeydown(node, {
+          handler: () => {
+            handleClose();
+          }
+        });
+        {
+          unsubEscapeKeydown = escapeKeydown.destroy;
+        }
+      }
+      return {
+        destroy() {
+          unsubEscapeKeydown();
+        }
+      };
+    }
+  });
+  const content = makeElement(name("content"), {
+    stores: [isVisible, ids.content, ids.description, ids.title, open],
+    returned: ([$isVisible, $contentId, $descriptionId, $titleId, $open]) => {
+      return {
+        id: $contentId,
+        role: role.get(),
+        "aria-describedby": $descriptionId,
+        "aria-labelledby": $titleId,
+        "aria-modal": $isVisible ? "true" : void 0,
+        "data-state": $open ? "open" : "closed",
+        tabindex: -1,
+        hidden: $isVisible ? void 0 : true,
+        style: styleToString({
+          display: $isVisible ? void 0 : "none"
+        })
+      };
+    },
+    action: (node) => {
+      let activate = noop;
+      let deactivate = noop;
+      const destroy = executeCallbacks(effect([open, closeOnOutsideClick, closeOnEscape], ([$open, $closeOnOutsideClick, $closeOnEscape]) => {
+        if (!$open)
+          return;
+        const focusTrap = createFocusTrap({
+          immediate: false,
+          escapeDeactivates: $closeOnEscape,
+          clickOutsideDeactivates: $closeOnOutsideClick,
+          allowOutsideClick: true,
+          returnFocusOnDeactivate: false,
+          fallbackFocus: node
+        });
+        activate = focusTrap.activate;
+        deactivate = focusTrap.deactivate;
+        const ac = focusTrap.useFocusTrap(node);
+        if (ac && ac.destroy) {
+          return ac.destroy;
+        } else {
+          return focusTrap.deactivate;
+        }
+      }), effect([closeOnOutsideClick, open], ([$closeOnOutsideClick, $open]) => {
+        return useModal(node, {
+          open: $open,
+          closeOnInteractOutside: $closeOnOutsideClick,
+          onClose() {
+            handleClose();
+          },
+          shouldCloseOnInteractOutside(e) {
+            onOutsideClick.get()?.(e);
+            if (e.defaultPrevented)
+              return false;
+            return true;
+          }
+        }).destroy;
+      }), effect([closeOnEscape], ([$closeOnEscape]) => {
+        if (!$closeOnEscape)
+          return noop;
+        return useEscapeKeydown(node, { handler: handleClose }).destroy;
+      }), effect([isVisible], ([$isVisible]) => {
+        tick().then(() => {
+          if (!$isVisible) {
+            deactivate();
+          } else {
+            activate();
+          }
+        });
+      }));
+      return {
+        destroy: () => {
+          unsubScroll();
+          destroy();
+        }
+      };
+    }
+  });
+  const portalled = makeElement(name("portalled"), {
+    stores: portal,
+    returned: ($portal) => ({
+      "data-portal": portalAttr($portal)
+    }),
+    action: (node) => {
+      const unsubPortal = effect([portal], ([$portal]) => {
+        if ($portal === null)
+          return noop;
+        const portalDestination = getPortalDestination(node, $portal);
+        if (portalDestination === null)
+          return noop;
+        return usePortal(node, portalDestination).destroy;
+      });
+      return {
+        destroy() {
+          unsubPortal();
+        }
+      };
+    }
+  });
+  const title = makeElement(name("title"), {
+    stores: [ids.title],
+    returned: ([$titleId]) => ({
+      id: $titleId
+    })
+  });
+  const description = makeElement(name("description"), {
+    stores: [ids.description],
+    returned: ([$descriptionId]) => ({
+      id: $descriptionId
+    })
+  });
+  const close = makeElement(name("close"), {
+    returned: () => ({
+      type: "button"
+    }),
+    action: (node) => {
+      const unsub = executeCallbacks(addMeltEventListener(node, "click", () => {
+        handleClose();
+      }), addMeltEventListener(node, "keydown", (e) => {
+        if (e.key !== kbd.SPACE && e.key !== kbd.ENTER)
+          return;
+        e.preventDefault();
+        handleClose();
+      }));
+      return {
+        destroy: unsub
+      };
+    }
+  });
+  effect([open, preventScroll], ([$open, $preventScroll]) => {
+    if (!isBrowser)
+      return;
+    if ($preventScroll && $open)
+      unsubScroll = removeScroll();
+    if ($open) {
+      const contentEl = document.getElementById(ids.content.get());
+      handleFocus({ prop: openFocus.get(), defaultEl: contentEl });
+    }
+    return () => {
+      if (!forceVisible.get()) {
+        unsubScroll();
+      }
+    };
+  });
+  return {
+    ids,
+    elements: {
+      content,
+      trigger,
+      title,
+      description,
+      overlay,
+      close,
+      portalled
+    },
+    states: {
+      open
+    },
+    options
+  };
+}
+function createBitAttrs(bit, parts) {
+  const attrs = {};
+  parts.forEach((part) => {
+    attrs[part] = {
+      [`data-${bit}-${part}`]: ""
+    };
+  });
+  return (part) => attrs[part];
+}
+function removeUndefined(obj) {
+  const result = {};
+  for (const key in obj) {
+    const value = obj[key];
+    if (value !== void 0) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+function getOptionUpdater(options) {
+  return function(key, value) {
+    if (value === void 0)
+      return;
+    const store = options[key];
+    if (store) {
+      store.set(value);
+    }
+  };
+}
+function getDialogData() {
+  const NAME = "dialog";
+  const PARTS = [
+    "close",
+    "content",
+    "description",
+    "overlay",
+    "portal",
+    "title",
+    "trigger"
+  ];
+  return {
+    NAME,
+    PARTS
+  };
+}
+function setCtx(props) {
+  const { NAME, PARTS } = getDialogData();
+  const getAttrs = createBitAttrs(NAME, PARTS);
+  const dialog = {
+    ...createDialog({ ...removeUndefined(props), role: "dialog", forceVisible: true }),
+    getAttrs
+  };
+  setContext(NAME, dialog);
+  return {
+    ...dialog,
+    updateOption: getOptionUpdater(dialog.options)
+  };
+}
+function getCtx() {
+  const { NAME } = getDialogData();
+  return getContext(NAME);
+}
+function Dialog($$payload, $$props) {
+  push();
+  var $$store_subs;
+  let preventScroll = fallback($$props["preventScroll"], () => void 0, true);
+  let closeOnEscape = fallback($$props["closeOnEscape"], () => void 0, true);
+  let closeOnOutsideClick = fallback($$props["closeOnOutsideClick"], () => void 0, true);
+  let portal = fallback($$props["portal"], () => void 0, true);
+  let open = fallback($$props["open"], () => void 0, true);
+  let onOpenChange = fallback($$props["onOpenChange"], () => void 0, true);
+  let openFocus = fallback($$props["openFocus"], () => void 0, true);
+  let closeFocus = fallback($$props["closeFocus"], () => void 0, true);
+  let onOutsideClick = fallback($$props["onOutsideClick"], () => void 0, true);
+  const {
+    states: { open: localOpen },
+    updateOption,
+    ids
+  } = setCtx({
+    closeOnEscape,
+    preventScroll,
+    closeOnOutsideClick,
+    portal,
+    forceVisible: true,
+    defaultOpen: open,
+    openFocus,
+    closeFocus,
+    onOutsideClick,
+    onOpenChange: ({ next }) => {
+      if (open !== next) {
+        onOpenChange?.(next);
+        open = next;
+      }
+      return next;
+    }
+  });
+  const idValues = derived([ids.content, ids.description, ids.title], ([$contentId, $descriptionId, $titleId]) => ({
+    content: $contentId,
+    description: $descriptionId,
+    title: $titleId
+  }));
+  open !== void 0 && localOpen.set(open);
+  updateOption("preventScroll", preventScroll);
+  updateOption("closeOnEscape", closeOnEscape);
+  updateOption("closeOnOutsideClick", closeOnOutsideClick);
+  updateOption("portal", portal);
+  updateOption("openFocus", openFocus);
+  updateOption("closeFocus", closeFocus);
+  updateOption("onOutsideClick", onOutsideClick);
+  $$payload.out += `<!---->`;
+  slot(
+    $$payload,
+    $$props,
+    "default",
+    {
+      ids: store_get($$store_subs ??= {}, "$idValues", idValues)
+    },
+    null
+  );
+  $$payload.out += `<!---->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, {
+    preventScroll,
+    closeOnEscape,
+    closeOnOutsideClick,
+    portal,
+    open,
+    onOpenChange,
+    openFocus,
+    closeFocus,
+    onOutsideClick
+  });
+  pop();
+}
+function Dialog_title($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["level", "asChild", "id", "el"]);
+  push();
+  var $$store_subs;
+  let builder;
+  let level = fallback($$props["level"], "h2");
+  let asChild = fallback($$props["asChild"], false);
+  let id = fallback($$props["id"], () => void 0, true);
+  let el = fallback($$props["el"], () => void 0, true);
+  const { elements: { title }, ids, getAttrs } = getCtx();
+  const attrs = getAttrs("title");
+  if (id) {
+    ids.title.set(id);
+  }
+  builder = store_get($$store_subs ??= {}, "$title", title);
+  Object.assign(builder, attrs);
+  if (asChild) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    element(
+      $$payload,
+      level,
+      () => {
+        $$payload.out += `${spread_attributes({ ...builder, ...$$restProps })}`;
+      },
+      () => {
+        $$payload.out += `<!---->`;
+        slot($$payload, $$props, "default", { builder }, null);
+        $$payload.out += `<!---->`;
+      }
+    );
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, { level, asChild, id, el });
+  pop();
+}
+function Dialog_close($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["asChild", "el"]);
+  push();
+  var $$store_subs;
+  let builder;
+  let asChild = fallback($$props["asChild"], false);
+  let el = fallback($$props["el"], () => void 0, true);
+  const { elements: { close }, getAttrs } = getCtx();
+  const attrs = getAttrs("close");
+  builder = store_get($$store_subs ??= {}, "$close", close);
+  Object.assign(builder, attrs);
+  if (asChild) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<button${spread_attributes({ ...builder, type: "button", ...$$restProps })}><!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!----></button>`;
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, { asChild, el });
+  pop();
+}
+function Dialog_portal($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["asChild", "el"]);
+  push();
+  var $$store_subs;
+  let builder;
+  let asChild = fallback($$props["asChild"], false);
+  let el = fallback($$props["el"], () => void 0, true);
+  const { elements: { portalled }, getAttrs } = getCtx();
+  const attrs = getAttrs("portal");
+  builder = store_get($$store_subs ??= {}, "$portalled", portalled);
+  Object.assign(builder, attrs);
+  if (asChild) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!----></div>`;
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, { asChild, el });
+  pop();
+}
+function Dialog_content($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, [
+    "transition",
+    "transitionConfig",
+    "inTransition",
+    "inTransitionConfig",
+    "outTransition",
+    "outTransitionConfig",
+    "asChild",
+    "id",
+    "el"
+  ]);
+  push();
+  var $$store_subs;
+  let builder;
+  let transition = fallback($$props["transition"], () => void 0, true);
+  let transitionConfig = fallback($$props["transitionConfig"], () => void 0, true);
+  let inTransition = fallback($$props["inTransition"], () => void 0, true);
+  let inTransitionConfig = fallback($$props["inTransitionConfig"], () => void 0, true);
+  let outTransition = fallback($$props["outTransition"], () => void 0, true);
+  let outTransitionConfig = fallback($$props["outTransitionConfig"], () => void 0, true);
+  let asChild = fallback($$props["asChild"], false);
+  let id = fallback($$props["id"], () => void 0, true);
+  let el = fallback($$props["el"], () => void 0, true);
+  const {
+    elements: { content },
+    states: { open },
+    ids,
+    getAttrs
+  } = getCtx();
+  const attrs = getAttrs("content");
+  if (id) {
+    ids.content.set(id);
+  }
+  builder = store_get($$store_subs ??= {}, "$content", content);
+  Object.assign(builder, attrs);
+  if (asChild && store_get($$store_subs ??= {}, "$open", open)) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    if (transition && store_get($$store_subs ??= {}, "$open", open)) {
+      $$payload.out += "<!--[-->";
+      $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
+      slot($$payload, $$props, "default", { builder }, null);
+      $$payload.out += `<!----></div>`;
+    } else {
+      $$payload.out += "<!--[!-->";
+      if (inTransition && outTransition && store_get($$store_subs ??= {}, "$open", open)) {
+        $$payload.out += "<!--[-->";
+        $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
+        slot($$payload, $$props, "default", { builder }, null);
+        $$payload.out += `<!----></div>`;
+      } else {
+        $$payload.out += "<!--[!-->";
+        if (inTransition && store_get($$store_subs ??= {}, "$open", open)) {
+          $$payload.out += "<!--[-->";
+          $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
+          slot($$payload, $$props, "default", { builder }, null);
+          $$payload.out += `<!----></div>`;
+        } else {
+          $$payload.out += "<!--[!-->";
+          if (outTransition && store_get($$store_subs ??= {}, "$open", open)) {
+            $$payload.out += "<!--[-->";
+            $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
+            slot($$payload, $$props, "default", { builder }, null);
+            $$payload.out += `<!----></div>`;
+          } else {
+            $$payload.out += "<!--[!-->";
+            if (store_get($$store_subs ??= {}, "$open", open)) {
+              $$payload.out += "<!--[-->";
+              $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
+              slot($$payload, $$props, "default", { builder }, null);
+              $$payload.out += `<!----></div>`;
+            } else {
+              $$payload.out += "<!--[!-->";
+            }
+            $$payload.out += `<!--]-->`;
+          }
+          $$payload.out += `<!--]-->`;
+        }
+        $$payload.out += `<!--]-->`;
+      }
+      $$payload.out += `<!--]-->`;
+    }
+    $$payload.out += `<!--]-->`;
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, {
+    transition,
+    transitionConfig,
+    inTransition,
+    inTransitionConfig,
+    outTransition,
+    outTransitionConfig,
+    asChild,
+    id,
+    el
+  });
+  pop();
+}
+function Dialog_overlay($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, [
+    "transition",
+    "transitionConfig",
+    "inTransition",
+    "inTransitionConfig",
+    "outTransition",
+    "outTransitionConfig",
+    "asChild",
+    "el"
+  ]);
+  push();
+  var $$store_subs;
+  let builder;
+  let transition = fallback($$props["transition"], () => void 0, true);
+  let transitionConfig = fallback($$props["transitionConfig"], () => void 0, true);
+  let inTransition = fallback($$props["inTransition"], () => void 0, true);
+  let inTransitionConfig = fallback($$props["inTransitionConfig"], () => void 0, true);
+  let outTransition = fallback($$props["outTransition"], () => void 0, true);
+  let outTransitionConfig = fallback($$props["outTransitionConfig"], () => void 0, true);
+  let asChild = fallback($$props["asChild"], false);
+  let el = fallback($$props["el"], () => void 0, true);
+  const {
+    elements: { overlay },
+    states: { open },
+    getAttrs
+  } = getCtx();
+  const attrs = getAttrs("overlay");
+  builder = store_get($$store_subs ??= {}, "$overlay", overlay);
+  Object.assign(builder, attrs);
+  if (asChild && store_get($$store_subs ??= {}, "$open", open)) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    if (transition && store_get($$store_subs ??= {}, "$open", open)) {
+      $$payload.out += "<!--[-->";
+      $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}></div>`;
+    } else {
+      $$payload.out += "<!--[!-->";
+      if (inTransition && outTransition && store_get($$store_subs ??= {}, "$open", open)) {
+        $$payload.out += "<!--[-->";
+        $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}></div>`;
+      } else {
+        $$payload.out += "<!--[!-->";
+        if (inTransition && store_get($$store_subs ??= {}, "$open", open)) {
+          $$payload.out += "<!--[-->";
+          $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}></div>`;
+        } else {
+          $$payload.out += "<!--[!-->";
+          if (outTransition && store_get($$store_subs ??= {}, "$open", open)) {
+            $$payload.out += "<!--[-->";
+            $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}></div>`;
+          } else {
+            $$payload.out += "<!--[!-->";
+            if (store_get($$store_subs ??= {}, "$open", open)) {
+              $$payload.out += "<!--[-->";
+              $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}></div>`;
+            } else {
+              $$payload.out += "<!--[!-->";
+            }
+            $$payload.out += `<!--]-->`;
+          }
+          $$payload.out += `<!--]-->`;
+        }
+        $$payload.out += `<!--]-->`;
+      }
+      $$payload.out += `<!--]-->`;
+    }
+    $$payload.out += `<!--]-->`;
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, {
+    transition,
+    transitionConfig,
+    inTransition,
+    inTransitionConfig,
+    outTransition,
+    outTransitionConfig,
+    asChild,
+    el
+  });
+  pop();
+}
+function Dialog_trigger($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["asChild", "el"]);
+  push();
+  var $$store_subs;
+  let builder;
+  let asChild = fallback($$props["asChild"], false);
+  let el = fallback($$props["el"], () => void 0, true);
+  const { elements: { trigger }, getAttrs } = getCtx();
+  const attrs = getAttrs("trigger");
+  builder = store_get($$store_subs ??= {}, "$trigger", trigger);
+  Object.assign(builder, attrs);
+  if (asChild) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<button${spread_attributes({ ...builder, type: "button", ...$$restProps })}><!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!----></button>`;
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, { asChild, el });
+  pop();
+}
+function Dialog_description($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  const $$restProps = rest_props($$sanitized_props, ["asChild", "id", "el"]);
+  push();
+  var $$store_subs;
+  let builder;
+  let asChild = fallback($$props["asChild"], false);
+  let id = fallback($$props["id"], () => void 0, true);
+  let el = fallback($$props["el"], () => void 0, true);
+  const { elements: { description }, ids, getAttrs } = getCtx();
+  const attrs = getAttrs("description");
+  if (id) {
+    ids.description.set(id);
+  }
+  builder = store_get($$store_subs ??= {}, "$description", description);
+  Object.assign(builder, attrs);
+  if (asChild) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    $$payload.out += `<div${spread_attributes({ ...builder, ...$$restProps })}><!---->`;
+    slot($$payload, $$props, "default", { builder }, null);
+    $$payload.out += `<!----></div>`;
+  }
+  $$payload.out += `<!--]-->`;
+  if ($$store_subs) unsubscribe_stores($$store_subs);
+  bind_props($$props, { asChild, id, el });
+  pop();
+}
 function UsersTab($$payload, $$props) {
   push();
   var $$store_subs;
-  let showUserDetailsDialog = false;
-  let $$settled = true;
-  let $$inner_payload;
-  function $$render_inner($$payload2) {
-    if (store_get($$store_subs ??= {}, "$errors", errors).users) {
-      $$payload2.out += "<!--[-->";
-      Alert($$payload2, {
-        color: "red",
-        class: "mb-4",
-        children: ($$payload3) => {
-          $$payload3.out += `<!---->${escape_html(store_get($$store_subs ??= {}, "$errors", errors).users)}`;
-        },
-        $$slots: { default: true }
-      });
-    } else {
-      $$payload2.out += "<!--[!-->";
-    }
-    $$payload2.out += `<!--]--> `;
-    if (store_get($$store_subs ??= {}, "$loading", loading).users) {
-      $$payload2.out += "<!--[-->";
-      $$payload2.out += `<div class="flex justify-center py-8">`;
-      Spinner($$payload2, { size: "8" });
-      $$payload2.out += `<!----></div>`;
-    } else {
-      $$payload2.out += "<!--[!-->";
-      if (store_get($$store_subs ??= {}, "$users", users).length === 0) {
-        $$payload2.out += "<!--[-->";
-        $$payload2.out += `<p class="text-gray-600">No users found.</p>`;
-      } else {
-        $$payload2.out += "<!--[!-->";
-        Table($$payload2, {
-          children: ($$payload3) => {
-            TableHead($$payload3, {
-              children: ($$payload4) => {
-                TableHeadCell($$payload4, {
-                  children: ($$payload5) => {
-                    $$payload5.out += `<!---->Name`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload4.out += `<!----> `;
-                TableHeadCell($$payload4, {
-                  children: ($$payload5) => {
-                    $$payload5.out += `<!---->Email`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload4.out += `<!----> `;
-                TableHeadCell($$payload4, {
-                  children: ($$payload5) => {
-                    $$payload5.out += `<!---->Type`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload4.out += `<!----> `;
-                TableHeadCell($$payload4, {
-                  children: ($$payload5) => {
-                    $$payload5.out += `<!---->Created At`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload4.out += `<!----> `;
-                TableHeadCell($$payload4, {
-                  children: ($$payload5) => {
-                    $$payload5.out += `<!---->Actions`;
-                  },
-                  $$slots: { default: true }
-                });
-                $$payload4.out += `<!---->`;
-              },
-              $$slots: { default: true }
-            });
-            $$payload3.out += `<!----> `;
-            TableBody($$payload3, {
-              children: ($$payload4) => {
-                const each_array = ensure_array_like(store_get($$store_subs ??= {}, "$users", users));
-                $$payload4.out += `<!--[-->`;
-                for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-                  let user = each_array[$$index];
-                  TableBodyRow($$payload4, {
-                    children: ($$payload5) => {
-                      TableBodyCell($$payload5, {
-                        children: ($$payload6) => {
-                          $$payload6.out += `<!---->${escape_html(user.name)}`;
-                        },
-                        $$slots: { default: true }
-                      });
-                      $$payload5.out += `<!----> `;
-                      TableBodyCell($$payload5, {
-                        children: ($$payload6) => {
-                          $$payload6.out += `<!---->${escape_html(user.email)}`;
-                        },
-                        $$slots: { default: true }
-                      });
-                      $$payload5.out += `<!----> `;
-                      TableBodyCell($$payload5, {
-                        children: ($$payload6) => {
-                          Badge($$payload6, {
-                            color: user.type === "admin" ? "red" : "blue",
-                            children: ($$payload7) => {
-                              $$payload7.out += `<!---->${escape_html(user.type)}`;
-                            },
-                            $$slots: { default: true }
-                          });
-                        },
-                        $$slots: { default: true }
-                      });
-                      $$payload5.out += `<!----> `;
-                      TableBodyCell($$payload5, {
-                        children: ($$payload6) => {
-                          $$payload6.out += `<!---->${escape_html(formatDate(user.createdAt, true))}`;
-                        },
-                        $$slots: { default: true }
-                      });
-                      $$payload5.out += `<!----> `;
-                      TableBodyCell($$payload5, {
-                        children: ($$payload6) => {
-                          Button($$payload6, {
-                            size: "xs",
-                            children: ($$payload7) => {
-                              $$payload7.out += `<!---->View Details`;
-                            },
-                            $$slots: { default: true }
-                          });
-                        },
-                        $$slots: { default: true }
-                      });
-                      $$payload5.out += `<!---->`;
-                    },
-                    $$slots: { default: true }
-                  });
-                }
-                $$payload4.out += `<!--]-->`;
-              },
-              $$slots: { default: true }
-            });
-            $$payload3.out += `<!---->`;
-          },
-          $$slots: { default: true }
-        });
-      }
-      $$payload2.out += `<!--]-->`;
-    }
-    $$payload2.out += `<!--]--> `;
-    Modal($$payload2, {
-      size: "md",
-      get open() {
-        return showUserDetailsDialog;
-      },
-      set open($$value) {
-        showUserDetailsDialog = $$value;
-        $$settled = false;
-      },
-      children: ($$payload3) => {
-        {
-          $$payload3.out += "<!--[!-->";
-        }
-        $$payload3.out += `<!--]-->`;
+  if (store_get($$store_subs ??= {}, "$errors", errors).users) {
+    $$payload.out += "<!--[-->";
+    Alert($$payload, {
+      color: "red",
+      class: "mb-4",
+      children: ($$payload2) => {
+        $$payload2.out += `<!---->${escape_html(store_get($$store_subs ??= {}, "$errors", errors).users)}`;
       },
       $$slots: { default: true }
     });
-    $$payload2.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
   }
-  do {
-    $$settled = true;
-    $$inner_payload = copy_payload($$payload);
-    $$render_inner($$inner_payload);
-  } while (!$$settled);
-  assign_payload($$payload, $$inner_payload);
+  $$payload.out += `<!--]--> `;
+  if (store_get($$store_subs ??= {}, "$loading", loading).users) {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<div class="flex justify-center py-8">`;
+    Spinner($$payload, { size: "8" });
+    $$payload.out += `<!----></div>`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    if (store_get($$store_subs ??= {}, "$users", users).length === 0) {
+      $$payload.out += "<!--[-->";
+      $$payload.out += `<p class="text-gray-600">No users found.</p>`;
+    } else {
+      $$payload.out += "<!--[!-->";
+      Table($$payload, {
+        children: ($$payload2) => {
+          TableHead($$payload2, {
+            children: ($$payload3) => {
+              TableHeadCell($$payload3, {
+                children: ($$payload4) => {
+                  $$payload4.out += `<!---->Name`;
+                },
+                $$slots: { default: true }
+              });
+              $$payload3.out += `<!----> `;
+              TableHeadCell($$payload3, {
+                children: ($$payload4) => {
+                  $$payload4.out += `<!---->Email`;
+                },
+                $$slots: { default: true }
+              });
+              $$payload3.out += `<!----> `;
+              TableHeadCell($$payload3, {
+                children: ($$payload4) => {
+                  $$payload4.out += `<!---->Type`;
+                },
+                $$slots: { default: true }
+              });
+              $$payload3.out += `<!----> `;
+              TableHeadCell($$payload3, {
+                children: ($$payload4) => {
+                  $$payload4.out += `<!---->Created At`;
+                },
+                $$slots: { default: true }
+              });
+              $$payload3.out += `<!----> `;
+              TableHeadCell($$payload3, {
+                children: ($$payload4) => {
+                  $$payload4.out += `<!---->Actions`;
+                },
+                $$slots: { default: true }
+              });
+              $$payload3.out += `<!---->`;
+            },
+            $$slots: { default: true }
+          });
+          $$payload2.out += `<!----> `;
+          TableBody($$payload2, {
+            children: ($$payload3) => {
+              const each_array = ensure_array_like(store_get($$store_subs ??= {}, "$users", users));
+              $$payload3.out += `<!--[-->`;
+              for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+                let user = each_array[$$index];
+                TableBodyRow($$payload3, {
+                  children: ($$payload4) => {
+                    TableBodyCell($$payload4, {
+                      children: ($$payload5) => {
+                        $$payload5.out += `<!---->${escape_html(user.name)}`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload4.out += `<!----> `;
+                    TableBodyCell($$payload4, {
+                      children: ($$payload5) => {
+                        $$payload5.out += `<!---->${escape_html(user.email)}`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload4.out += `<!----> `;
+                    TableBodyCell($$payload4, {
+                      children: ($$payload5) => {
+                        Badge($$payload5, {
+                          color: user.type === "admin" ? "red" : "blue",
+                          children: ($$payload6) => {
+                            $$payload6.out += `<!---->${escape_html(user.type)}`;
+                          },
+                          $$slots: { default: true }
+                        });
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload4.out += `<!----> `;
+                    TableBodyCell($$payload4, {
+                      children: ($$payload5) => {
+                        $$payload5.out += `<!---->${escape_html(formatDate(user.createdAt, true))}`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload4.out += `<!----> `;
+                    TableBodyCell($$payload4, {
+                      children: ($$payload5) => {
+                        $$payload5.out += `<!---->`;
+                        Dialog($$payload5, {
+                          children: ($$payload6) => {
+                            $$payload6.out += `<!---->`;
+                            Dialog_trigger($$payload6, {
+                              class: "btn",
+                              children: ($$payload7) => {
+                                Button($$payload7, {
+                                  children: ($$payload8) => {
+                                    $$payload8.out += `<!---->View Details`;
+                                  },
+                                  $$slots: { default: true }
+                                });
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!----> <!---->`;
+                            Dialog_portal($$payload6, {
+                              children: ($$payload7) => {
+                                $$payload7.out += `<!---->`;
+                                Dialog_overlay($$payload7, {
+                                  transitionConfig: { duration: 150 },
+                                  class: "fixed inset-0 z-50 bg-black/80"
+                                });
+                                $$payload7.out += `<!----> <!---->`;
+                                Dialog_content($$payload7, {
+                                  class: "fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full",
+                                  children: ($$payload8) => {
+                                    $$payload8.out += `<!---->`;
+                                    Dialog_title($$payload8, {
+                                      children: ($$payload9) => {
+                                        $$payload9.out += `<h3 class="text-xl font-semibold mb-5">User Details</h3>`;
+                                      },
+                                      $$slots: { default: true }
+                                    });
+                                    $$payload8.out += `<!----> <!---->`;
+                                    Dialog_description($$payload8, {
+                                      class: "text-sm text-foreground-alt",
+                                      children: ($$payload9) => {
+                                        {
+                                          $$payload9.out += "<!--[!-->";
+                                        }
+                                        $$payload9.out += `<!--]-->`;
+                                      },
+                                      $$slots: { default: true }
+                                    });
+                                    $$payload8.out += `<!----> <div class="flex w-full justify-between mt-10"><!---->`;
+                                    Dialog_close($$payload8, {
+                                      children: ($$payload9) => {
+                                        Button($$payload9, {
+                                          children: ($$payload10) => {
+                                            $$payload10.out += `<!---->Close`;
+                                          },
+                                          $$slots: { default: true }
+                                        });
+                                      },
+                                      $$slots: { default: true }
+                                    });
+                                    $$payload8.out += `<!----></div>`;
+                                  },
+                                  $$slots: { default: true }
+                                });
+                                $$payload7.out += `<!---->`;
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!---->`;
+                          },
+                          $$slots: { default: true }
+                        });
+                        $$payload5.out += `<!---->`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload4.out += `<!---->`;
+                  },
+                  $$slots: { default: true }
+                });
+              }
+              $$payload3.out += `<!--]-->`;
+            },
+            $$slots: { default: true }
+          });
+          $$payload2.out += `<!---->`;
+        },
+        $$slots: { default: true }
+      });
+    }
+    $$payload.out += `<!--]-->`;
+  }
+  $$payload.out += `<!--]-->`;
   if ($$store_subs) unsubscribe_stores($$store_subs);
   pop();
 }
@@ -1255,11 +2895,151 @@ function SubscriptionTypesTab($$payload, $$props) {
     } else {
       $$payload2.out += "<!--[!-->";
     }
-    $$payload2.out += `<!--]--> <div class="flex justify-end mb-4">`;
-    Button($$payload2, {
-      color: "blue",
+    $$payload2.out += `<!--]--> <div class="flex justify-end mb-4"><!---->`;
+    Dialog($$payload2, {
       children: ($$payload3) => {
-        $$payload3.out += `<!---->Create Subscription Type`;
+        $$payload3.out += `<!---->`;
+        Dialog_trigger($$payload3, {
+          children: ($$payload4) => {
+            Button($$payload4, {
+              color: "blue",
+              children: ($$payload5) => {
+                $$payload5.out += `<!---->Create Subscription Type`;
+              },
+              $$slots: { default: true }
+            });
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!----> <!---->`;
+        Dialog_portal($$payload3, {
+          children: ($$payload4) => {
+            $$payload4.out += `<!---->`;
+            Dialog_overlay($$payload4, {
+              transitionConfig: { duration: 150 },
+              class: "fixed inset-0 z-50 bg-black/80"
+            });
+            $$payload4.out += `<!----> <!---->`;
+            Dialog_content($$payload4, {
+              class: "fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full",
+              children: ($$payload5) => {
+                $$payload5.out += `<!---->`;
+                Dialog_description($$payload5, {
+                  class: "text-sm text-foreground-alt",
+                  children: ($$payload6) => {
+                    $$payload6.out += `<div class="text-center"><h3 class="mb-5 text-lg font-normal text-gray-500">${escape_html("Create")} Subscription Type</h3></div> <div class="space-y-4"><div>`;
+                    Label($$payload6, {
+                      for: "name",
+                      children: ($$payload7) => {
+                        $$payload7.out += `<!---->Name`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload6.out += `<!----> `;
+                    Input($$payload6, {
+                      id: "name",
+                      placeholder: "Enter subscription name",
+                      get value() {
+                        return formData.name;
+                      },
+                      set value($$value) {
+                        formData.name = $$value;
+                        $$settled = false;
+                      }
+                    });
+                    $$payload6.out += `<!----></div> <div>`;
+                    Label($$payload6, {
+                      for: "duration",
+                      children: ($$payload7) => {
+                        $$payload7.out += `<!---->Duration`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload6.out += `<!----> `;
+                    Select($$payload6, {
+                      id: "duration",
+                      get value() {
+                        return formData.duration;
+                      },
+                      set value($$value) {
+                        formData.duration = $$value;
+                        $$settled = false;
+                      },
+                      children: ($$payload7) => {
+                        const each_array = ensure_array_like(durations);
+                        $$payload7.out += `<option value="">Select duration</option> <!--[-->`;
+                        for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+                          let { value, label } = each_array[$$index];
+                          $$payload7.out += `<option${attr("value", value)}>${escape_html(label)}</option>`;
+                        }
+                        $$payload7.out += `<!--]-->`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload6.out += `<!----></div> <div>`;
+                    Label($$payload6, {
+                      for: "amount",
+                      children: ($$payload7) => {
+                        $$payload7.out += `<!---->Amount (₱)`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload6.out += `<!----> `;
+                    Input($$payload6, {
+                      id: "amount",
+                      type: "number",
+                      min: "0",
+                      step: "1",
+                      placeholder: "Enter amount",
+                      get value() {
+                        return formData.amount;
+                      },
+                      set value($$value) {
+                        formData.amount = $$value;
+                        $$settled = false;
+                      }
+                    });
+                    $$payload6.out += `<!----></div></div> <div class="flex justify-end gap-4 mt-6"><!---->`;
+                    Dialog_close($$payload6, {
+                      children: ($$payload7) => {
+                        Button($$payload7, {
+                          color: "alternative",
+                          disabled: processing,
+                          children: ($$payload8) => {
+                            $$payload8.out += `<!---->Cancel`;
+                          },
+                          $$slots: { default: true }
+                        });
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload6.out += `<!----> <!---->`;
+                    Dialog_close($$payload6, {
+                      children: ($$payload7) => {
+                        Button($$payload7, {
+                          color: "blue",
+                          disabled: !formData.name || !formData.duration || formData.amount <= 0 || processing,
+                          children: ($$payload8) => {
+                            $$payload8.out += `<!---->${escape_html("Create")}`;
+                          },
+                          $$slots: { default: true }
+                        });
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload6.out += `<!----></div>`;
+                  },
+                  $$slots: { default: true }
+                });
+                $$payload5.out += `<!---->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload4.out += `<!---->`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload3.out += `<!---->`;
       },
       $$slots: { default: true }
     });
@@ -1321,10 +3101,10 @@ function SubscriptionTypesTab($$payload, $$props) {
             $$payload3.out += `<!----> `;
             TableBody($$payload3, {
               children: ($$payload4) => {
-                const each_array = ensure_array_like(store_get($$store_subs ??= {}, "$subscriptionTypes", subscriptionTypes));
+                const each_array_1 = ensure_array_like(store_get($$store_subs ??= {}, "$subscriptionTypes", subscriptionTypes));
                 $$payload4.out += `<!--[-->`;
-                for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-                  let type = each_array[$$index];
+                for (let $$index_2 = 0, $$length = each_array_1.length; $$index_2 < $$length; $$index_2++) {
+                  let type = each_array_1[$$index_2];
                   TableBodyRow($$payload4, {
                     children: ($$payload5) => {
                       TableBodyCell($$payload5, {
@@ -1363,11 +3143,151 @@ function SubscriptionTypesTab($$payload, $$props) {
                       $$payload5.out += `<!----> `;
                       TableBodyCell($$payload5, {
                         children: ($$payload6) => {
-                          $$payload6.out += `<div class="flex space-x-2">`;
-                          Button($$payload6, {
-                            size: "xs",
+                          $$payload6.out += `<div class="flex space-x-2"><!---->`;
+                          Dialog($$payload6, {
                             children: ($$payload7) => {
-                              $$payload7.out += `<!---->Edit`;
+                              $$payload7.out += `<!---->`;
+                              Dialog_trigger($$payload7, {
+                                children: ($$payload8) => {
+                                  Button($$payload8, {
+                                    size: "xs",
+                                    children: ($$payload9) => {
+                                      $$payload9.out += `<!---->Edit`;
+                                    },
+                                    $$slots: { default: true }
+                                  });
+                                },
+                                $$slots: { default: true }
+                              });
+                              $$payload7.out += `<!----> <!---->`;
+                              Dialog_portal($$payload7, {
+                                children: ($$payload8) => {
+                                  $$payload8.out += `<!---->`;
+                                  Dialog_overlay($$payload8, {
+                                    transitionConfig: { duration: 150 },
+                                    class: "fixed inset-0 z-50 bg-black/80"
+                                  });
+                                  $$payload8.out += `<!----> <!---->`;
+                                  Dialog_content($$payload8, {
+                                    class: "fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full",
+                                    children: ($$payload9) => {
+                                      $$payload9.out += `<!---->`;
+                                      Dialog_description($$payload9, {
+                                        class: "text-sm text-foreground-alt",
+                                        children: ($$payload10) => {
+                                          $$payload10.out += `<div class="text-center"><h3 class="mb-5 text-lg font-normal text-gray-500">${escape_html("Create")} Subscription Type</h3></div> <div class="space-y-4"><div>`;
+                                          Label($$payload10, {
+                                            for: "name",
+                                            children: ($$payload11) => {
+                                              $$payload11.out += `<!---->Name`;
+                                            },
+                                            $$slots: { default: true }
+                                          });
+                                          $$payload10.out += `<!----> `;
+                                          Input($$payload10, {
+                                            id: "name",
+                                            placeholder: "Enter subscription name",
+                                            get value() {
+                                              return formData.name;
+                                            },
+                                            set value($$value) {
+                                              formData.name = $$value;
+                                              $$settled = false;
+                                            }
+                                          });
+                                          $$payload10.out += `<!----></div> <div>`;
+                                          Label($$payload10, {
+                                            for: "duration",
+                                            children: ($$payload11) => {
+                                              $$payload11.out += `<!---->Duration`;
+                                            },
+                                            $$slots: { default: true }
+                                          });
+                                          $$payload10.out += `<!----> `;
+                                          Select($$payload10, {
+                                            id: "duration",
+                                            get value() {
+                                              return formData.duration;
+                                            },
+                                            set value($$value) {
+                                              formData.duration = $$value;
+                                              $$settled = false;
+                                            },
+                                            children: ($$payload11) => {
+                                              const each_array_2 = ensure_array_like(durations);
+                                              $$payload11.out += `<option value="">Select duration</option> <!--[-->`;
+                                              for (let $$index_1 = 0, $$length2 = each_array_2.length; $$index_1 < $$length2; $$index_1++) {
+                                                let { value, label } = each_array_2[$$index_1];
+                                                $$payload11.out += `<option${attr("value", value)}>${escape_html(label)}</option>`;
+                                              }
+                                              $$payload11.out += `<!--]-->`;
+                                            },
+                                            $$slots: { default: true }
+                                          });
+                                          $$payload10.out += `<!----></div> <div>`;
+                                          Label($$payload10, {
+                                            for: "amount",
+                                            children: ($$payload11) => {
+                                              $$payload11.out += `<!---->Amount (₱)`;
+                                            },
+                                            $$slots: { default: true }
+                                          });
+                                          $$payload10.out += `<!----> `;
+                                          Input($$payload10, {
+                                            id: "amount",
+                                            type: "number",
+                                            min: "0",
+                                            step: "1",
+                                            placeholder: "Enter amount",
+                                            get value() {
+                                              return formData.amount;
+                                            },
+                                            set value($$value) {
+                                              formData.amount = $$value;
+                                              $$settled = false;
+                                            }
+                                          });
+                                          $$payload10.out += `<!----></div></div> <div class="flex justify-end gap-4 mt-6"><!---->`;
+                                          Dialog_close($$payload10, {
+                                            children: ($$payload11) => {
+                                              Button($$payload11, {
+                                                color: "alternative",
+                                                disabled: processing,
+                                                children: ($$payload12) => {
+                                                  $$payload12.out += `<!---->Cancel`;
+                                                },
+                                                $$slots: { default: true }
+                                              });
+                                            },
+                                            $$slots: { default: true }
+                                          });
+                                          $$payload10.out += `<!----> <!---->`;
+                                          Dialog_close($$payload10, {
+                                            children: ($$payload11) => {
+                                              Button($$payload11, {
+                                                color: "blue",
+                                                disabled: !formData.name || !formData.duration || formData.amount <= 0 || processing,
+                                                children: ($$payload12) => {
+                                                  $$payload12.out += `<!---->${escape_html("Create")}`;
+                                                },
+                                                $$slots: { default: true }
+                                              });
+                                            },
+                                            $$slots: { default: true }
+                                          });
+                                          $$payload10.out += `<!----></div>`;
+                                        },
+                                        $$slots: { default: true }
+                                      });
+                                      $$payload9.out += `<!---->`;
+                                    },
+                                    $$slots: { default: true }
+                                  });
+                                  $$payload8.out += `<!---->`;
+                                },
+                                $$slots: { default: true }
+                              });
+                              $$payload7.out += `<!---->`;
                             },
                             $$slots: { default: true }
                           });
@@ -1410,101 +3330,7 @@ function SubscriptionTypesTab($$payload, $$props) {
       set open($$value) {
         showDialog = $$value;
         $$settled = false;
-      },
-      children: ($$payload3) => {
-        $$payload3.out += `<div class="text-center"><h3 class="mb-5 text-lg font-normal text-gray-500">${escape_html("Create")} Subscription Type</h3></div> <div class="space-y-4"><div>`;
-        Label($$payload3, {
-          for: "name",
-          children: ($$payload4) => {
-            $$payload4.out += `<!---->Name`;
-          },
-          $$slots: { default: true }
-        });
-        $$payload3.out += `<!----> `;
-        Input($$payload3, {
-          id: "name",
-          placeholder: "Enter subscription name",
-          get value() {
-            return formData.name;
-          },
-          set value($$value) {
-            formData.name = $$value;
-            $$settled = false;
-          }
-        });
-        $$payload3.out += `<!----></div> <div>`;
-        Label($$payload3, {
-          for: "duration",
-          children: ($$payload4) => {
-            $$payload4.out += `<!---->Duration`;
-          },
-          $$slots: { default: true }
-        });
-        $$payload3.out += `<!----> `;
-        Select($$payload3, {
-          id: "duration",
-          get value() {
-            return formData.duration;
-          },
-          set value($$value) {
-            formData.duration = $$value;
-            $$settled = false;
-          },
-          children: ($$payload4) => {
-            const each_array_1 = ensure_array_like(durations);
-            $$payload4.out += `<option value="">Select duration</option> <!--[-->`;
-            for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
-              let { value, label } = each_array_1[$$index_1];
-              $$payload4.out += `<option${attr("value", value)}>${escape_html(label)}</option>`;
-            }
-            $$payload4.out += `<!--]-->`;
-          },
-          $$slots: { default: true }
-        });
-        $$payload3.out += `<!----></div> <div>`;
-        Label($$payload3, {
-          for: "amount",
-          children: ($$payload4) => {
-            $$payload4.out += `<!---->Amount (₱)`;
-          },
-          $$slots: { default: true }
-        });
-        $$payload3.out += `<!----> `;
-        Input($$payload3, {
-          id: "amount",
-          type: "number",
-          min: "0",
-          step: "1",
-          placeholder: "Enter amount",
-          get value() {
-            return formData.amount;
-          },
-          set value($$value) {
-            formData.amount = $$value;
-            $$settled = false;
-          }
-        });
-        $$payload3.out += `<!----></div></div> <div class="flex justify-end gap-4 mt-6">`;
-        Button($$payload3, {
-          color: "alternative",
-          disabled: processing,
-          children: ($$payload4) => {
-            $$payload4.out += `<!---->Cancel`;
-          },
-          $$slots: { default: true }
-        });
-        $$payload3.out += `<!----> `;
-        Button($$payload3, {
-          color: "blue",
-          disabled: !formData.name || !formData.duration || formData.amount <= 0 || processing,
-          children: ($$payload4) => {
-            $$payload4.out += `<!---->${escape_html("Create")}`;
-          },
-          $$slots: { default: true }
-        });
-        $$payload3.out += `<!----></div>`;
-      },
-      $$slots: { default: true }
+      }
     });
     $$payload2.out += `<!---->`;
   }
@@ -1644,6 +3470,7 @@ function AdminDashboard($$payload, $$props) {
 function UserDashboard($$payload, $$props) {
   push();
   let { userData } = $$props;
+  let otpMap = {};
   let lockerData = {
     subscriptionsCount: 0,
     requestsCount: 0,
@@ -1713,7 +3540,16 @@ function UserDashboard($$payload, $$props) {
                 if (subscription.status === "active") {
                   $$payload3.out += "<!--[-->";
                   $$payload3.out += `<div class="flex flex-col space-y-2">`;
-                  {
+                  if (otpMap[subscription.lockerId] && true) {
+                    $$payload3.out += "<!--[-->";
+                    Alert($$payload3, {
+                      color: "green",
+                      children: ($$payload4) => {
+                        $$payload4.out += `<span class="text-lg">OTP: <span class="font-bold tracking-widest">${escape_html(otpMap[subscription.lockerId].otp)}</span></span> <p class="text-sm">Expires at: ${escape_html(formatDate(otpMap[subscription.lockerId].expiryDate, true))}</p>`;
+                      },
+                      $$slots: { default: true }
+                    });
+                  } else {
                     $$payload3.out += "<!--[!-->";
                   }
                   $$payload3.out += `<!--]--> `;
@@ -1816,33 +3652,119 @@ function UserDashboard($$payload, $$props) {
               $$payload3.out += `<p class="text-gray-600">No access history available.</p>`;
             } else {
               $$payload3.out += "<!--[!-->";
-              const each_array_2 = ensure_array_like(accessHistory);
-              $$payload3.out += `<div class="space-y-4"><!--[-->`;
-              for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
-                let access = each_array_2[$$index_2];
-                Card($$payload3, {
-                  children: ($$payload4) => {
-                    $$payload4.out += `<div class="flex justify-between items-center"><div><h3 class="text-lg font-semibold">Locker #${escape_html(access.lockerNumber)}</h3> <p class="text-sm text-gray-600">Access Type: ${escape_html(access.accessType === "otp" ? "OTP" : "Subscription")}</p> `;
-                    if (access.otp) {
-                      $$payload4.out += "<!--[-->";
-                      $$payload4.out += `<p class="text-sm text-gray-600">OTP: ${escape_html(access.otp)}</p>`;
-                    } else {
-                      $$payload4.out += "<!--[!-->";
-                    }
-                    $$payload4.out += `<!--]--> <p class="text-sm text-gray-600">Accessed on: ${escape_html(formatTimestamp(access.accessedAt))}</p></div> `;
-                    Badge($$payload4, {
-                      color: access.status === "success" ? "green" : "red",
-                      children: ($$payload5) => {
-                        $$payload5.out += `<!---->${escape_html(access.status)}`;
-                      },
-                      $$slots: { default: true }
-                    });
-                    $$payload4.out += `<!----></div>`;
-                  },
-                  $$slots: { default: true }
-                });
-              }
-              $$payload3.out += `<!--]--></div>`;
+              $$payload3.out += `<div class="space-y-4">`;
+              Table($$payload3, {
+                children: ($$payload4) => {
+                  TableHead($$payload4, {
+                    children: ($$payload5) => {
+                      TableHeadCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->Locker #`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableHeadCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->Access Type`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableHeadCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->OTP`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableHeadCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->Access Date-Time`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!----> `;
+                      TableHeadCell($$payload5, {
+                        children: ($$payload6) => {
+                          $$payload6.out += `<!---->Status`;
+                        },
+                        $$slots: { default: true }
+                      });
+                      $$payload5.out += `<!---->`;
+                    },
+                    $$slots: { default: true }
+                  });
+                  $$payload4.out += `<!----> `;
+                  TableBody($$payload4, {
+                    tableBodyClass: "divide-y",
+                    children: ($$payload5) => {
+                      const each_array_2 = ensure_array_like(accessHistory);
+                      $$payload5.out += `<!--[-->`;
+                      for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
+                        let access = each_array_2[$$index_2];
+                        TableBodyRow($$payload5, {
+                          children: ($$payload6) => {
+                            TableBodyCell($$payload6, {
+                              children: ($$payload7) => {
+                                $$payload7.out += `<!---->${escape_html(access.lockerNumber)}`;
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!----> `;
+                            TableBodyCell($$payload6, {
+                              children: ($$payload7) => {
+                                $$payload7.out += `<!---->${escape_html(access.accessType === "otp" ? "OTP" : "Subscription")}`;
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!----> `;
+                            TableBodyCell($$payload6, {
+                              children: ($$payload7) => {
+                                if (access.otp) {
+                                  $$payload7.out += "<!--[-->";
+                                  $$payload7.out += `${escape_html(access.otp)}`;
+                                } else {
+                                  $$payload7.out += "<!--[!-->";
+                                }
+                                $$payload7.out += `<!--]-->`;
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!----> `;
+                            TableBodyCell($$payload6, {
+                              children: ($$payload7) => {
+                                $$payload7.out += `<!---->${escape_html(formatTimestamp(access.accessedAt))}`;
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!----> `;
+                            TableBodyCell($$payload6, {
+                              children: ($$payload7) => {
+                                Badge($$payload7, {
+                                  color: access.status === "success" ? "green" : "red",
+                                  children: ($$payload8) => {
+                                    $$payload8.out += `<!---->${escape_html(access.status)}`;
+                                  },
+                                  $$slots: { default: true }
+                                });
+                              },
+                              $$slots: { default: true }
+                            });
+                            $$payload6.out += `<!---->`;
+                          },
+                          $$slots: { default: true }
+                        });
+                      }
+                      $$payload5.out += `<!--]-->`;
+                    },
+                    $$slots: { default: true }
+                  });
+                  $$payload4.out += `<!---->`;
+                },
+                $$slots: { default: true }
+              });
+              $$payload3.out += `<!----></div>`;
             }
             $$payload3.out += `<!--]-->`;
           }

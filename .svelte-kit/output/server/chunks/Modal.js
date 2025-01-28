@@ -1,4 +1,4 @@
-import { r as rest_props, i as fallback, s as spread_attributes, j as clsx, g as attr, k as slot, b as bind_props, p as pop, d as push, l as sanitize_props, m as spread_props, e as escape_html, f as ensure_array_like, o as sanitize_slots, q as stringify } from "./index3.js";
+import { i as rest_props, j as fallback, k as spread_attributes, l as clsx, g as attr, m as slot, b as bind_props, p as pop, d as push, o as sanitize_props, q as spread_props, e as escape_html, f as ensure_array_like, t as sanitize_slots, u as stringify } from "./index3.js";
 import { twMerge } from "tailwind-merge";
 import { f as fade, C as CloseButton, F as Frame } from "./Input.js";
 function Badge($$payload, $$props) {

@@ -5,7 +5,7 @@ import {db} from "$lib/server/db";
 import {lockerRequests} from "$lib/server/db/schema";
 import {eq} from "drizzle-orm";
 
-export const POST: RequestHandler = async ({params, request, locals}) => {
+export const POST: RequestHandler = async ({params, locals}) => {
   if (!locals.user) {
     throw error(401, "Unauthorized");
   }
@@ -35,8 +35,6 @@ export const POST: RequestHandler = async ({params, request, locals}) => {
       throw error(400, "Only rejected requests can be resubmitted");
     }
 
-    const {proofOfPayment} = await request.json();
-
     // Update the request
     await db
       .update(lockerRequests)
@@ -45,7 +43,6 @@ export const POST: RequestHandler = async ({params, request, locals}) => {
         rejectionReason: null,
         processedAt: null,
         processedBy: null,
-        ...(proofOfPayment ? {proofOfPayment} : {}),
       })
       .where(eq(lockerRequests.id, requestId));
 

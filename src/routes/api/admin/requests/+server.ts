@@ -33,6 +33,7 @@ export const GET: RequestHandler = async ({locals}) => {
         rejectionReason: lockerRequests.rejectionReason,
         subscriptionName: subscriptionTypes.name,
         subscriptionTypeId: lockerRequests.subscriptionTypeId,
+        proofOfPayment: lockerRequests.proofOfPayment,
       })
       .from(lockerRequests)
       .leftJoin(users, eq(lockerRequests.userId, users.id))

@@ -21,7 +21,8 @@ const GET = async ({ locals }) => {
       requestedAt: lockerRequests.requestedAt,
       rejectionReason: lockerRequests.rejectionReason,
       subscriptionName: subscriptionTypes.name,
-      subscriptionTypeId: lockerRequests.subscriptionTypeId
+      subscriptionTypeId: lockerRequests.subscriptionTypeId,
+      proofOfPayment: lockerRequests.proofOfPayment
     }).from(lockerRequests).leftJoin(users, eq(lockerRequests.userId, users.id)).leftJoin(lockers, eq(lockerRequests.lockerId, lockers.id)).leftJoin(
       subscriptionTypes,
       eq(lockerRequests.subscriptionTypeId, subscriptionTypes.id)
