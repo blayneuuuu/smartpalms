@@ -1,6 +1,6 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
 import {
   lockerRequests,
   lockers,
@@ -8,15 +8,15 @@ import {
   subscriptionTypes,
   subscriptions,
 } from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
-import {randomUUID} from "crypto";
+import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
-export const GET: RequestHandler = async ({locals}) => {
+export const GET: RequestHandler = async ({ locals }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 }
       );
     }
 
@@ -44,26 +44,26 @@ export const GET: RequestHandler = async ({locals}) => {
       )
       .orderBy(lockerRequests.requestedAt);
 
-    return json({requests});
+    return json({ requests });
   } catch (error) {
     console.error("Error fetching requests:", error);
-    return json({message: "Failed to fetch requests"}, {status: 500});
+    return json({ message: "Failed to fetch requests" }, { status: 500 });
   }
 };
 
-export const POST: RequestHandler = async ({locals, request}) => {
+export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 }
       );
     }
 
-    const {requestId, action, rejectionReason} = await request.json();
+    const { requestId, action, rejectionReason } = await request.json();
 
     if (!requestId || !action || (action === "reject" && !rejectionReason)) {
-      return json({message: "Missing required fields"}, {status: 400});
+      return json({ message: "Missing required fields" }, { status: 400 });
     }
 
     // Get the request details
@@ -73,11 +73,11 @@ export const POST: RequestHandler = async ({locals, request}) => {
       .where(eq(lockerRequests.id, requestId));
 
     if (!lockerRequest) {
-      return json({message: "Request not found"}, {status: 404});
+      return json({ message: "Request not found" }, { status: 404 });
     }
 
     if (lockerRequest.status !== "pending") {
-      return json({message: "Request is not pending"}, {status: 400});
+      return json({ message: "Request is not pending" }, { status: 400 });
     }
 
     // Check if locker is still available
@@ -87,11 +87,11 @@ export const POST: RequestHandler = async ({locals, request}) => {
       .where(eq(lockers.id, lockerRequest.lockerId));
 
     if (!locker) {
-      return json({message: "Locker not found"}, {status: 404});
+      return json({ message: "Locker not found" }, { status: 404 });
     }
 
     if (locker.isOccupied) {
-      return json({message: "Locker is already occupied"}, {status: 400});
+      return json({ message: "Locker is already occupied" }, { status: 400 });
     }
 
     if (action === "approve") {
@@ -102,7 +102,10 @@ export const POST: RequestHandler = async ({locals, request}) => {
         .where(eq(subscriptionTypes.id, lockerRequest.subscriptionTypeId));
 
       if (!subscriptionType) {
-        return json({message: "Subscription type not found"}, {status: 404});
+        return json(
+          { message: "Subscription type not found" },
+          { status: 404 }
+        );
       }
 
       // Calculate subscription dates
@@ -133,7 +136,7 @@ export const POST: RequestHandler = async ({locals, request}) => {
       // Update locker status
       await db
         .update(lockers)
-        .set({isOccupied: true, userId: lockerRequest.userId})
+        .set({ isOccupied: true, userId: lockerRequest.userId })
         .where(eq(lockers.id, lockerRequest.lockerId));
 
       // Update request status
@@ -158,9 +161,9 @@ export const POST: RequestHandler = async ({locals, request}) => {
         .where(eq(lockerRequests.id, requestId));
     }
 
-    return json({success: true});
+    return json({ success: true });
   } catch (error) {
     console.error("Error processing request:", error);
-    return json({message: "Failed to process request"}, {status: 500});
+    return json({ message: "Failed to process request" }, { status: 500 });
   }
 };

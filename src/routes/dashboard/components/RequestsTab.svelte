@@ -77,6 +77,7 @@
       <TableHeadCell>Requested At</TableHeadCell>
       <TableHeadCell>Status</TableHeadCell>
       <TableHeadCell>Actions</TableHeadCell>
+      <TableHeadCell></TableHeadCell>
     </TableHead>
     <TableBody>
       {#each $requests as request}
@@ -119,6 +120,9 @@
                 </Button>
               </div>
             {/if}
+            
+          </TableBodyCell>
+          <TableBodyCell>
             <Button
               size="xs"
               color="blue"
@@ -216,11 +220,11 @@
 
       {#if selectedRequest.proofOfPayment}
         <div>
-          <h4 class="font-medium text-gray-700 mb-2">Proof of Payment</h4>
+          <h4 class="font-medium text-gray-700 mb-5">Proof of Payment</h4>
           <img
             src={`data:image/jpeg;base64,${selectedRequest.proofOfPayment}`}
             alt="Proof of Payment"
-            class="max-w-full h-auto rounded-lg"
+            class="mx-auto max-w-lg h-auto rounded-lg"
           />
         </div>
       {/if}

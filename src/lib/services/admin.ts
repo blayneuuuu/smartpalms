@@ -8,19 +8,19 @@ import {
   loading,
   errors,
 } from "$lib/stores/admin";
-import type {DashboardStats} from "$lib/stores/admin";
+import type { DashboardStats } from "$lib/stores/admin";
 
 // Helper function to handle API errors
 function handleError(key: keyof typeof errors, error: unknown) {
   const message =
     error instanceof Error ? error.message : "An unexpected error occurred";
-  errors.update((e) => ({...e, [key]: message}));
+  errors.update((e) => ({ ...e, [key]: message }));
   console.error(`Error in ${key}:`, error);
 }
 
 // Helper function to set loading state
 function setLoading(key: keyof typeof loading, value: boolean) {
-  loading.update((l) => ({...l, [key]: value}));
+  loading.update((l) => ({ ...l, [key]: value }));
 }
 
 // Fetch dashboard stats
@@ -45,7 +45,7 @@ export async function fetchDashboardStats() {
     }
 
     stats.set(data as DashboardStats);
-    errors.update((e) => ({...e, stats: null}));
+    errors.update((e) => ({ ...e, stats: null }));
   } catch (error) {
     handleError("stats", error);
   } finally {
@@ -64,7 +64,7 @@ export async function fetchRequests() {
     }
     const data = await response.json();
     requests.set(data.requests);
-    errors.update((e) => ({...e, requests: null}));
+    errors.update((e) => ({ ...e, requests: null }));
   } catch (error) {
     handleError("requests", error);
   } finally {
@@ -83,7 +83,7 @@ export async function fetchLockers() {
     }
     const data = await response.json();
     lockers.set(data.lockers);
-    errors.update((e) => ({...e, lockers: null}));
+    errors.update((e) => ({ ...e, lockers: null }));
   } catch (error) {
     handleError("lockers", error);
   } finally {
@@ -102,7 +102,7 @@ export async function fetchUsers() {
     }
     const data = await response.json();
     users.set(data.users);
-    errors.update((e) => ({...e, users: null}));
+    errors.update((e) => ({ ...e, users: null }));
   } catch (error) {
     handleError("users", error);
   } finally {
@@ -121,7 +121,7 @@ export async function fetchSubscriptionTypes() {
     }
     const data = await response.json();
     subscriptionTypes.set(data.subscriptionTypes);
-    errors.update((e) => ({...e, subscriptionTypes: null}));
+    errors.update((e) => ({ ...e, subscriptionTypes: null }));
   } catch (error) {
     handleError("subscriptionTypes", error);
   } finally {
@@ -140,7 +140,7 @@ export async function fetchTransactions() {
     }
     const data = await response.json();
     transactions.set(data.transactions);
-    errors.update((e) => ({...e, transactions: null}));
+    errors.update((e) => ({ ...e, transactions: null }));
   } catch (error) {
     handleError("transactions", error);
   } finally {

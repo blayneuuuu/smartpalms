@@ -1,7 +1,7 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
 import {
   lockerRequests,
   lockers,
@@ -9,9 +9,9 @@ import {
   transactions,
   subscriptionTypes,
 } from "$lib/server/db/schema";
-import {eq, and} from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
-export const PUT: RequestHandler = async ({params, request, locals}) => {
+export const PUT: RequestHandler = async ({ params, request, locals }) => {
   if (!locals.user || locals.user.type !== "admin") {
     throw error(401, "Unauthorized");
   }
@@ -22,7 +22,7 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
   }
 
   try {
-    const {status, rejectionReason} = await request.json();
+    const { status, rejectionReason } = await request.json();
 
     // Get the request details
     const lockerRequest = await db
@@ -150,12 +150,12 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
         .where(eq(lockerRequests.id, requestId));
     }
 
-    return json({success: true});
+    return json({ success: true });
   } catch (err) {
     console.error("Error processing request:", err);
     if (err instanceof Error) {
       throw error(500, err.message);
     }
-    throw error(500, "Failed to process request");
+    throw error(500, "Failed to process request, No available locker");
   }
 };
