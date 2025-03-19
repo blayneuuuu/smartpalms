@@ -38,84 +38,85 @@
 {:else if $users.length === 0}
   <p class="text-gray-600">No users found.</p>
 {:else}
-  <Table>
-    <TableHead>
-      <TableHeadCell>Name</TableHeadCell>
-      <TableHeadCell>Email</TableHeadCell>
-      <TableHeadCell>Type</TableHeadCell>
-      <TableHeadCell>Created At</TableHeadCell>
-      <TableHeadCell>Actions</TableHeadCell>
-    </TableHead>
-    <TableBody>
-      {#each $users as user}
-        <TableBodyRow>
-          <TableBodyCell>{user.name}</TableBodyCell>
-          <TableBodyCell>{user.email}</TableBodyCell>
-          <TableBodyCell>
-            <Badge color={user.type === "admin" ? "red" : "blue"}>
-              {user.type}
+  <div class="overflow-x-auto">
+    <Table striped={true}>
+      <TableHead>
+        <TableHeadCell>Name</TableHeadCell>
+        <TableHeadCell class="hidden sm:table-cell">Email</TableHeadCell>
+        <TableHeadCell>Type</TableHeadCell>
+        <TableHeadCell class="hidden md:table-cell">Created At</TableHeadCell>
+        <TableHeadCell>Actions</TableHeadCell>
+      </TableHead>
+      <TableBody>
+        {#each $users as user}
+          <TableBodyRow>
+            <TableBodyCell class="font-medium">{user.name}</TableBodyCell>
+            <TableBodyCell class="hidden sm:table-cell">
+              <span class="truncate max-w-[150px] md:max-w-none block">{user.email}</span>
+            </TableBodyCell>
+            <TableBodyCell>
+              <Badge color={user.type === "admin" ? "red" : "blue"}>
+                {user.type}
+              </Badge>
+            </TableBodyCell>
+            <TableBodyCell class="hidden md:table-cell">{formatDate(user.createdAt, true)}</TableBodyCell>
+            <TableBodyCell>
+
+              <!-- Dialog  -->
+              <Dialog.Root>
+                <Dialog.Trigger class="btn" on:click={() => openUserDetails(user)}>
+                  <Button size="sm">View Details</Button>
+              </Dialog.Trigger>
+
+              <Dialog.Portal>
+                <Dialog.Overlay
+                  transitionConfig={{ duration: 150 }}
+                  class="fixed inset-0 z-50 bg-black/80"
+                />
+                <Dialog.Content
+                  class="fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-4 sm:p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full"
+                >
+                  <Dialog.Title><h3 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-5">User Details</h3></Dialog.Title>
+                  
+                  <Dialog.Description class="text-sm text-foreground-alt">
+                    {#if selectedUser}
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <p class="text-sm text-gray-500">Name</p>
+            <p class="font-medium">{selectedUser.name}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Email</p>
+            <p class="font-medium break-words">{selectedUser.email}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Type</p>
+            <Badge color={selectedUser.type === "admin" ? "red" : "blue"}>
+              {selectedUser.type}
             </Badge>
-          </TableBodyCell>
-          <TableBodyCell>{formatDate(user.createdAt, true)}</TableBodyCell>
-          <TableBodyCell>
-
-            <!-- Dialog  -->
-            <Dialog.Root>
-              <Dialog.Trigger class="btn" on:click={() => openUserDetails(user)}>
-                <Button>View Details</Button>
-            </Dialog.Trigger>
-
-            <Dialog.Portal>
-              <Dialog.Overlay
-                transitionConfig={{ duration: 150 }}
-                class="fixed inset-0 z-50 bg-black/80"
-              />
-              <Dialog.Content
-                
-                class="fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full"
-              >
-                <Dialog.Title><h3 class="text-xl font-semibold mb-5">User Details</h3></Dialog.Title>
-                
-                <Dialog.Description class="text-sm text-foreground-alt">
-                  {#if selectedUser}
-    <div class="space-y-4">
-      
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <p class="text-sm text-gray-500">Name</p>
-          <p class="font-medium">{selectedUser.name}</p>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500">Email</p>
-          <p class="font-medium">{selectedUser.email}</p>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500">Type</p>
-          <Badge color={selectedUser.type === "admin" ? "red" : "blue"}>
-            {selectedUser.type}
-          </Badge>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500">Created At</p>
-          <p class="font-medium">{formatDate(selectedUser.createdAt, true)}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Created At</p>
+            <p class="font-medium">{formatDate(selectedUser.createdAt, true)}</p>
+          </div>
         </div>
       </div>
-    </div>
-  {/if}
-                </Dialog.Description>
-                <div class="flex w-full justify-between mt-10">
-                  <Dialog.Close>
-                    <Button>Close</Button>
-                  </Dialog.Close>
-                  
-                </div>
-              </Dialog.Content>
-            </Dialog.Portal>
-            </Dialog.Root>
-          </TableBodyCell>
-        </TableBodyRow>
-      {/each}
-    </TableBody>
-  </Table>
+    {/if}
+                  </Dialog.Description>
+                  <div class="flex w-full justify-between mt-6 sm:mt-10">
+                    <Dialog.Close>
+                      <Button>Close</Button>
+                    </Dialog.Close>
+                    
+                  </div>
+                </Dialog.Content>
+              </Dialog.Portal>
+              </Dialog.Root>
+            </TableBodyCell>
+          </TableBodyRow>
+        {/each}
+      </TableBody>
+    </Table>
+  </div>
 {/if}

@@ -80,47 +80,49 @@
 {:else if $lockers.length === 0}
   <p class="text-gray-600">No lockers found.</p>
 {:else}
-  <Table>
-    <TableHead>
-      <TableHeadCell>Number</TableHeadCell>
-      <TableHeadCell>Size</TableHeadCell>
-      <TableHeadCell>Status</TableHeadCell>
-      <TableHeadCell>User</TableHeadCell>
-    </TableHead>
-    <TableBody>
-      {#each $lockers as locker}
-        <TableBodyRow>
-          <TableBodyCell>#{locker.number}</TableBodyCell>
-          <TableBodyCell>
-            <Badge
-              color={locker.size === "small"
-                ? "blue"
-                : locker.size === "medium"
-                ? "yellow"
-                : "red"}
-            >
-              {locker.size}
-            </Badge>
-          </TableBodyCell>
-          <TableBodyCell>
-            <Badge color={locker.userId ? "red" : "green"}>
-              {locker.userId ? "Occupied" : "Available"}
-            </Badge>
-          </TableBodyCell>
-          <TableBodyCell>
-            {#if locker.userId}
-              <div class="flex flex-col">
-                <span>{locker.userName}</span>
-                <span class="text-sm text-gray-500">{locker.userEmail}</span>
-              </div>
-            {:else}
-              <span class="text-gray-500">-</span>
-            {/if}
-          </TableBodyCell>
-        </TableBodyRow>
-      {/each}
-    </TableBody>
-  </Table>
+  <div class="overflow-x-auto">
+    <Table striped={true}>
+      <TableHead>
+        <TableHeadCell>Number</TableHeadCell>
+        <TableHeadCell>Size</TableHeadCell>
+        <TableHeadCell>Status</TableHeadCell>
+        <TableHeadCell class="hidden sm:table-cell">User</TableHeadCell>
+      </TableHead>
+      <TableBody>
+        {#each $lockers as locker}
+          <TableBodyRow>
+            <TableBodyCell>#{locker.number}</TableBodyCell>
+            <TableBodyCell>
+              <Badge
+                color={locker.size === "small"
+                  ? "blue"
+                  : locker.size === "medium"
+                  ? "yellow"
+                  : "red"}
+              >
+                {locker.size}
+              </Badge>
+            </TableBodyCell>
+            <TableBodyCell>
+              <Badge color={locker.userId ? "red" : "green"}>
+                {locker.userId ? "Occupied" : "Available"}
+              </Badge>
+            </TableBodyCell>
+            <TableBodyCell class="hidden sm:table-cell">
+              {#if locker.userId}
+                <div class="flex flex-col">
+                  <span class="truncate max-w-[150px] md:max-w-none">{locker.userName}</span>
+                  <span class="text-sm text-gray-500 truncate max-w-[150px] md:max-w-none">{locker.userEmail}</span>
+                </div>
+              {:else}
+                <span class="text-gray-500">-</span>
+              {/if}
+            </TableBodyCell>
+          </TableBodyRow>
+        {/each}
+      </TableBody>
+    </Table>
+  </div>
 {/if}
 
 <!-- Create Locker Dialog -->

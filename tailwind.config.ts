@@ -1,6 +1,6 @@
 import {fontFamily} from "tailwindcss/defaultTheme";
 import type {Config} from "tailwindcss";
-import flowbitePlugin from "flowbite/plugin";
+import plugin from "flowbite/plugin";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
 import containerQueries from "@tailwindcss/container-queries";
@@ -75,7 +75,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [flowbitePlugin, forms, typography, containerQueries],
+  plugins: [plugin, forms, typography, containerQueries],
 };
 
 export default config;

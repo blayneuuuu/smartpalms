@@ -9,9 +9,9 @@
 	let password = '';
 </script>
 
-<div class="w-screen h-screen flex flex-col justify-center items-center bg-gray-50">
-	<div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-		<h1 class="text-2xl font-bold text-center text-gray-900">Welcome to Smart Palms</h1>
+<div class="w-screen h-screen flex flex-col justify-center items-center bg-gray-50 px-4">
+	<div class="w-full max-w-md p-4 sm:p-8 space-y-4 sm:space-y-6 bg-white rounded-lg shadow-md">
+		<h1 class="text-xl sm:text-2xl font-bold text-center text-gray-900">Welcome to Smart Palms</h1>
 		{#if form?.error}
 			<Alert color="red" class="mt-4">
 				{form.error}
