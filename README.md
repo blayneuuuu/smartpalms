@@ -139,11 +139,6 @@ npm run test:e2e
 # Run all tests
 npm run test
 ```
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## 🙏 Acknowledgements
 
 - [SvelteKit](https://kit.svelte.dev/)
