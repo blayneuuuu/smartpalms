@@ -51,7 +51,22 @@ export const stats = writable<DashboardStats>({
 export const requests = writable<AdminRequest[]>([]);
 export const lockers = writable<AdminLocker[]>([]);
 export const users = writable<User[]>([]);
-export const subscriptionTypes = writable<SubscriptionType[]>([]);
+
+// Create a custom store for subscription types with logging
+function createSubscriptionTypesStore() {
+  const {subscribe, set, update} = writable<SubscriptionType[]>([]);
+
+  return {
+    subscribe,
+    set: (data: SubscriptionType[]) => {
+      console.log("Store: Setting subscription types", data);
+      set(data);
+    },
+    update,
+  };
+}
+
+export const subscriptionTypes = createSubscriptionTypesStore();
 export const transactions = writable<AdminTransaction[]>([]);
 
 // Loading states

@@ -12,6 +12,7 @@ const subscriptionTypeSchema = z.object({
     invalid_type_error: "Invalid duration",
   }),
   amount: z.number().min(0, "Amount must be greater than or equal to 0"),
+  isActive: z.boolean().optional(),
 });
 
 export const PUT: RequestHandler = async ({request, locals, params}) => {
@@ -48,6 +49,12 @@ export const PUT: RequestHandler = async ({request, locals, params}) => {
       return json({message: "Subscription type not found"}, {status: 404});
     }
 
+    // Handle isActive status (use the provided value or keep the existing one)
+    const isActive =
+      result.data.isActive !== undefined
+        ? result.data.isActive
+        : existingType.isActive;
+
     // Check if name is taken by another subscription type
     if (name !== existingType.name) {
       const [nameExists] = await db
@@ -70,6 +77,7 @@ export const PUT: RequestHandler = async ({request, locals, params}) => {
         name,
         duration,
         amount,
+        isActive,
       })
       .where(eq(subscriptionTypes.id, id))
       .returning();

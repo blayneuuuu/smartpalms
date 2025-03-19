@@ -244,6 +244,11 @@
 
     <div class="grid gap-4 py-4">
         <!-- Subscription Plan -->
+        <div class="flex flex-col items-center mb-4">
+            <p class="text-sm text-gray-700 mb-2">Gcash QR Code:</p>
+            <img src="/qr.jpg" alt="QR Code for payment" class="w-48 h-auto mx-auto border rounded-lg shadow-sm" />
+            <p class="text-xs text-gray-500 mt-2">After payment, upload your receipt below</p>
+        </div>
         <div class="grid gap-2">
             <Label for="plan">Subscription Plan</Label>
             <Select id="plan" bind:value={selectedSubscriptionType}>

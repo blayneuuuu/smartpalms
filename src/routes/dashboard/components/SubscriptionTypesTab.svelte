@@ -16,11 +16,16 @@
     Spinner,
   } from "flowbite-svelte";
   import {formatDate} from "$lib/utils/date";
-  import {subscriptionTypes, loading, errors} from "$lib/stores/admin";
+  import {
+    subscriptionTypes, 
+    loading, 
+    errors
+  } from "$lib/stores/admin";
   import {
     createSubscriptionType,
     updateSubscriptionType,
     deleteSubscriptionType,
+    fetchSubscriptionTypes,
   } from "$lib/services/admin";
   import { Dialog } from "bits-ui";
 
@@ -33,6 +38,31 @@
     amount: 0,
   });
   let processing = false;
+
+  // Fetch subscription types when component mounts - using a more controlled approach
+  let initialLoadDone = $state(false);
+  
+  $effect(() => {
+    // Only load data on initial mount, not on every render
+    if (!initialLoadDone) {
+      console.log("SubscriptionTypesTab: Initial data loading");
+      initialLoadDone = true;
+      
+      fetchSubscriptionTypes()
+        .then(() => {
+          console.log("SubscriptionTypes loaded successfully");
+        })
+        .catch(err => {
+          console.error("Error loading subscription types:", err);
+        });
+    }
+  });
+
+  // Remove all the other automatic data loading functions and direct fetch implementation
+  async function refreshData() {
+    console.log("Manual refresh requested");
+    return fetchSubscriptionTypes();
+  }
 
   const durations = [
     {value: "1_day", label: "1 Day"},
@@ -92,103 +122,120 @@
       processing = false;
     }
   }
+
+  async function toggleActiveStatus(type: (typeof $subscriptionTypes)[0]) {
+    processing = true;
+    try {
+      await updateSubscriptionType(type.id, {
+        name: type.name,
+        duration: type.duration,
+        amount: type.amount,
+        isActive: !type.isActive
+      });
+    } catch (err) {
+      console.error("Error toggling subscription type status:", err);
+      alert("Failed to update status: " + (err instanceof Error ? err.message : "Unknown error"));
+    } finally {
+      processing = false;
+    }
+  }
 </script>
 
 {#if $errors.subscriptionTypes}
   <Alert color="red" class="mb-4">
     {$errors.subscriptionTypes}
+    {#if $errors.subscriptionTypes?.includes("not an admin")}
+      <p class="mt-2">You need to be logged in as an admin to view subscription types.</p>
+    {/if}
   </Alert>
 {/if}
 
 <div class="flex justify-end mb-4">
-  
+  <Button color="green" class="mr-2" on:click={() => refreshData()}>
+    Refresh
+  </Button>
 
   <Dialog.Root>
     <Dialog.Trigger>
       <Button color="blue" on:click={openCreateDialog}>
         Create Subscription Type
       </Button>
-  </Dialog.Trigger>
+    </Dialog.Trigger>
 
-  <Dialog.Portal>
-    <Dialog.Overlay
-      transitionConfig={{ duration: 150 }}
-      class="fixed inset-0 z-50 bg-black/80"
-    />
-    <Dialog.Content
-      
-      class="fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full"
-    >
-     
-      
-      <Dialog.Description class="text-sm text-foreground-alt">
-        <div class="text-center">
-          <h3 class="mb-5 text-lg font-normal text-gray-500">
-            {isEditing ? "Edit" : "Create"} Subscription Type
-          </h3>
-        </div>
-      
-        <div class="space-y-4">
-          <div>
-            <Label for="name">Name</Label>
-            <Input
-              id="name"
-              placeholder="Enter subscription name"
-              bind:value={formData.name}
-            />
+    <Dialog.Portal>
+      <Dialog.Overlay
+        transitionConfig={{ duration: 150 }}
+        class="fixed inset-0 z-50 bg-black/80"
+      />
+      <Dialog.Content
+        class="fixed left-[50%] top-[50%] z-50 w-full max-w-[94%] translate-x-[-50%] translate-y-[-50%] rounded-card-lg border bg-background p-5 shadow-popover outline-none sm:max-w-[490px] md:w-full"
+      >
+        <Dialog.Description class="text-sm text-foreground-alt">
+          <div class="text-center">
+            <h3 class="mb-5 text-lg font-normal text-gray-500">
+              {isEditing ? "Edit" : "Create"} Subscription Type
+            </h3>
           </div>
-      
-          <div>
-            <Label for="duration">Duration</Label>
-            <Select id="duration" bind:value={formData.duration}>
-              <option value="">Select duration</option>
-              {#each durations as {value, label}}
-                <option {value}>{label}</option>
-              {/each}
-            </Select>
+        
+          <div class="space-y-4">
+            <div>
+              <Label for="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="Enter subscription name"
+                bind:value={formData.name}
+              />
+            </div>
+        
+            <div>
+              <Label for="duration">Duration</Label>
+              <Select id="duration" bind:value={formData.duration}>
+                <option value="">Select duration</option>
+                {#each durations as {value, label}}
+                  <option {value}>{label}</option>
+                {/each}
+              </Select>
+            </div>
+        
+            <div>
+              <Label for="amount">Amount (₱)</Label>
+              <Input
+                id="amount"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Enter amount"
+                bind:value={formData.amount}
+              />
+            </div>
           </div>
-      
-          <div>
-            <Label for="amount">Amount (₱)</Label>
-            <Input
-              id="amount"
-              type="number"
-              min="0"
-              step="1"
-              placeholder="Enter amount"
-              bind:value={formData.amount}
-            />
+        
+          <div class="flex justify-end gap-4 mt-6">
+            <Dialog.Close>
+              <Button
+              color="alternative"
+              disabled={processing}
+              on:click={() => {
+                showDialog = false;
+              }}
+            >
+              Cancel
+            </Button>
+            </Dialog.Close>
+            <Dialog.Close>
+              <Button
+              color="blue"
+              disabled={!formData.name || !formData.duration || formData.amount <= 0 || processing}
+              on:click={handleSubmit}
+            >
+              {isEditing ? "Save" : "Create"}
+            </Button>
+            </Dialog.Close>
           </div>
-        </div>
-      
-        <div class="flex justify-end gap-4 mt-6">
-          <Dialog.Close>
-            <Button
-            color="alternative"
-            disabled={processing}
-            on:click={() => {
-              showDialog = false;
-            }}
-          >
-            Cancel
-          </Button>
-          </Dialog.Close>
-          <Dialog.Close>
-            <Button
-            color="blue"
-            disabled={!formData.name || !formData.duration || formData.amount <= 0 || processing}
-            on:click={handleSubmit}
-          >
-            {isEditing ? "Save" : "Create"}
-          </Button>
-          </Dialog.Close>
-        </div>
-      </Dialog.Description>
-      
-    </Dialog.Content>
-  </Dialog.Portal>
+        </Dialog.Description>
+      </Dialog.Content>
+    </Dialog.Portal>
   </Dialog.Root>
-
 </div>
 
 {#if $loading.subscriptionTypes}
@@ -196,13 +243,14 @@
     <Spinner size="8" />
   </div>
 {:else if $subscriptionTypes.length === 0}
-  <p class="text-gray-600">No subscription types found.</p>
+  <p class="text-gray-600">No subscription types found via the store.</p>
 {:else}
   <Table>
     <TableHead>
       <TableHeadCell>Name</TableHeadCell>
       <TableHeadCell>Duration</TableHeadCell>
       <TableHeadCell>Amount</TableHeadCell>
+      <TableHeadCell>Status</TableHeadCell>
       <TableHeadCell>Created At</TableHeadCell>
       <TableHeadCell>Actions</TableHeadCell>
     </TableHead>
@@ -223,6 +271,11 @@
             </Badge>
           </TableBodyCell>
           <TableBodyCell>₱{type.amount}</TableBodyCell>
+          <TableBodyCell>
+            <Badge color={type.isActive ? "green" : "dark"}>
+              {type.isActive ? "Active" : "Inactive"}
+            </Badge>
+          </TableBodyCell>
           <TableBodyCell>{formatDate(type.createdAt, true)}</TableBodyCell>
           <TableBodyCell>
             <div class="flex space-x-2">
@@ -320,6 +373,14 @@
                 on:click={() => handleDelete(type.id)}
               >
                 Delete
+              </Button>
+              
+              <Button
+                size="xs"
+                color={type.isActive ? "dark" : "green"}
+                on:click={() => toggleActiveStatus(type)}
+              >
+                {type.isActive ? "Deactivate" : "Activate"}
               </Button>
             </div>
           </TableBodyCell>

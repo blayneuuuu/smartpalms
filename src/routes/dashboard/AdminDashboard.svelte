@@ -33,6 +33,21 @@
   let {userData} = $props<{userData: UserData}>();
   let activeTab = $state("requests");
 
+  // Create a type for tab IDs to ensure type safety
+  type TabId = "requests" | "lockers" | "users" | "subscription-types" | "subscriptions";
+  
+  // Store the last loaded time for each tab
+  const tabLoadTimestamps = $state<Record<TabId, number>>({
+    "requests": 0,
+    "lockers": 0,
+    "users": 0,
+    "subscription-types": 0,
+    "subscriptions": 0
+  });
+  
+  // Set a cache timeout (5 minutes)
+  const CACHE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+
   // Initial data loading handler
   function loadInitialData() {
     return Promise.all([
@@ -48,6 +63,21 @@
 
   // Load data based on active tab
   function loadTabData(tab: string) {
+    const now = Date.now();
+    // Use type assertion to ensure type safety
+    const tabId = tab as TabId;
+    const lastLoadTime = tabLoadTimestamps[tabId] || 0;
+    const timeSinceLastLoad = now - lastLoadTime;
+    
+    // Skip loading if data was loaded recently (within CACHE_TIMEOUT)
+    if (timeSinceLastLoad < CACHE_TIMEOUT) {
+      console.log(`Skipping data load for ${tab}, last loaded ${timeSinceLastLoad}ms ago`);
+      return Promise.resolve();
+    }
+    
+    // Update the timestamp before loading
+    tabLoadTimestamps[tabId] = now;
+    
     switch (tab) {
       case "requests":
         return fetchRequests();
@@ -170,13 +200,13 @@
             </div>
           </TabItem>
 
-          <TabItem title="Sub. Types" class="text-xs sm:text-sm md:text-base hidden sm:block">
+          <TabItem title="Sub. Types" id="subscription-types" class="text-xs sm:text-sm md:text-base hidden sm:block">
             <div class="p-1 sm:p-2 md:p-4">
               <SubscriptionTypesTab />
             </div>
           </TabItem>
           
-          <TabItem title="Types" class="text-xs sm:text-sm md:text-base sm:hidden">
+          <TabItem title="Types" id="subscription-types" class="text-xs sm:text-sm md:text-base sm:hidden">
             <div class="p-1 sm:p-2 md:p-4">
               <SubscriptionTypesTab />
             </div>
