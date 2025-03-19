@@ -38,11 +38,10 @@
     let error: string | null = $state(null);
     let showRentDialog: boolean = $state(false);
 
-    // Group lockers by size
+    // Group lockers by size - only small and large
     function getLockersBySize() {
         return {
             small: data.lockers.filter((l: LockerWithAvailability) => l.size.toLowerCase() === 'small'),
-            medium: data.lockers.filter((l: LockerWithAvailability) => l.size.toLowerCase() === 'medium'),
             large: data.lockers.filter((l: LockerWithAvailability) => l.size.toLowerCase() === 'large')
         };
     }
@@ -143,10 +142,9 @@
 
 <div class="container mx-auto p-4">
     <!-- Header -->
-    <div class="grid grid-cols-3 items-center mb-8">
-        <div></div>
-        <h1 class="text-2xl font-bold text-center">Available Lockers</h1>
-        <Button href="/dashboard" color="blue" class="justify-self-end">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold text-center mb-4 sm:mb-0">Available Lockers</h1>
+        <Button href="/dashboard" color="blue">
             Back to Dashboard
         </Button>
     </div>
@@ -161,44 +159,13 @@
     <!-- Lockers grid -->
     {#if data.lockers}
         {@const lockersBySize = getLockersBySize()}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Small lockers -->
             <div>
                 <h2 class="text-xl font-semibold mb-4">Small Lockers ({lockersBySize.small.length})</h2>
                 <div class="space-y-4">
                     {#each lockersBySize.small as locker}
-                        <Card padding="sm">
-                            <div class="text-lg font-medium">Locker #{locker.number}</div>
-                            <div class="text-sm text-gray-600">Size: {locker.size}</div>
-                            <div class="mt-2 flex items-center justify-between">
-                                <Badge
-                                    color={locker.hasPendingRequest ? 'yellow' : locker.isAvailable ? 'green' : 'red'}
-                                >
-                                    {#if locker.hasPendingRequest}
-                                        Pending Request
-                                    {:else if locker.isAvailable}
-                                        Available
-                                    {:else}
-                                        Occupied
-                                    {/if}
-                                </Badge>
-                                {#if locker.isAvailable && !locker.hasPendingRequest}
-                                    <Button color="light" on:click={() => openRentDialog(locker)}>
-                                        Rent
-                                    </Button>
-                                {/if}
-                            </div>
-                        </Card>
-                    {/each}
-                </div>
-            </div>
-
-            <!-- Medium lockers -->
-            <div>
-                <h2 class="text-xl font-semibold mb-4">Medium Lockers ({lockersBySize.medium.length})</h2>
-                <div class="space-y-4">
-                    {#each lockersBySize.medium as locker}
-                        <Card padding="sm">
+                        <Card padding="sm" class="transition-all hover:shadow-md">
                             <div class="text-lg font-medium">Locker #{locker.number}</div>
                             <div class="text-sm text-gray-600">Size: {locker.size}</div>
                             <div class="mt-2 flex items-center justify-between">
@@ -229,7 +196,7 @@
                 <h2 class="text-xl font-semibold mb-4">Large Lockers ({lockersBySize.large.length})</h2>
                 <div class="space-y-4">
                     {#each lockersBySize.large as locker}
-                        <Card padding="sm">
+                        <Card padding="sm" class="transition-all hover:shadow-md">
                             <div class="text-lg font-medium">Locker #{locker.number}</div>
                             <div class="text-sm text-gray-600">Size: {locker.size}</div>
                             <div class="mt-2 flex items-center justify-between">
@@ -309,10 +276,13 @@
         <Button
             color="blue"
             disabled={!selectedSubscriptionType || !proofOfPaymentBase64 || loading}
-            loading={loading}
             on:click={handleSubmit}
         >
-            Submit Request
+            {#if loading}
+                <span class="mr-2">Processing...</span>
+            {:else}
+                Submit Request
+            {/if}
         </Button>
     </div>
 </Modal>
