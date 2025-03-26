@@ -3,12 +3,12 @@ import {error} from "@sveltejs/kit";
 import type {RequestHandler} from "./$types";
 import {db} from "$lib/server/db";
 import {
-  subscriptions,
   lockers,
   lockerRequests,
   subscriptionTypes,
 } from "$lib/server/db/schema";
-import {eq, and} from "drizzle-orm";
+import {eq} from "drizzle-orm";
+import {LockerService} from "$lib/services/core";
 
 export const GET: RequestHandler = async ({params}) => {
   const userId = params.id;
@@ -17,24 +17,22 @@ export const GET: RequestHandler = async ({params}) => {
   }
 
   try {
-    // Get active subscriptions with locker details
-    const activeSubscriptions = await db
-      .select({
-        id: subscriptions.id,
-        lockerId: subscriptions.lockerId,
-        expiresAt: subscriptions.expiresAt,
-        lockerNumber: lockers.number,
-        lockerSize: lockers.size,
-        status: subscriptions.status,
+    // Get active subscriptions with detailed locker information using the LockerService
+    const userLockers = await LockerService.getUserRentedLockers(userId);
+
+    // Format the response with enhanced information
+    const activeSubscriptions = userLockers.map(
+      ({locker, subscription, daysUntilExpiration}) => ({
+        id: subscription.id,
+        lockerId: locker.id,
+        expiresAt: subscription.expiresAt,
+        lockerNumber: locker.number,
+        lockerSize: locker.size,
+        status: subscription.status,
+        daysUntilExpiration,
+        isExpiringSoon: daysUntilExpiration <= 3, // Flag for subscriptions expiring within 3 days
       })
-      .from(subscriptions)
-      .leftJoin(lockers, eq(subscriptions.lockerId, lockers.id))
-      .where(
-        and(
-          eq(subscriptions.userId, userId),
-          eq(subscriptions.status, "active")
-        )
-      );
+    );
 
     // Get locker requests with details
     const requests = await db
@@ -58,6 +56,7 @@ export const GET: RequestHandler = async ({params}) => {
       .where(eq(lockerRequests.userId, userId));
 
     return json({
+      success: true,
       subscriptions: activeSubscriptions,
       requests: requests,
       subscriptionsCount: activeSubscriptions.length,

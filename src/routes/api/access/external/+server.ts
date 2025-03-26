@@ -1,64 +1,11 @@
-import {json} from "@sveltejs/kit";
-import {db} from "$lib/server/db";
-import {lockers, accessHistory} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import {redirect} from "@sveltejs/kit";
 import type {RequestHandler} from "@sveltejs/kit";
-import type {ExternalAccessResponse} from "$lib/types/api";
-import {APIErrors, handleError} from "$lib/server/errors";
-import {validateRequest} from "$lib/server/middleware";
-import {z} from "zod";
 
-const accessSchema = z.object({
-  locker_id: z.string().min(1, "Locker ID is required"),
-});
+/**
+ * @deprecated Use /api/access/direct instead
+ * This endpoint is kept for backward compatibility and redirects to the new direct access endpoint.
+ */
 
-export const POST: RequestHandler = async (event) => {
-  try {
-    const {locker_id} = await validateRequest(event, accessSchema);
-
-    // Get locker details
-    const [locker] = await db
-      .select()
-      .from(lockers)
-      .where(eq(lockers.id, locker_id));
-
-    if (!locker) {
-      // Create failed access history
-      await db.insert(accessHistory).values({
-        id: crypto.randomUUID(),
-        lockerId: locker_id,
-        accessType: "external",
-        status: "failed",
-      });
-
-      throw APIErrors.LOCKER.NOT_FOUND();
-    }
-
-    // Create successful access history
-    await db.insert(accessHistory).values({
-      id: crypto.randomUUID(),
-      lockerId: locker_id,
-      accessType: "external",
-      status: "success",
-    });
-
-    // Update last accessed time
-    await db
-      .update(lockers)
-      .set({
-        lastAccessedAt: new Date(),
-      })
-      .where(eq(lockers.id, locker_id));
-
-    const response: ExternalAccessResponse = {
-      success: true,
-      locker: {
-        id: locker.id,
-        number: locker.number,
-      },
-    };
-    return json(response);
-  } catch (err) {
-    return handleError(err);
-  }
+export const POST: RequestHandler = async () => {
+  return redirect(308, "/api/access/direct");
 };

@@ -1,20 +1,39 @@
 import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
 import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {subscriptionTypes} from "$lib/server/db/schema";
-import {eq, sql} from "drizzle-orm";
+import {SubscriptionTypeService} from "$lib/services/core";
 
+/**
+ * Public endpoint for subscription types
+ * This is a lightweight wrapper around the admin endpoint
+ * that only returns active subscription types
+ */
 export const GET: RequestHandler = async () => {
   try {
-    const types = await db
-      .select()
-      .from(subscriptionTypes)
-      .where(eq(subscriptionTypes.isActive, sql`1`));
+    // Fetch only active subscription types using the service layer
+    const types = await SubscriptionTypeService.getAll(true);
 
-    return json({subscriptionTypes: types});
+    // Return with cache headers to reduce load (same as admin endpoint)
+    return json(
+      {
+        success: true,
+        subscriptionTypes: types,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=300", // Cache for 5 minutes
+          Expires: new Date(Date.now() + 300000).toUTCString(),
+        },
+      }
+    );
   } catch (err) {
-    console.error("Error fetching subscription types:", err);
-    throw error(500, "Failed to fetch subscription types");
+    console.error("Error fetching active subscription types:", err);
+    return json(
+      {
+        success: false,
+        message: "Failed to fetch subscription types",
+        error: err instanceof Error ? err.message : "Unknown error",
+      },
+      {status: 500}
+    );
   }
 };

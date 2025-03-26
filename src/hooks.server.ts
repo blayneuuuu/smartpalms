@@ -7,6 +7,9 @@ import {eq} from "drizzle-orm";
 export const handle: Handle = async ({event, resolve}) => {
   // Handle CORS for external API endpoints
   if (
+    event.url.pathname.startsWith("/api/access/authenticated") ||
+    event.url.pathname.startsWith("/api/access/direct") ||
+    // Keep old paths temporarily for backward compatibility
     event.url.pathname.startsWith("/api/lockers/external") ||
     event.url.pathname.startsWith("/api/access/external")
   ) {
