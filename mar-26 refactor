@@ -1,0 +1,118 @@
+# Refactoring Plan for SmartPalms
+
+## 1. Component Structure Issues
+
+### Duplicated Dashboard Logic
+
+- **Problem**: `UserDashboard.svelte` and `AdminDashboard.svelte` have duplicated header/layout code.
+- **Solution**: Create a shared `DashboardLayout.svelte` component with role-specific content passed as slots.
+
+### Large Component Files
+
+- **Problem**: Some components are extremely large (e.g., `UserDashboard.svelte` at 439 lines, `LockersTab.svelte` at 442 lines).
+- **Solution**: Break these into smaller, focused components following single responsibility principle.
+
+## 2. API Structure Issues
+
+### Redundant API Endpoints
+
+- **Problem**: Multiple similar API endpoints (e.g., `/api/lockers` and `/api/locker`).
+- **Solution**: Standardize on a single consistent API path scheme.
+
+### Inconsistent API Response Structure
+
+- **Problem**: Different API endpoints return data in inconsistent formats.
+- **Solution**: Standardize API responses with consistent fields like `success`, `data`, and `error`.
+
+## 3. Code Duplication
+
+### Repeated Fetch Logic
+
+- **Problem**: Similar fetch request patterns repeated across components.
+- **Solution**: Create reusable fetch utilities with proper error handling.
+
+### Modal Pattern Duplication
+
+- **Problem**: Each tab implements its own modal dialogs with similar patterns.
+- **Solution**: Create reusable modal components that can be configured for different use cases.
+
+## 4. State Management
+
+### Scattered State Management
+
+- **Problem**: Some state is in stores, some in component state, leading to inconsistencies.
+- **Solution**: Centralize state management using stores for shared data.
+
+### Duplicated Loading/Error States
+
+- **Problem**: Each component manages its own loading/error states.
+- **Solution**: Create a unified loading/error handling system that can be reused.
+
+## 5. Form Handling
+
+### Duplicated Form Logic
+
+- **Problem**: Similar form validation and submission logic repeated across components.
+- **Solution**: Create reusable form components and validation utilities.
+
+## 6. Utility Functions
+
+### Scattered Utility Functions
+
+- **Problem**: Utility functions defined in multiple files (date formatting, string manipulation, etc.).
+- **Solution**: Centralize common utilities in a well-organized utility directory.
+
+## 7. Type Definitions
+
+### Duplicated Types
+
+- **Problem**: Same types defined in multiple places.
+- **Solution**: Create a centralized type system and use imports consistently.
+
+## 8. Component Organization
+
+### Inconsistent Component Placement
+
+- **Problem**: Some components are in route-specific folders, others in global components.
+- **Solution**: Organize components based on their scope and reusability.
+
+## Action Plan
+
+1. **Create shared layout components**
+
+   - DashboardLayout.svelte
+   - Modal.svelte (standardized modal component)
+   - DataTable.svelte (reusable table with sorting/filtering)
+
+2. **Standardize API structure**
+
+   - Consistent URL patterns
+   - Standardized response format
+   - Centralized error handling
+
+3. **Implement core services**
+
+   - Auth service
+   - User service
+   - Locker service
+   - Request service
+   - Subscription service
+
+4. **Refactor state management**
+
+   - Centralize shared state in stores
+   - Create a consistent loading/error state pattern
+
+5. **Build reusable form components**
+
+   - Form validation utilities
+   - Common form controls with built-in validation
+
+6. **Extract smaller components from large files**
+
+   - Break UserDashboard.svelte into smaller components
+   - Break all 300+ line components into manageable pieces
+
+7. **Implement proper typing**
+   - Centralize type definitions
+   - Ensure full type coverage
