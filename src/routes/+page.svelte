@@ -2,12 +2,18 @@
 	import { Button, Input, Alert } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
+	import { goto } from '$app/navigation';
 
 	export let form: ActionData;
 
 	let email = '';
 	let password = '';
 	let passwordVisible = false;
+	
+	// If form has success and redirect property, navigate to the redirect URL
+	$: if (form?.success && form?.redirect) {
+		goto(form.redirect);
+	}
 </script>
 
 <div class="flex-grow flex items-center justify-center w-full z-10">
@@ -16,6 +22,11 @@
 		{#if form?.error}
 			<Alert color="red" class="mx-4 mt-4">
 				{form.error}
+				{#if form.error.includes('verify your email')}
+					<div class="mt-2">
+						<a href="/resend-verification" class="text-red-800 font-semibold hover:underline">Resend verification email</a>
+					</div>
+				{/if}
 			</Alert>
 		{/if}
 		<form method="POST" use:enhance class="space-y-4 p-6">
