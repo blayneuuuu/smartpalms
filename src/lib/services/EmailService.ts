@@ -4,33 +4,51 @@ import {dev} from "$app/environment";
 
 // Create test account during development
 let testAccount: nodemailer.TestAccount | null = null;
-let transporter: nodemailer.Transporter;
+let transporter: nodemailer.Transporter | null = null;
+let setupComplete = false;
 
 export async function setupMailer() {
-  if (dev) {
-    // Use ethereal.email for testing
-    testAccount = await nodemailer.createTestAccount();
+  if (setupComplete) return;
 
-    transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-  } else {
-    // Use configured mail provider for production
-    transporter = nodemailer.createTransport({
-      host: env.MAILHOST,
-      port: parseInt(env.MAILPORT),
-      secure: parseInt(env.MAILPORT) === 465,
-      auth: {
-        user: env.MAILUSER,
-        pass: env.MAILPASSWORD,
-      },
-    });
+  try {
+    if (dev) {
+      // Use ethereal.email for testing
+      testAccount = await nodemailer.createTestAccount();
+
+      transporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+    } else if (
+      env.MAILHOST &&
+      env.MAILPORT &&
+      env.MAILUSER &&
+      env.MAILPASSWORD
+    ) {
+      // Use configured mail provider for production
+      transporter = nodemailer.createTransport({
+        host: env.MAILHOST,
+        port: parseInt(env.MAILPORT),
+        secure: parseInt(env.MAILPORT) === 465,
+        auth: {
+          user: env.MAILUSER,
+          pass: env.MAILPASSWORD,
+        },
+      });
+    } else {
+      console.log(
+        "Email credentials not properly configured. Email sending will be skipped."
+      );
+    }
+    setupComplete = true;
+  } catch (error) {
+    console.error("Error setting up email transporter:", error);
+    setupComplete = true; // Mark as complete even if failed to avoid repeated attempts
   }
 }
 
@@ -39,15 +57,14 @@ export async function sendVerificationEmail(
   name: string,
   token: string
 ) {
-  if (!transporter) {
-    await setupMailer();
-  }
+  await setupMailer();
 
-  const verificationLink = `${env.BASE_URL}/verify-email?token=${token}`;
+  const verificationLink = `${env.BASE_URL || "https://smartpalms.vercel.app"}/verify-email?token=${token}`;
 
   const mailOptions = {
     from:
-      env.MAIL_FROM || (dev && testAccount ? testAccount.user : env.MAILUSER),
+      env.MAIL_FROM ||
+      (dev && testAccount ? testAccount.user : "noreply@smartpalms.com"),
     to: email,
     subject: "Verify your SmartPalms account",
     text: `Hello ${name},\n\nPlease verify your email address by clicking on the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nThank you,\nSmartPalms Team`,
@@ -71,11 +88,36 @@ export async function sendVerificationEmail(
     `,
   };
 
-  const info = await transporter.sendMail(mailOptions);
+  try {
+    // If transporter is available, send email
+    if (transporter) {
+      const info = await transporter.sendMail(mailOptions);
 
-  if (dev && testAccount) {
-    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+      if (dev && testAccount) {
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+      }
+
+      return {success: true, info};
+    } else {
+      // Log verification details for debugging in production
+      console.log("Email sending skipped. Verification details:");
+      console.log(`Token: ${token}`);
+      console.log(`Verification link: ${verificationLink}`);
+      console.log(`Recipient: ${email}`);
+
+      return {success: true, simulated: true};
+    }
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+
+    // In production, don't fail the registration process if email sending fails
+    if (!dev) {
+      console.log("Continuing registration despite email failure");
+      console.log(`Token: ${token}`);
+      console.log(`Verification link: ${verificationLink}`);
+      return {success: true, simulated: true, error};
+    }
+
+    throw error;
   }
-
-  return info;
 }

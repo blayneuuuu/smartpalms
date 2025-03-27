@@ -56,12 +56,29 @@ export class UserService {
         .returning();
 
       // Send verification email
-      await sendVerificationEmail(email, name, verificationToken);
+      const emailResult = await sendVerificationEmail(
+        email,
+        name,
+        verificationToken
+      );
+
+      let message =
+        "Registration successful. Please check your email to verify your account.";
+
+      // If email was simulated (in production without SMTP), add more details
+      if (emailResult.simulated) {
+        if (process.env.NODE_ENV === "production") {
+          message =
+            "Registration successful. Your account is pending verification.";
+        } else {
+          // For development, include the token for easier testing
+          message = `Registration successful. For testing, use token: ${verificationToken}`;
+        }
+      }
 
       return {
         success: true,
-        message:
-          "Registration successful. Please check your email to verify your account.",
+        message,
       };
     } catch (error) {
       console.error("Error registering user:", error);
@@ -157,15 +174,27 @@ export class UserService {
         .where(eq(unverifiedUsers.id, unverifiedUser.id));
 
       // Send verification email
-      await sendVerificationEmail(
+      const emailResult = await sendVerificationEmail(
         unverifiedUser.email,
         unverifiedUser.name,
         verificationToken
       );
 
+      let message = "Verification email resent. Please check your inbox.";
+
+      // If email was simulated (in production without SMTP), add more details
+      if (emailResult.simulated) {
+        if (process.env.NODE_ENV === "production") {
+          message = "Verification request received. Please check back later.";
+        } else {
+          // For development, include the token for easier testing
+          message = `Verification email simulated. For testing, use token: ${verificationToken}`;
+        }
+      }
+
       return {
         success: true,
-        message: "Verification email resent. Please check your inbox.",
+        message,
       };
     } catch (error) {
       console.error("Error resending verification email:", error);

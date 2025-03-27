@@ -52,7 +52,7 @@
       <div class="border-t border-black p-4 text-center">
         <p class="text-sm text-gray-600">
           or
-          <a href="/" class="text-orange-600 hover:underline">Return to Login</a>
+          <a href="/manual-verify" class="text-orange-600 hover:underline">Enter Verification Token Manually</a>
         </p>
       </div>
     {/if}
