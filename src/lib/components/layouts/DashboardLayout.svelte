@@ -10,9 +10,12 @@
   <header class="bg-white shadow-sm">
     <div class="flex flex-col sm:flex-row justify-between py-4 px-4 md:px-6 lg:px-8 xl:px-16 items-center space-y-2 sm:space-y-0">
       <div class="flex flex-col sm:flex-row items-center justify-between w-full sm:w-auto gap-1">
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-orange-500">
-          Smartpalms
-        </h1>
+        <div class="flex items-center">
+          <img src="/logo.png" alt="SmartPalms Logo" class="h-8 mr-3" />
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-orange-500">
+            Smartpalms
+          </h1>
+        </div>
         <h2 class="text-lg sm:text-xl sm:ml-2 font-light text-gray-900">
           {title}
         </h2>

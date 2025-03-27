@@ -10,29 +10,33 @@
 </script>
 
 {#if isPublicPage}
-	<div class="flex flex-col min-h-screen">
-		<Navbar let:hidden let:toggle class="py-3 px-4 border-b">
-			<NavBrand href="/">
-				<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
-					SmartPalms
-				</span>
-			</NavBrand>
-			<NavHamburger on:click={toggle} />
-			<NavUl {hidden} class="mx-auto md:flex md:w-auto" ulClass="flex flex-col md:flex-row">
-				<NavLi href="/about" activeClass="text-blue-700 md:text-blue-700 dark:text-white md:dark:text-white"
-					class={$page.url.pathname === '/about' ? 'active' : ''}>About Us</NavLi>
-			</NavUl>
-			<div class="flex items-center gap-2">
-					<Button href="/" color="light" class="hidden md:block">Login</Button>
-				<Button href="/register" color="blue">Sign Up</Button>
-			</div>
-		</Navbar>
-		<main class="flex-grow flex flex-col">
-			{@render children()}
-		</main>
-		<footer class="bg-white border-t py-4 text-center text-sm text-gray-600">
-			© {new Date().getFullYear()} SmartPalms. All rights reserved.
-		</footer>
+	<div class="flex flex-col min-h-screen relative">
+		<!-- Background image with overlay -->
+		<div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat bg-fixed" style="background-image: url('/landing-bg.png');">
+			<div class="absolute inset-0 bg-black/20"></div>
+		</div>
+		
+		<div class="relative z-10 flex flex-col min-h-screen">
+			<Navbar let:hidden let:toggle class="bg-transparent border-b-0 z-20">
+				<NavBrand href="/">
+					<img src="/logo.png" alt="SmartPalms Logo" class="h-32" />
+				</NavBrand>
+				<NavHamburger on:click={toggle} class="text-black" />
+				<NavUl {hidden} class="md:flex md:ml-auto" ulClass="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
+					<NavLi href="/about" activeClass="text-black" nonActiveClass="text-black hover:text-gray-700"
+						class={$page.url.pathname === '/about' ? 'active' : ''}>ABOUT US</NavLi>
+					<NavLi href="/" activeClass="text-black" nonActiveClass="text-black font-black hover:text-gray-700"
+						class={$page.url.pathname === '/' ? 'active' : ''}>LOG IN</NavLi>
+					
+				</NavUl>
+			</Navbar>
+			<main class="flex-grow flex flex-col">
+				{@render children()}
+			</main>
+			<footer class="bg-transparent border-t-0 py-4 text-center text-sm text-black relative z-10">
+				© {new Date().getFullYear()} SmartPalms. All rights reserved.
+			</footer>
+		</div>
 	</div>
 {:else}
 	{@render children()}
