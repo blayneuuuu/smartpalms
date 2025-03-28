@@ -31,15 +31,26 @@ export async function setupMailer() {
       env.MAILPASSWORD
     ) {
       // Use configured mail provider for production
-      transporter = nodemailer.createTransport({
-        host: env.MAILHOST,
-        port: parseInt(env.MAILPORT),
-        secure: parseInt(env.MAILPORT) === 465,
-        auth: {
-          user: env.MAILUSER,
-          pass: env.MAILPASSWORD,
-        },
-      });
+      // Special configuration for Gmail
+      if (env.MAILHOST === "smtp.gmail.com") {
+        transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: env.MAILUSER,
+            pass: env.MAILPASSWORD, // App password for Gmail
+          },
+        });
+      } else {
+        transporter = nodemailer.createTransport({
+          host: env.MAILHOST,
+          port: parseInt(env.MAILPORT),
+          secure: parseInt(env.MAILPORT) === 465,
+          auth: {
+            user: env.MAILUSER,
+            pass: env.MAILPASSWORD,
+          },
+        });
+      }
     } else {
       console.log(
         "Email credentials not properly configured. Email sending will be skipped."
