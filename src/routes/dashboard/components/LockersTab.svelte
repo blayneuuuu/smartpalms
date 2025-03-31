@@ -19,6 +19,7 @@
   import {lockers, loading, errors} from "$lib/stores/admin";
   import {fetchLockers, fetchDashboardStats} from "$lib/services/admin";
   import type {LockerSize} from "$lib/server/db/schema";
+  import {formatDate} from "$lib/utils/date";
 
   let showCreateDialog = $state(false);
   let showChangeOwnerDialog = $state(false);
@@ -637,15 +638,6 @@
             </button>
             <button 
               type="button"
-              class="px-4 py-2 rounded text-sm font-medium border {newLocker.size === 'medium' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}"
-              on:click={() => {
-                newLocker.size = 'medium';
-              }}
-            >
-              Medium
-            </button>
-            <button 
-              type="button"
               class="px-4 py-2 rounded text-sm font-medium border {newLocker.size === 'large' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}"
               on:click={() => {
                 newLocker.size = 'large';
@@ -815,15 +807,6 @@
             </button>
             <button 
               type="button"
-              class="px-4 py-2 rounded text-sm font-medium border {editingLocker?.size === 'medium' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}"
-              on:click={() => {
-                if (editingLocker) editingLocker.size = 'medium';
-              }}
-            >
-              Medium
-            </button>
-            <button 
-              type="button"
               class="px-4 py-2 rounded text-sm font-medium border {editingLocker?.size === 'large' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}"
               on:click={() => {
                 if (editingLocker) editingLocker.size = 'large';
@@ -875,17 +858,6 @@
                 {/if}
               {/if}
             </div>
-            
-            <!-- Expiry Date -->
-            <div>
-              <Label for="expiryDate">Expiry Date</Label>
-              <Input
-                id="expiryDate"
-                type="date"
-                bind:value={expiryDate}
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </div>
           </div>
         {/if}
 
@@ -903,6 +875,12 @@
                 {editingLocker?.userId ? "Occupied" : "Available"}
               </Badge>
             </p>
+            {#if editingLocker?.userId}
+              <p class="text-sm mt-1">
+                <span class="font-medium">Current Expiry:</span>
+                {editingLocker?.expiresAt ? formatDate(new Date(editingLocker.expiresAt), false) : 'No active subscription'}
+              </p>
+            {/if}
           </div>
         </div>
       </div>

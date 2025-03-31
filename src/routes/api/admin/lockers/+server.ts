@@ -1,8 +1,8 @@
 import {json} from "@sveltejs/kit";
 import type {RequestHandler} from "./$types";
 import {db} from "$lib/server/db";
-import {lockers, users} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import {lockers, users, subscriptions} from "$lib/server/db/schema";
+import {eq, and} from "drizzle-orm";
 
 const VALID_SIZES = ["small", "medium", "large"] as const;
 type LockerSize = (typeof VALID_SIZES)[number];
@@ -24,9 +24,17 @@ export const GET: RequestHandler = async ({locals}) => {
         userId: lockers.userId,
         userName: users.name,
         userEmail: users.email,
+        expiresAt: subscriptions.expiresAt,
       })
       .from(lockers)
       .leftJoin(users, eq(lockers.userId, users.id))
+      .leftJoin(
+        subscriptions,
+        and(
+          eq(subscriptions.lockerId, lockers.id),
+          eq(subscriptions.status, "active")
+        )
+      )
       .orderBy(lockers.size, lockers.number);
 
     return json({lockers: allLockers});
