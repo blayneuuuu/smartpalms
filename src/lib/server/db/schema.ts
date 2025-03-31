@@ -147,7 +147,7 @@ export const subscriptionTypes = sqliteTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     duration: text("duration", {
-      enum: ["1_day", "7_days", "30_days"],
+      enum: ["1_day", "3_days", "7_days", "30_days"],
     }).notNull(),
     size: text("size", {enum: ["small", "medium", "large"]})
       .notNull()

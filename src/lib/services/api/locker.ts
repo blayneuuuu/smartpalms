@@ -46,7 +46,7 @@ export type Subscription = {
 export type SubscriptionType = {
   id: string;
   name: string;
-  duration: "1_day" | "7_days" | "30_days";
+  duration: "1_day" | "3_days" | "7_days" | "30_days";
   amount: number;
   isActive: boolean;
   createdAt: string;
@@ -115,7 +115,7 @@ export function fetchSubscriptionTypes() {
  */
 export function createSubscriptionType(data: {
   name: string;
-  duration: "1_day" | "7_days" | "30_days";
+  duration: "1_day" | "3_days" | "7_days" | "30_days";
   amount: number;
 }) {
   return apiPost<{subscriptionType: SubscriptionType}>(
@@ -131,7 +131,7 @@ export function updateSubscriptionType(
   id: string,
   data: {
     name?: string;
-    duration?: "1_day" | "7_days" | "30_days";
+    duration?: "1_day" | "3_days" | "7_days" | "30_days";
     amount?: number;
     isActive?: boolean;
   }

@@ -8,7 +8,7 @@ import {lockerRequests} from "$lib/server/db/schema";
 
 const subscriptionTypeSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  duration: z.enum(["1_day", "7_days", "30_days"], {
+  duration: z.enum(["1_day", "3_days", "7_days", "30_days"], {
     required_error: "Duration is required",
     invalid_type_error: "Invalid duration",
   }),

@@ -70,6 +70,7 @@
 
   const durations = [
     {value: "1_day", label: "1 Day"},
+    {value: "3_days", label: "3 Days"},
     {value: "7_days", label: "7 Days"},
     {value: "30_days", label: "30 Days"},
   ];

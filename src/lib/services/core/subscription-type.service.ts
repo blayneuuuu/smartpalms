@@ -43,7 +43,7 @@ export class SubscriptionTypeService {
    */
   public static async create(data: {
     name: string;
-    duration: "1_day" | "7_days" | "30_days";
+    duration: "1_day" | "3_days" | "7_days" | "30_days";
     amount: number;
     isActive?: boolean;
   }): Promise<SubscriptionType> {
@@ -81,7 +81,7 @@ export class SubscriptionTypeService {
     id: string,
     data: {
       name?: string;
-      duration?: "1_day" | "7_days" | "30_days";
+      duration?: "1_day" | "3_days" | "7_days" | "30_days";
       amount?: number;
       isActive?: boolean;
     }

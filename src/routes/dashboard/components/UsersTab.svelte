@@ -47,7 +47,7 @@
         <TableHeadCell>Actions</TableHeadCell>
       </TableHead>
       <TableBody>
-        {#each $users as user}
+        {#each $users.filter(user => user.type !== "admin") as user}
           <TableBodyRow>
             <TableBodyCell class="font-medium">{user.name}</TableBodyCell>
             <TableBodyCell class="hidden sm:table-cell">
