@@ -3,6 +3,12 @@ import type {Handle} from "@sveltejs/kit";
 import {db} from "$lib/server/db";
 import {users} from "$lib/server/db/schema";
 import {eq} from "drizzle-orm";
+import {SubscriptionService} from "$lib/services/core/subscription.service";
+
+// Simple in-memory cache to rate-limit expiration checks
+// In a production environment, this should be replaced with a proper cache (Redis, etc.)
+const expirationCheckCache = new Map<string, number>();
+const EXPIRATION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export const handle: Handle = async ({event, resolve}) => {
   // Handle CORS for external API endpoints
@@ -63,6 +69,37 @@ export const handle: Handle = async ({event, resolve}) => {
       name: user.name,
       type: user.type,
     };
+
+    // Check for expired subscriptions and OTPs when a user is logged in
+    // Only check once every EXPIRATION_CHECK_INTERVAL per user
+    const now = Date.now();
+    const lastCheckTime = expirationCheckCache.get(user.id) || 0;
+
+    if (now - lastCheckTime > EXPIRATION_CHECK_INTERVAL) {
+      try {
+        // Set the cache now to avoid concurrent checks
+        expirationCheckCache.set(user.id, now);
+
+        // Check and update expired subscriptions for this user
+        const expiredSubCount =
+          await SubscriptionService.checkAndUpdateExpiredSubscriptions(user.id);
+        if (expiredSubCount > 0) {
+          console.log(
+            `Updated ${expiredSubCount} expired subscriptions for user ${user.id}`
+          );
+        }
+
+        // Clear expired OTPs
+        const expiredOTPCount =
+          await SubscriptionService.checkAndRemoveExpiredOTPs();
+        if (expiredOTPCount > 0) {
+          console.log(`Cleared ${expiredOTPCount} OTPs`);
+        }
+      } catch (error) {
+        console.error("Error checking expirations:", error);
+        // Continue with the request even if there was an error checking expirations
+      }
+    }
   }
 
   return await resolve(event);

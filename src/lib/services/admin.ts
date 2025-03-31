@@ -118,7 +118,14 @@ export async function fetchSubscriptionTypes() {
     console.log(
       "Service: Sending fetch request to /api/admin/subscription-types"
     );
-    const response = await fetch("/api/admin/subscription-types");
+    const response = await fetch("/api/admin/subscription-types", {
+      // Add cache-busting query parameter to prevent cached responses
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
     console.log("Service: Response received", {status: response.status});
 
     if (!response.ok) {
@@ -136,13 +143,22 @@ export async function fetchSubscriptionTypes() {
     }
 
     console.log(
-      `Service: Setting ${data.subscriptionTypes.length} subscription types to store`
+      `Service: Setting ${data.subscriptionTypes.length} subscription types to store`,
+      data.subscriptionTypes
     );
-    subscriptionTypes.set(data.subscriptionTypes);
+
+    // Clear the store first, then set the new data to ensure complete refresh
+    subscriptionTypes.set([]);
+    setTimeout(() => {
+      subscriptionTypes.set(data.subscriptionTypes);
+    }, 10);
+
     errors.update((e) => ({...e, subscriptionTypes: null}));
+    return data.subscriptionTypes;
   } catch (error) {
     console.error("Service: Error in fetchSubscriptionTypes", error);
     handleError("subscriptionTypes", error);
+    throw error;
   } finally {
     console.log("Service: Finished fetchSubscriptionTypes");
     setLoading("subscriptionTypes", false);
@@ -203,6 +219,7 @@ export async function processRequest(
 export async function createSubscriptionType(data: {
   name: string;
   duration: string;
+  size: string;
   amount: number;
 }) {
   try {
@@ -234,6 +251,7 @@ export async function updateSubscriptionType(
   data: {
     name: string;
     duration: string;
+    size: string;
     amount: number;
     isActive?: boolean;
   }
@@ -264,17 +282,36 @@ export async function updateSubscriptionType(
 // Delete subscription type
 export async function deleteSubscriptionType(id: string) {
   try {
+    console.log(
+      `[deleteSubscriptionType] Starting deletion of subscription type ${id}`
+    );
     const response = await fetch(`/api/admin/subscription-types/${id}`, {
       method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
+    console.log(`[deleteSubscriptionType] Response status: ${response.status}`);
+
+    const result = await response.json();
+    console.log(`[deleteSubscriptionType] Response data:`, result);
+
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.message || "Failed to delete subscription type");
+      console.error(`[deleteSubscriptionType] Error response:`, result);
+      throw new Error(result.message || "Failed to delete subscription type");
     }
 
+    console.log(
+      `[deleteSubscriptionType] Successfully deleted, now fetching updated list`
+    );
     await fetchSubscriptionTypes();
+    console.log(
+      `[deleteSubscriptionType] Updated subscription types list after deletion`
+    );
+    return result;
   } catch (error) {
+    console.error(`[deleteSubscriptionType] Exception caught:`, error);
     handleError("subscriptionTypes", error);
     throw error;
   }

@@ -11,6 +11,10 @@ const subscriptionTypeSchema = z.object({
     required_error: "Duration is required",
     invalid_type_error: "Invalid duration",
   }),
+  size: z.enum(["small", "medium", "large"], {
+    required_error: "Size is required",
+    invalid_type_error: "Invalid size",
+  }),
   amount: z.number().min(0, "Amount must be greater than or equal to 0"),
 });
 
@@ -67,7 +71,7 @@ export const POST: RequestHandler = async ({request, locals}) => {
       return json({message: errors[0].message}, {status: 400});
     }
 
-    const {name, duration, amount} = result.data;
+    const {name, duration, size, amount} = result.data;
 
     // Check if subscription type with same name exists
     const [existingType] = await db
@@ -89,6 +93,7 @@ export const POST: RequestHandler = async ({request, locals}) => {
         id: crypto.randomUUID(),
         name,
         duration,
+        size,
         amount,
         isActive: true,
       })

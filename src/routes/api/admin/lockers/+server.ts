@@ -3,7 +3,6 @@ import type {RequestHandler} from "./$types";
 import {db} from "$lib/server/db";
 import {lockers, users} from "$lib/server/db/schema";
 import {eq} from "drizzle-orm";
-import {randomUUID} from "crypto";
 
 const VALID_SIZES = ["small", "medium", "large"] as const;
 type LockerSize = (typeof VALID_SIZES)[number];
@@ -49,6 +48,8 @@ export const POST: RequestHandler = async ({locals, request}) => {
     const body = await request.json();
     const {number, size} = body;
 
+    console.log("Received locker creation request:", {number, size});
+
     if (!number || typeof number !== "string") {
       return json({message: "Invalid locker number"}, {status: 400});
     }
@@ -64,21 +65,28 @@ export const POST: RequestHandler = async ({locals, request}) => {
       .where(eq(lockers.number, number));
 
     if (existingLocker) {
+      console.log("Locker with this number already exists:", number);
       return json(
         {message: "Locker with this number already exists"},
         {status: 400}
       );
     }
 
+    // Generate a UUID
+    const id = crypto.randomUUID();
+    console.log("Generated UUID for new locker:", id);
+
     // Create new locker
-    await db.insert(lockers).values({
-      id: randomUUID(),
+    const result = await db.insert(lockers).values({
+      id,
       number,
       size: size as LockerSize,
       isOccupied: false,
     });
 
-    return json({success: true});
+    console.log("Locker created successfully:", result);
+
+    return json({success: true, id});
   } catch (error) {
     console.error("Error creating locker:", error);
     if (error instanceof Error) {

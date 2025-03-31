@@ -17,6 +17,7 @@
   } from "flowbite-svelte";
   import {formatDate, formatTimestamp} from "$lib/utils/date";
   import {goto} from "$app/navigation";
+  import {ClipboardSolid, ClipboardCheckSolid} from "flowbite-svelte-icons";
   
   // Import shared components
   import DashboardLayout from "$lib/components/layouts/DashboardLayout.svelte";
@@ -34,6 +35,7 @@
   let loading = $state(false);
   let error = $state<string | null>(null);
   let otpMap = $state<Record<string, {otp: string; expiryDate: string}>>({});
+  let copiedOtps = $state<Record<string, boolean>>({});
 
   type LockerData = {
     subscriptionsCount: number;
@@ -162,6 +164,19 @@
     });
   }
 
+  async function copyToClipboard(otp: string, lockerId: string) {
+    try {
+      await navigator.clipboard.writeText(otp);
+      copiedOtps[lockerId] = true;
+      setTimeout(() => {
+        copiedOtps[lockerId] = false;
+        copiedOtps = {...copiedOtps}; // Trigger reactivity
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  }
+
   // Call fetchLockerData and fetchAccessHistory when the component mounts
   $effect(() => {
     if (userData.id) {
@@ -274,7 +289,18 @@
                           <Alert color="green" class="mb-2">
                             <div class="flex flex-col items-center">
                               <span class="text-sm mb-1">Your OTP code:</span>
-                              <span class="text-2xl font-bold tracking-widest">{otpMap[subscription.lockerId].otp}</span>
+                              <div class="flex items-center">
+                                <span class="text-2xl font-bold tracking-widest">{otpMap[subscription.lockerId].otp}</span>
+                                <Button size="xs" class="ml-2" color={copiedOtps[subscription.lockerId] ? "green" : "light"} on:click={() => copyToClipboard(otpMap[subscription.lockerId].otp, subscription.lockerId)}>
+                                  {#if copiedOtps[subscription.lockerId]}
+                                    <ClipboardCheckSolid class="w-4 h-4 mr-1" />
+                                    Copied!
+                                  {:else}
+                                    <ClipboardSolid class="w-4 h-4 mr-1" />
+                                    Copy
+                                  {/if}
+                                </Button>
+                              </div>
                               <span class="text-xs mt-1">
                                 Valid until: {formatDate(otpMap[subscription.lockerId].expiryDate, true)}
                               </span>

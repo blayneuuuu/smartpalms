@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { Button, Input, Alert } from 'flowbite-svelte';
+  import { Button, Input, Alert, Spinner } from 'flowbite-svelte';
   import { enhance } from '$app/forms';
   import type { ActionData } from './$types';
 
   export let form: ActionData;
   let email = '';
+  let loading = false;
 </script>
 
 <div class="flex-grow flex items-center justify-center w-full z-10">
@@ -21,6 +22,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
           <p class="mb-4">Please check your email inbox for the verification link.</p>
+          <p class="mb-4 text-orange-700 text-sm italic">If you don't see the email in your inbox, please check your spam or junk folder.</p>
           <a href="/">
             <Button class="bg-black text-white rounded-full">Return to Login</Button>
           </a>
@@ -32,7 +34,13 @@
           {form.error}
         </Alert>
       {/if}
-      <form method="POST" use:enhance class="space-y-4 p-6">
+      <form method="POST" use:enhance={() => {
+        loading = true;
+        return async ({ update }) => {
+          loading = false;
+          update();
+        };
+      }} class="space-y-4 p-6">
         <div>
           <p class="mb-4 text-gray-700">
             Enter your email address and we'll send a new verification link.
@@ -47,7 +55,14 @@
             bind:value={email}
           />
         </div>
-        <Button type="submit" class="w-full bg-black text-white rounded-full">Send Verification Link</Button>
+        <Button type="submit" class="w-full bg-black text-white rounded-full" disabled={loading}>
+          {#if loading}
+            <Spinner class="mr-2" size="4" color="white" />
+            Sending...
+          {:else}
+            Send Verification Link
+          {/if}
+        </Button>
       </form>
       <div class="border-t border-black p-4 text-center">
         <p class="text-sm text-gray-600">

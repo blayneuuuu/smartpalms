@@ -23,25 +23,35 @@
   </Alert>
 {/if}
 
-<div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3 md:gap-4 mb-4">
   <StatsCard
-    title="Total Lockers"
-    value={stats.totalLockers}
+    title="Pending Requests"
+    value={stats.pendingRequests}
     loading={loading}
+    color="orange-500"
+  />
+  <StatsCard
+    title="Available Lockers"
+    value={stats.totalLockers - stats.occupiedLockers}
+    loading={loading}
+    color="green-500"
   />
   <StatsCard
     title="Occupied Lockers"
     value={stats.occupiedLockers}
     loading={loading}
+    color="blue-500"
+  />
+  <StatsCard
+    title="Total Lockers"
+    value={stats.totalLockers}
+    loading={loading}
+    color="purple-500"
   />
   <StatsCard
     title="Total Users"
     value={stats.totalUsers}
     loading={loading}
-  />
-  <StatsCard
-    title="Pending Requests"
-    value={stats.pendingRequests}
-    loading={loading}
+    color="red-500"
   />
 </div> 

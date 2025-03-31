@@ -1,10 +1,26 @@
 <script lang="ts">
-  import { Alert, Button, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Table } from 'flowbite-svelte';
+  import { Alert, Button, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Table, Spinner } from 'flowbite-svelte';
   import { enhance } from '$app/forms';
   import type { PageData, ActionData } from './$types';
 
   export let data: PageData;
   export let form: ActionData;
+  
+  // Track loading state for each user
+  let loadingUsers = new Map<string, boolean>();
+  
+  function handleSubmit(userId: string) {
+    return () => {
+      loadingUsers.set(userId, true);
+      loadingUsers = loadingUsers; // Force reactivity update
+      
+      return async ({ update }: { update: () => Promise<void> }) => {
+        loadingUsers.set(userId, false);
+        loadingUsers = loadingUsers; // Force reactivity update
+        update();
+      };
+    };
+  }
 </script>
 
 <div class="container mx-auto p-4">
@@ -38,9 +54,16 @@
               <TableBodyCell>{new Date(user.createdAt).toLocaleString()}</TableBodyCell>
               <TableBodyCell>{new Date(user.tokenExpiry).toLocaleString()}</TableBodyCell>
               <TableBodyCell>
-                <form method="POST" use:enhance>
+                <form method="POST" use:enhance={handleSubmit(user.id)}>
                   <input type="hidden" name="userId" value={user.id} />
-                  <Button type="submit" color="green" size="xs">Verify User</Button>
+                  <Button type="submit" color="green" size="xs" disabled={loadingUsers.get(user.id)}>
+                    {#if loadingUsers.get(user.id)}
+                      <Spinner size="3" color="white" class="mr-1" />
+                      Verifying...
+                    {:else}
+                      Verify User
+                    {/if}
+                  </Button>
                 </form>
               </TableBodyCell>
             </TableBodyRow>

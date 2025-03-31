@@ -7,7 +7,6 @@
   import LockersTab from "./components/LockersTab.svelte";
   import UsersTab from "./components/UsersTab.svelte";
   import SubscriptionTypesTab from "./components/SubscriptionTypesTab.svelte";
-  import SubscriptionsTab from "./components/SubscriptionsTab.svelte";
   import { stats, loading, errors } from "$lib/stores/admin";
   import {
     fetchDashboardStats,
@@ -110,6 +109,59 @@
   function handleRetry() {
     fetchDashboardStats();
   }
+
+  async function syncLockerOwnershipWithSubscription(lockerId: string, userId: string) {
+    // Check if locker exists
+    const locker = await db.query.lockers.findFirst({
+      where: eq(lockers.id, lockerId)
+    });
+    
+    if (!locker) return { success: false, message: 'Locker not found' };
+    
+    // Update locker ownership
+    await db.update(lockers)
+      .set({ userId: userId, isOccupied: !!userId })
+      .where(eq(lockers.id, lockerId));
+    
+    // If assigning to a user (not removing)
+    if (userId) {
+      // Check for existing subscription
+      const existingSubscription = await db.query.subscriptions.findFirst({
+        where: and(
+          eq(subscriptions.lockerId, lockerId),
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.status, 'active')
+        )
+      });
+      
+      // If no active subscription exists, create one
+      if (!existingSubscription) {
+        // Set expiry 30 days from now by default
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        
+        await db.insert(subscriptions).values({
+          id: crypto.randomUUID(),
+          userId: userId,
+          lockerId: lockerId,
+          status: 'active',
+          expiresAt: expiryDate.toISOString(),
+        });
+      }
+    } else {
+      // If removing user from locker, cancel any active subscriptions
+      await db.update(subscriptions)
+        .set({ status: 'cancelled' })
+        .where(
+          and(
+            eq(subscriptions.lockerId, lockerId),
+            eq(subscriptions.status, 'active')
+          )
+        );
+    }
+    
+    return { success: true };
+  }
 </script>
 
 <DashboardLayout title="Admin Dashboard" userName={userData.name} userType="admin">
@@ -141,19 +193,13 @@
         </div>
       </TabItem>
 
-      <TabItem title="Subscriptions" class="text-xs sm:text-sm md:text-base">
-        <div class="p-1 sm:p-2 md:p-4">
-          <SubscriptionsTab />
-        </div>
-      </TabItem>
-
-      <TabItem title="Sub. Types" id="subscription-types" class="text-xs sm:text-sm md:text-base hidden sm:block">
+      <TabItem title="Plans" id="subscription-types" class="text-xs sm:text-sm md:text-base hidden sm:block">
         <div class="p-1 sm:p-2 md:p-4">
           <SubscriptionTypesTab />
         </div>
       </TabItem>
       
-      <TabItem title="Types" id="subscription-types" class="text-xs sm:text-sm md:text-base sm:hidden">
+      <TabItem title="Plans" id="subscription-types" class="text-xs sm:text-sm md:text-base sm:hidden">
         <div class="p-1 sm:p-2 md:p-4">
           <SubscriptionTypesTab />
         </div>

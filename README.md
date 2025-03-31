@@ -139,6 +139,7 @@ npm run test:e2e
 # Run all tests
 npm run test
 ```
+
 ## 🙏 Acknowledgements
 
 - [SvelteKit](https://kit.svelte.dev/)

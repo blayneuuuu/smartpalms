@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { Button, Input, Alert } from 'flowbite-svelte';
+  import { Button, Input, Alert, Spinner } from 'flowbite-svelte';
   import { enhance } from '$app/forms';
   import type { ActionData } from './$types';
   import { goto } from '$app/navigation';
 
   export let form: ActionData;
   let token = '';
+  let loading = false;
   
   function goToLogin() {
     goto('/');
@@ -35,7 +36,13 @@
           {form.error}
         </Alert>
       {/if}
-      <form method="POST" use:enhance class="space-y-4 p-6">
+      <form method="POST" use:enhance={() => {
+        loading = true;
+        return async ({ update }) => {
+          loading = false;
+          update();
+        };
+      }} class="space-y-4 p-6">
         <div>
           <p class="mb-4 text-gray-700">
             Enter your verification token below. This token was sent to your email when you registered.
@@ -50,7 +57,14 @@
             bind:value={token}
           />
         </div>
-        <Button type="submit" class="w-full bg-black text-white rounded-full">Verify Account</Button>
+        <Button type="submit" class="w-full bg-black text-white rounded-full" disabled={loading}>
+          {#if loading}
+            <Spinner class="mr-2" size="4" color="white" />
+            Verifying...
+          {:else}
+            Verify Account
+          {/if}
+        </Button>
       </form>
       <div class="border-t border-black p-4 text-center">
         <p class="text-sm text-gray-600">

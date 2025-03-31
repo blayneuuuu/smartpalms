@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button, Input, Label, Alert } from 'flowbite-svelte';
+	import { Button, Input, Label, Alert, Spinner } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
-	import type { PageData } from './$types';
+	import type { PageData, ActionData } from './$types';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -12,6 +12,7 @@
 	let newPassword = '';
 	let confirmPassword = '';
 	let showPasswordFields = false;
+	let loading = false;
 </script>
 
 <div class="min-h-screen bg-gray-50 py-12">
@@ -29,7 +30,13 @@
 				</Alert>
 			{/if}
 
-			<form method="POST" use:enhance class="space-y-6">
+			<form method="POST" use:enhance={() => {
+				loading = true;
+				return async ({ update }) => {
+					loading = false;
+					update();
+				};
+			}} class="space-y-6">
 				<div>
 					<Label for="name">Full Name</Label>
 					<Input type="text" id="name" name="name" required bind:value={name} />
@@ -87,7 +94,14 @@
 
 				<div class="flex justify-end space-x-4">
 					<Button href="/dashboard" color="light">Cancel</Button>
-					<Button type="submit">Save Changes</Button>
+					<Button type="submit" disabled={loading}>
+						{#if loading}
+							<Spinner class="mr-2" size="4" color="white" />
+							Saving...
+						{:else}
+							Save Changes
+						{/if}
+					</Button>
 				</div>
 			</form>
 		</div>

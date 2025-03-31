@@ -43,7 +43,6 @@
       <TableHead>
         <TableHeadCell>Name</TableHeadCell>
         <TableHeadCell class="hidden sm:table-cell">Email</TableHeadCell>
-        <TableHeadCell>Type</TableHeadCell>
         <TableHeadCell class="hidden md:table-cell">Created At</TableHeadCell>
         <TableHeadCell>Actions</TableHeadCell>
       </TableHead>
@@ -53,11 +52,6 @@
             <TableBodyCell class="font-medium">{user.name}</TableBodyCell>
             <TableBodyCell class="hidden sm:table-cell">
               <span class="truncate max-w-[150px] md:max-w-none block">{user.email}</span>
-            </TableBodyCell>
-            <TableBodyCell>
-              <Badge color={user.type === "admin" ? "red" : "blue"}>
-                {user.type}
-              </Badge>
             </TableBodyCell>
             <TableBodyCell class="hidden md:table-cell">{formatDate(user.createdAt, true)}</TableBodyCell>
             <TableBodyCell>
@@ -89,12 +83,6 @@
           <div>
             <p class="text-sm text-gray-500">Email</p>
             <p class="font-medium break-words">{selectedUser.email}</p>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">Type</p>
-            <Badge color={selectedUser.type === "admin" ? "red" : "blue"}>
-              {selectedUser.type}
-            </Badge>
           </div>
           <div>
             <p class="text-sm text-gray-500">Created At</p>

@@ -2,14 +2,19 @@ import {json} from "@sveltejs/kit";
 import type {RequestHandler} from "./$types";
 import {db} from "$lib/server/db";
 import {subscriptionTypes} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import {eq, and} from "drizzle-orm";
 import {z} from "zod";
+import {lockerRequests} from "$lib/server/db/schema";
 
 const subscriptionTypeSchema = z.object({
   name: z.string().min(1, "Name is required"),
   duration: z.enum(["1_day", "7_days", "30_days"], {
     required_error: "Duration is required",
     invalid_type_error: "Invalid duration",
+  }),
+  size: z.enum(["small", "medium", "large"], {
+    required_error: "Size is required",
+    invalid_type_error: "Invalid size",
   }),
   amount: z.number().min(0, "Amount must be greater than or equal to 0"),
   isActive: z.boolean().optional(),
@@ -37,7 +42,7 @@ export const PUT: RequestHandler = async ({request, locals, params}) => {
       return json({message: errors[0].message}, {status: 400});
     }
 
-    const {name, duration, amount} = result.data;
+    const {name, duration, size, amount} = result.data;
 
     // Check if subscription type exists
     const [existingType] = await db
@@ -76,6 +81,7 @@ export const PUT: RequestHandler = async ({request, locals, params}) => {
       .set({
         name,
         duration,
+        size,
         amount,
         isActive,
       })
@@ -113,15 +119,56 @@ export const DELETE: RequestHandler = async ({locals, params}) => {
       return json({message: "Subscription type not found"}, {status: 404});
     }
 
-    // Soft delete by setting isActive to false
-    await db
-      .update(subscriptionTypes)
-      .set({isActive: false})
-      .where(eq(subscriptionTypes.id, id));
+    // Check if there are any pending requests using this subscription type
+    const pendingRequests = await db
+      .select()
+      .from(lockerRequests)
+      .where(
+        and(
+          eq(lockerRequests.subscriptionTypeId, id),
+          eq(lockerRequests.status, "pending")
+        )
+      );
 
-    return json({success: true});
+    if (pendingRequests.length > 0) {
+      return json(
+        {
+          message: "Cannot delete subscription type with pending requests",
+          pending: pendingRequests.length,
+        },
+        {status: 400}
+      );
+    }
+
+    // First delete any related locker requests
+    const deletedRequests = await db
+      .delete(lockerRequests)
+      .where(eq(lockerRequests.subscriptionTypeId, id))
+      .returning();
+
+    console.log(`Deleted ${deletedRequests.length} related locker requests`);
+
+    // Now delete the subscription type
+    const deletedTypes = await db
+      .delete(subscriptionTypes)
+      .where(eq(subscriptionTypes.id, id))
+      .returning();
+
+    console.log(`Deleted subscription type:`, deletedTypes[0]);
+
+    return json({
+      success: true,
+      message: "Subscription type deleted successfully",
+      id,
+    });
   } catch (err) {
     console.error("Error deleting subscription type:", err);
-    return json({message: "Failed to delete subscription type"}, {status: 500});
+    return json(
+      {
+        message: "Failed to delete subscription type",
+        error: err instanceof Error ? err.message : "Unknown error",
+      },
+      {status: 500}
+    );
   }
 };

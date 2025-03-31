@@ -149,6 +149,9 @@ export const subscriptionTypes = sqliteTable(
     duration: text("duration", {
       enum: ["1_day", "7_days", "30_days"],
     }).notNull(),
+    size: text("size", {enum: ["small", "medium", "large"]})
+      .notNull()
+      .default("small"),
     amount: integer("amount").notNull(), // Amount in cents (e.g., 5000 for 50 PHP)
     isActive: integer("is_active", {mode: "boolean"}).notNull().default(true),
     createdAt: integer("created_at", {mode: "timestamp"})
@@ -157,6 +160,7 @@ export const subscriptionTypes = sqliteTable(
   },
   (table) => ({
     durationIdx: index("duration_idx").on(table.duration),
+    sizeIdx: index("size_idx").on(table.size),
   })
 );
 

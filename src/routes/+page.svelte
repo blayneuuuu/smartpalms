@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Input, Alert } from 'flowbite-svelte';
+	import { Button, Input, Alert, Spinner } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
 	import { goto } from '$app/navigation';
@@ -9,6 +9,7 @@
 	let email = '';
 	let password = '';
 	let passwordVisible = false;
+	let loading = false;
 	
 	// If form has success and redirect property, navigate to the redirect URL
 	$: if (form?.success && form?.redirect) {
@@ -29,7 +30,13 @@
 				{/if}
 			</Alert>
 		{/if}
-		<form method="POST" use:enhance class="space-y-4 p-6">
+		<form method="POST" use:enhance={() => {
+			loading = true;
+			return async ({ update }) => {
+				loading = false;
+				update();
+			};
+		}} class="space-y-4 p-6">
 			<div>
 				<Input
 					class="bg-orange-500 border-none rounded-full text-black placeholder-black"
@@ -80,7 +87,14 @@
 					</div>
 				</div>
 			</div>
-			<Button type="submit" class="w-full bg-black text-white rounded-full">Sign In</Button>
+			<Button type="submit" class="w-full bg-black text-white rounded-full" disabled={loading}>
+				{#if loading}
+					<Spinner class="mr-2" size="4" color="white" />
+					Signing In...
+				{:else}
+					Sign In
+				{/if}
+			</Button>
 		</form>
 		<div class="border-t border-black p-4 text-center">
 			<p class="text-sm text-gray-600">

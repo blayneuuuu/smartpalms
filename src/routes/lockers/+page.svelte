@@ -1,16 +1,7 @@
 <!-- routes/lockers/+page.svelte -->
 <script lang="ts">
     import type { Locker } from '$lib/server/db/schema';
-    import {
-        Button,
-        Card,
-        Label,
-        Input,
-        Alert,
-        Modal,
-        Select,
-        Badge
-    } from 'flowbite-svelte';
+    import { Button, Card, Label, Input, Alert, Modal, Select, Badge } from 'flowbite-svelte';
 
     type LockerWithAvailability = Locker & {
         isAvailable: boolean;
@@ -144,82 +135,76 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
         <h1 class="text-2xl font-bold text-center mb-4 sm:mb-0">Available Lockers</h1>
-        <Button href="/dashboard" color="blue">
-            Back to Dashboard
-        </Button>
+        <Button href="/dashboard" color="blue">Back to Dashboard</Button>
     </div>
 
     <!-- Error message -->
     {#if data.error}
-        <Alert color="red" class="mb-8">
-            {data.error}
-        </Alert>
+        <Alert color="red" class="mb-8">{data.error}</Alert>
     {/if}
 
     <!-- Lockers grid -->
     {#if data.lockers}
         {@const lockersBySize = getLockersBySize()}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="flex flex-col lg:flex-row justify-center gap-20">
             <!-- Small lockers -->
-            <div>
-                <h2 class="text-xl font-semibold mb-4">Small Lockers ({lockersBySize.small.length})</h2>
-                <div class="space-y-4">
-                    {#each lockersBySize.small as locker}
-                        <Card padding="sm" class="transition-all hover:shadow-md">
-                            <div class="text-lg font-medium">Locker #{locker.number}</div>
-                            <div class="text-sm text-gray-600">Size: {locker.size}</div>
-                            <div class="mt-2 flex items-center justify-between">
-                                <Badge
-                                    color={locker.hasPendingRequest ? 'yellow' : locker.isAvailable ? 'green' : 'red'}
-                                >
-                                    {#if locker.hasPendingRequest}
-                                        Pending Request
-                                    {:else if locker.isAvailable}
-                                        Available
-                                    {:else}
-                                        Occupied
+            <div class="flex flex-col h-full w-50">
+                <h2 class="text-xl font-semibold mb-4">Small Lockers (12" H x 16" W x 16" D)</h2>
+                {#if lockersBySize.small.length > 0}
+                    <div class="space-y-4 flex-grow">
+                        {#each lockersBySize.small as locker}
+                            <Card padding="sm" class="transition-all hover:shadow-md">
+                                <div class="text-lg font-medium">Locker #{locker.number}</div>
+                                <div class="mt-2 flex items-center justify-between">
+                                    <Badge color={locker.hasPendingRequest ? 'yellow' : locker.isAvailable ? 'green' : 'red'}>
+                                        {#if locker.hasPendingRequest}
+                                            Pending Request
+                                        {:else if locker.isAvailable}
+                                            Available
+                                        {:else}
+                                            Occupied
+                                        {/if}
+                                    </Badge>
+                                    {#if locker.isAvailable && !locker.hasPendingRequest}
+                                        <Button color="light" on:click={() => openRentDialog(locker)}>Rent</Button>
                                     {/if}
-                                </Badge>
-                                {#if locker.isAvailable && !locker.hasPendingRequest}
-                                    <Button color="light" on:click={() => openRentDialog(locker)}>
-                                        Rent
-                                    </Button>
-                                {/if}
-                            </div>
-                        </Card>
-                    {/each}
-                </div>
+                                </div>
+                            </Card>
+                        {/each}
+                    </div>
+                {:else}
+                    <p class="text-gray-500 italic">No small lockers available</p>
+                {/if}
             </div>
 
             <!-- Large lockers -->
-            <div>
-                <h2 class="text-xl font-semibold mb-4">Large Lockers ({lockersBySize.large.length})</h2>
-                <div class="space-y-4">
-                    {#each lockersBySize.large as locker}
-                        <Card padding="sm" class="transition-all hover:shadow-md">
-                            <div class="text-lg font-medium">Locker #{locker.number}</div>
-                            <div class="text-sm text-gray-600">Size: {locker.size}</div>
-                            <div class="mt-2 flex items-center justify-between">
-                                <Badge
-                                    color={locker.hasPendingRequest ? 'yellow' : locker.isAvailable ? 'green' : 'red'}
-                                >
-                                    {#if locker.hasPendingRequest}
-                                        Pending Request
-                                    {:else if locker.isAvailable}
-                                        Available
-                                    {:else}
-                                        Occupied
+            <div class="flex flex-col h-full w-50">
+                <h2 class="text-xl font-semibold mb-4">Large Lockers (24" H x 16" W x 16" D):</h2>
+                {#if lockersBySize.large.length > 0}
+                    <div class="space-y-4 flex-grow">
+                        {#each lockersBySize.large as locker}
+                            <Card padding="sm" class="transition-all hover:shadow-md">
+                                <div class="text-lg font-medium">Locker #{locker.number}</div>
+                                <div class="mt-2 flex items-center justify-between">
+                                    <Badge color={locker.hasPendingRequest ? 'yellow' : locker.isAvailable ? 'green' : 'red'}>
+                                        {#if locker.hasPendingRequest}
+                                            Pending Request
+                                        {:else if locker.isAvailable}
+                                            Available
+                                        {:else}
+                                            Occupied
+                                        {/if}
+                                    </Badge>
+                                    {#if locker.isAvailable && !locker.hasPendingRequest}
+                                        <Button color="light" on:click={() => openRentDialog(locker)}>Rent</Button>
                                     {/if}
-                                </Badge>
-                                {#if locker.isAvailable && !locker.hasPendingRequest}
-                                    <Button color="light" on:click={() => openRentDialog(locker)}>
-                                        Rent
-                                    </Button>
-                                {/if}
-                            </div>
-                        </Card>
-                    {/each}
-                </div>
+                                </div>
+                            </Card>
+                        {/each}
+                    </div>
+                {:else}
+                    <p class="text-gray-500 italic">No large lockers available</p>
+                {/if}
             </div>
         </div>
     {/if}
@@ -228,18 +213,12 @@
 <!-- Rent Dialog -->
 <Modal bind:open={showRentDialog} size="md" autoclose>
     <div class="text-center">
-        <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-            Rent Locker #{selectedLocker?.number}
-        </h3>
-        <p class="mb-5 text-sm text-gray-500">
-            Select a subscription plan and upload your proof of payment.
-        </p>
+        <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Rent Locker #{selectedLocker?.number}</h3>
+        <p class="mb-5 text-sm text-gray-500">Select a subscription plan and upload your proof of payment.</p>
     </div>
 
     {#if error}
-        <Alert color="red" class="mb-4">
-            {error}
-        </Alert>
+        <Alert color="red" class="mb-4">{error}</Alert>
     {/if}
 
     <div class="grid gap-4 py-4">
@@ -253,41 +232,27 @@
             <Label for="plan">Subscription Plan</Label>
             <Select id="plan" bind:value={selectedSubscriptionType}>
                 <option value="">Select a plan</option>
-                {#each data.subscriptionTypes as type}
-                    <option value={type.id}>
-                        {type.name} - ₱{type.amount} ({type.duration})
-                    </option>
+                {#each data.subscriptionTypes.filter(type => !selectedLocker || type.size === selectedLocker.size) as type}
+                    <option value={type.id}>{type.name} - ₱{type.amount} ({type.duration})</option>
                 {/each}
             </Select>
+            {#if selectedLocker}
+                <p class="text-xs text-gray-500 mt-1">Showing plans for {selectedLocker.size} lockers only</p>
+            {/if}
         </div>
 
         <!-- Proof of Payment -->
         <div class="grid gap-2">
             <Label for="proof">Proof of Payment</Label>
-            <Input
-                id="proof"
-                type="file"
-                accept="image/*"
-                on:change={handleFileChange}
-            />
+            <Input id="proof" type="file" accept="image/*" on:change={handleFileChange} />
             <p class="text-sm text-gray-500">Upload a screenshot or photo of your payment receipt (Max 5MB)</p>
         </div>
     </div>
 
     <div class="flex justify-end gap-4">
-        <Button color="alternative" on:click={closeRentDialog}>
-            Cancel
-        </Button>
-        <Button
-            color="blue"
-            disabled={!selectedSubscriptionType || !proofOfPaymentBase64 || loading}
-            on:click={handleSubmit}
-        >
-            {#if loading}
-                <span class="mr-2">Processing...</span>
-            {:else}
-                Submit Request
-            {/if}
+        <Button color="alternative" on:click={closeRentDialog}>Cancel</Button>
+        <Button color="blue" disabled={!selectedSubscriptionType || !proofOfPaymentBase64 || loading} on:click={handleSubmit}>
+            {#if loading}<span class="mr-2">Processing...</span>{:else}Submit Request{/if}
         </Button>
     </div>
 </Modal>

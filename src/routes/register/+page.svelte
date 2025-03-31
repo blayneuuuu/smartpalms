@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Input, Label, Alert } from 'flowbite-svelte';
+	import { Button, Input, Label, Alert, Spinner } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
 
@@ -12,6 +12,7 @@
 	let passwordVisible = false;
 	let confirmPasswordVisible = false;
 	let registrationSuccess = false;
+	let loading = false;
 </script>
 
 <div class="flex-grow flex items-center justify-center w-full z-10">
@@ -28,6 +29,7 @@
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 					</svg>
 					<p class="mb-4">We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.</p>
+					<p class="mb-4 text-orange-700 text-sm italic">If you don't see the email in your inbox, please check your spam or junk folder.</p>
 					<div class="flex flex-col space-y-2">
 						<a href="/">
 							<Button class="w-full bg-black text-white rounded-full">Return to Login</Button>
@@ -44,7 +46,13 @@
 					{form.error}
 				</Alert>
 			{/if}
-			<form method="POST" use:enhance class="space-y-4 p-6">
+			<form method="POST" use:enhance={() => {
+				loading = true;
+				return async ({ update }) => {
+					loading = false;
+					update();
+				};
+			}} class="space-y-4 p-6">
 				<div>
 					<Label for="name" class="mb-2">Name</Label>
 					<Input
@@ -131,7 +139,14 @@
 						</button>
 					</div>
 				</div>
-				<Button type="submit" class="w-full bg-black text-white rounded-full">Create Account</Button>
+				<Button type="submit" class="w-full bg-black text-white rounded-full" disabled={loading}>
+					{#if loading}
+						<Spinner class="mr-2" size="4" color="white" />
+						Creating Account...
+					{:else}
+						Create Account
+					{/if}
+				</Button>
 			</form>
 			<div class="border-t border-black p-4 text-center">
 				<p class="text-sm text-gray-600">

@@ -15,10 +15,29 @@ export const GET: RequestHandler = async ({locals}) => {
 
     // Get total lockers count
     const totalLockers = await db.select().from(lockers);
+    console.log(
+      "Debug - All lockers:",
+      totalLockers.map((l) => ({
+        id: l.id,
+        number: l.number,
+        isOccupied: l.isOccupied,
+        userId: l.userId,
+      }))
+    );
 
     // Get occupied lockers count
     const occupiedLockers = totalLockers.filter(
       (locker) => locker.isOccupied === true
+    );
+    console.log("Debug - Occupied lockers count:", occupiedLockers.length);
+    console.log(
+      "Debug - Occupied locker details:",
+      occupiedLockers.map((l) => ({
+        id: l.id,
+        number: l.number,
+        isOccupied: l.isOccupied,
+        userId: l.userId,
+      }))
     );
 
     // Get total users count (excluding admins)
