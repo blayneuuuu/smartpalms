@@ -1,17 +1,17 @@
-import type {RequestEvent} from "@sveltejs/kit";
-import {ZodSchema} from "zod";
-import {APIErrors} from "./errors";
+import type { RequestEvent } from "@sveltejs/kit";
+import { ZodSchema } from "zod";
+import { APIErrors } from "./errors";
 
 export async function validateRequest<T>(
   event: RequestEvent,
-  schema: ZodSchema<T>
+  schema: ZodSchema<T>,
 ): Promise<T> {
   try {
     const body = await event.request.json();
     const result = schema.safeParse(body);
 
     if (!result.success) {
-      const {errors} = result.error;
+      const { errors } = result.error;
       throw APIErrors.VALIDATION.INVALID_REQUEST(errors[0].message);
     }
 

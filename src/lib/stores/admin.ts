@@ -5,6 +5,7 @@ import type {
   LockerRequest,
   SubscriptionType,
   Transaction,
+  AccessHistory,
 } from "$lib/server/db/schema";
 
 // Types
@@ -32,13 +33,27 @@ export type AdminTransaction = Transaction & {
   subscriptionName: string;
 };
 
+export type AdminAccessHistory = {
+  id: string;
+  lockerId: string;
+  lockerNumber: string;
+  userId: string | null;
+  userName: string | null;
+  userEmail: string | null;
+  accessType: "otp" | "subscription";
+  otp: string | null;
+  status: "success" | "failed";
+  accessedAt: number;
+};
+
 export type StoreKey =
   | "stats"
   | "requests"
   | "lockers"
   | "users"
   | "subscriptionTypes"
-  | "transactions";
+  | "transactions"
+  | "accessHistory";
 
 // Stores
 export const stats = writable<DashboardStats>({
@@ -68,6 +83,7 @@ function createSubscriptionTypesStore() {
 
 export const subscriptionTypes = createSubscriptionTypesStore();
 export const transactions = writable<AdminTransaction[]>([]);
+export const accessHistory = writable<AdminAccessHistory[]>([]);
 
 // Loading states
 export const loading = writable<Record<StoreKey, boolean>>({
@@ -77,6 +93,7 @@ export const loading = writable<Record<StoreKey, boolean>>({
   users: false,
   subscriptionTypes: false,
   transactions: false,
+  accessHistory: false,
 });
 
 // Error states
@@ -87,4 +104,5 @@ export const errors = writable<Record<StoreKey, string | null>>({
   users: null,
   subscriptionTypes: null,
   transactions: null,
+  accessHistory: null,
 });

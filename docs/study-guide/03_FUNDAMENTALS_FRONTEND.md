@@ -181,11 +181,11 @@ src/routes/
 
 ```typescript
 // src/routes/dashboard/+layout.ts
-import {redirect} from "@sveltejs/kit";
-import type {LayoutLoad} from "./$types";
+import { redirect } from "@sveltejs/kit";
+import type { LayoutLoad } from "./$types";
 
-export const load: LayoutLoad = async ({parent}) => {
-  const {user} = await parent();
+export const load: LayoutLoad = async ({ parent }) => {
+  const { user } = await parent();
 
   if (!user) {
     throw redirect(303, "/auth/sign-in");
@@ -280,18 +280,18 @@ export const load: LayoutLoad = async ({parent}) => {
 
 ```typescript
 // src/lib/components/ui/index.ts
-export {default as Button} from "./Button.svelte";
-export {default as Card} from "./Card.svelte";
-export {default as Input} from "./Input.svelte";
-export {default as Select} from "./Select.svelte";
-export {default as Spinner} from "./Spinner.svelte";
+export { default as Button } from "./Button.svelte";
+export { default as Card } from "./Card.svelte";
+export { default as Input } from "./Input.svelte";
+export { default as Select } from "./Select.svelte";
+export { default as Spinner } from "./Spinner.svelte";
 ```
 
 ### Styling with Tailwind
 
 ```typescript
 // tailwind.config.js
-import {fontFamily} from "tailwindcss/defaultTheme";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -357,7 +357,7 @@ export default {
 // src/routes/dashboard/+page.ts
 export const load = async () => {
   // Dynamic imports for code splitting
-  const [{default: Chart}, {default: DataGrid}] = await Promise.all([
+  const [{ default: Chart }, { default: DataGrid }] = await Promise.all([
     import("$lib/components/Chart.svelte"),
     import("$lib/components/DataGrid.svelte"),
   ]);

@@ -292,7 +292,6 @@
       <TableHeadCell>Size</TableHeadCell>
       <TableHeadCell>Amount</TableHeadCell>
       <TableHeadCell>Status</TableHeadCell>
-      <TableHeadCell>Created At</TableHeadCell>
       <TableHeadCell>Actions</TableHeadCell>
     </TableHead>
     <TableBody>
@@ -318,7 +317,6 @@
               {type.isActive ? "Active" : "Inactive"}
             </Badge>
           </TableBodyCell>
-          <TableBodyCell>{formatDate(type.createdAt, true)}</TableBodyCell>
           <TableBodyCell>
             <div class="flex space-x-2">
               

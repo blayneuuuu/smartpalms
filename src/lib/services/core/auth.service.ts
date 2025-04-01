@@ -1,8 +1,8 @@
-import {db} from "$lib/server/db";
-import {users, type User} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
-import {verifyUser} from "$lib/server/auth";
-import {LockerService} from "./locker.service";
+import { db } from "$lib/server/db";
+import { users, type User } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
+import { verifyUser } from "$lib/server/auth";
+import { LockerService } from "./locker.service";
 
 /**
  * AuthService provides functionality for user authentication and authorization
@@ -16,7 +16,7 @@ export class AuthService {
    */
   public static async authenticate(
     email: string,
-    password: string
+    password: string,
   ): Promise<User | null> {
     return verifyUser(email, password);
   }
@@ -45,7 +45,7 @@ export class AuthService {
     const rentedLockers = await LockerService.getUserRentedLockers(userId);
 
     // Map to the expected format for backward compatibility
-    return rentedLockers.map(({locker, subscription}) => ({
+    return rentedLockers.map(({ locker, subscription }) => ({
       id: locker.id,
       number: locker.number,
       size: locker.size,

@@ -1,16 +1,16 @@
 // src/hooks.server.ts
-import type {Handle} from "@sveltejs/kit";
-import {db} from "$lib/server/db";
-import {users} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
-import {SubscriptionService} from "$lib/services/core/subscription.service";
+import type { Handle } from "@sveltejs/kit";
+import { db } from "$lib/server/db";
+import { users } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
+import { SubscriptionService } from "$lib/services/core/subscription.service";
 
 // Simple in-memory cache to rate-limit expiration checks
 // In a production environment, this should be replaced with a proper cache (Redis, etc.)
 const expirationCheckCache = new Map<string, number>();
 const EXPIRATION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-export const handle: Handle = async ({event, resolve}) => {
+export const handle: Handle = async ({ event, resolve }) => {
   // Handle CORS for external API endpoints
   if (
     event.url.pathname.startsWith("/api/access/authenticated") ||
@@ -34,7 +34,7 @@ export const handle: Handle = async ({event, resolve}) => {
     headers.set("Access-Control-Allow-Origin", "*");
     headers.set(
       "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+      "GET, POST, PUT, DELETE, OPTIONS",
     );
     headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
@@ -85,7 +85,7 @@ export const handle: Handle = async ({event, resolve}) => {
           await SubscriptionService.checkAndUpdateExpiredSubscriptions(user.id);
         if (expiredSubCount > 0) {
           console.log(
-            `Updated ${expiredSubCount} expired subscriptions for user ${user.id}`
+            `Updated ${expiredSubCount} expired subscriptions for user ${user.id}`,
           );
         }
 

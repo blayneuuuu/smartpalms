@@ -1,11 +1,11 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {accessHistory, lockers} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { accessHistory, lockers } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
-export const GET: RequestHandler = async ({params, locals}) => {
+export const GET: RequestHandler = async ({ params, locals }) => {
   if (!locals.user) {
     throw error(401, "Unauthorized");
   }

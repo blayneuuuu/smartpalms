@@ -1,16 +1,16 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
 import {
   lockers,
   lockerRequests,
   subscriptionTypes,
 } from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
-import {LockerService} from "$lib/services/core";
+import { eq } from "drizzle-orm";
+import { LockerService } from "$lib/services/core";
 
-export const GET: RequestHandler = async ({params}) => {
+export const GET: RequestHandler = async ({ params }) => {
   const userId = params.id;
   if (!userId) {
     throw error(400, "User ID is required");
@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({params}) => {
 
     // Format the response with enhanced information
     const activeSubscriptions = userLockers.map(
-      ({locker, subscription, daysUntilExpiration}) => ({
+      ({ locker, subscription, daysUntilExpiration }) => ({
         id: subscription.id,
         lockerId: locker.id,
         expiresAt: subscription.expiresAt,
@@ -31,7 +31,7 @@ export const GET: RequestHandler = async ({params}) => {
         status: subscription.status,
         daysUntilExpiration,
         isExpiringSoon: daysUntilExpiration <= 3, // Flag for subscriptions expiring within 3 days
-      })
+      }),
     );
 
     // Get locker requests with details
@@ -51,7 +51,7 @@ export const GET: RequestHandler = async ({params}) => {
       .leftJoin(lockers, eq(lockerRequests.lockerId, lockers.id))
       .leftJoin(
         subscriptionTypes,
-        eq(lockerRequests.subscriptionTypeId, subscriptionTypes.id)
+        eq(lockerRequests.subscriptionTypeId, subscriptionTypes.id),
       )
       .where(eq(lockerRequests.userId, userId));
 

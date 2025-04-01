@@ -41,9 +41,9 @@ CLERK_WEBHOOK_SECRET=whsec_...
 
 ```typescript
 // src/hooks.server.ts
-import {sequence} from "@sveltejs/kit/hooks";
-import {handleClerk} from "@clerk/sveltekit";
-import {authGuard} from "$lib/server/auth";
+import { sequence } from "@sveltejs/kit/hooks";
+import { handleClerk } from "@clerk/sveltekit";
+import { authGuard } from "$lib/server/auth";
 
 export const handle = sequence(handleClerk(), authGuard);
 ```
@@ -73,11 +73,11 @@ export interface AdminUser extends User {
 
 ```typescript
 // src/lib/stores/user.ts
-import {writable, derived} from "svelte/store";
-import type {User} from "$lib/types";
+import { writable, derived } from "svelte/store";
+import type { User } from "$lib/types";
 
 function createUserStore() {
-  const {subscribe, set, update} = writable<User | null>(null);
+  const { subscribe, set, update } = writable<User | null>(null);
 
   return {
     subscribe,
@@ -85,7 +85,7 @@ function createUserStore() {
     update,
     clear: () => set(null),
     updateProfile: (data: Partial<User>) =>
-      update((user) => (user ? {...user, ...data} : null)),
+      update((user) => (user ? { ...user, ...data } : null)),
   };
 }
 
@@ -143,7 +143,7 @@ export const isAdmin = derived(user, ($user) => $user?.role === "admin");
 
 ```typescript
 // src/lib/stores/session.ts
-import {writable, derived} from "svelte/store";
+import { writable, derived } from "svelte/store";
 
 interface Session {
   token: string;
@@ -151,7 +151,7 @@ interface Session {
 }
 
 function createSessionStore() {
-  const {subscribe, set, update} = writable<Session | null>(null);
+  const { subscribe, set, update } = writable<Session | null>(null);
 
   return {
     subscribe,
@@ -183,7 +183,7 @@ export const session = createSessionStore();
 
 export const isAuthenticated = derived(
   session,
-  ($session) => !!$session && new Date($session.expiresAt) > new Date()
+  ($session) => !!$session && new Date($session.expiresAt) > new Date(),
 );
 ```
 
@@ -191,10 +191,10 @@ export const isAuthenticated = derived(
 
 ```typescript
 // src/lib/server/auth.ts
-import {redirect, type Handle} from "@sveltejs/kit";
+import { redirect, type Handle } from "@sveltejs/kit";
 
-export const authGuard: Handle = async ({event, resolve}) => {
-  const {auth} = event.locals;
+export const authGuard: Handle = async ({ event, resolve }) => {
+  const { auth } = event.locals;
   const publicPaths = ["/auth/sign-in", "/auth/sign-up"];
 
   if (!auth.userId && !publicPaths.includes(event.url.pathname)) {
@@ -240,15 +240,15 @@ export const ROLE_CONFIG: Record<Role, RoleConfig> = {
 
 ```typescript
 // src/lib/server/guards.ts
-import {error} from "@sveltejs/kit";
-import type {RequestEvent} from "@sveltejs/kit";
-import {ROLE_CONFIG} from "$lib/types/roles";
+import { error } from "@sveltejs/kit";
+import type { RequestEvent } from "@sveltejs/kit";
+import { ROLE_CONFIG } from "$lib/types/roles";
 
 export async function requirePermission(
   event: RequestEvent,
-  permission: string
+  permission: string,
 ) {
-  const {auth} = event.locals;
+  const { auth } = event.locals;
   const user = await auth.validateUser();
 
   if (!user) {
@@ -288,17 +288,17 @@ export async function requirePermission(
 
 ```typescript
 // src/hooks.server.ts
-import {sequence} from "@sveltejs/kit/hooks";
-import {handleClerk} from "@clerk/sveltekit";
-import {csrfProtect} from "$lib/server/security";
+import { sequence } from "@sveltejs/kit/hooks";
+import { handleClerk } from "@clerk/sveltekit";
+import { csrfProtect } from "$lib/server/security";
 
 export const handle = sequence(handleClerk(), csrfProtect);
 
 // src/lib/server/security.ts
-import {error} from "@sveltejs/kit";
-import type {Handle} from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { Handle } from "@sveltejs/kit";
 
-export const csrfProtect: Handle = async ({event, resolve}) => {
+export const csrfProtect: Handle = async ({ event, resolve }) => {
   if (event.request.method === "GET") {
     return resolve(event);
   }
@@ -316,8 +316,8 @@ export const csrfProtect: Handle = async ({event, resolve}) => {
 
 ```typescript
 // src/lib/server/security.ts
-import {error} from "@sveltejs/kit";
-import {Redis} from "@upstash/redis";
+import { error } from "@sveltejs/kit";
+import { Redis } from "@upstash/redis";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_URL!,
@@ -351,18 +351,18 @@ export async function rateLimit(key: string, config: RateLimitConfig) {
 
 ```typescript
 // src/routes/auth/reset-password/+server.ts
-import {error, json} from "@sveltejs/kit";
-import {sendResetEmail} from "$lib/server/email";
-import {createResetToken} from "$lib/server/auth";
+import { error, json } from "@sveltejs/kit";
+import { sendResetEmail } from "$lib/server/email";
+import { createResetToken } from "$lib/server/auth";
 
-export const POST: RequestHandler = async ({request}) => {
-  const {email} = await request.json();
+export const POST: RequestHandler = async ({ request }) => {
+  const { email } = await request.json();
 
   try {
     const token = await createResetToken(email);
     await sendResetEmail(email, token);
 
-    return json({message: "Reset email sent"});
+    return json({ message: "Reset email sent" });
   } catch (err) {
     throw error(400, "Failed to initiate password reset");
   }

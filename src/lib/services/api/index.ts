@@ -12,4 +12,4 @@ export type {
   Subscription,
   SubscriptionType,
 } from "./locker";
-export type {User, UserProfile} from "./user";
+export type { User, UserProfile } from "./user";

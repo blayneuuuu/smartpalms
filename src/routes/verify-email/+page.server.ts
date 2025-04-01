@@ -1,7 +1,7 @@
-import type {PageServerLoad} from "./$types";
-import {UserService} from "$lib/services/UserService";
+import type { PageServerLoad } from "./$types";
+import { UserService } from "$lib/services/UserService";
 
-export const load: PageServerLoad = async ({url}) => {
+export const load: PageServerLoad = async ({ url }) => {
   const token = url.searchParams.get("token");
 
   if (!token) {

@@ -1,12 +1,12 @@
-import {fail, redirect} from "@sveltejs/kit";
-import type {Actions, PageServerLoad} from "./$types";
-import {db} from "$lib/db/db";
-import {users, unverifiedUsers} from "$lib/db/schema";
-import {eq} from "drizzle-orm";
+import { fail, redirect } from "@sveltejs/kit";
+import type { Actions, PageServerLoad } from "./$types";
+import { db } from "$lib/db/db";
+import { users, unverifiedUsers } from "$lib/db/schema";
+import { eq } from "drizzle-orm";
 import crypto from "crypto";
 
 // Load the list of unverified users
-export const load: PageServerLoad = async ({locals}) => {
+export const load: PageServerLoad = async ({ locals }) => {
   // Check if user is an admin (you should implement proper auth check)
   const userId = locals.user?.id;
   if (!userId) {
@@ -32,11 +32,11 @@ export const load: PageServerLoad = async ({locals}) => {
 };
 
 export const actions: Actions = {
-  default: async ({request, locals}) => {
+  default: async ({ request, locals }) => {
     // Check if user is an admin (implement proper auth check)
     const userId = locals.user?.id;
     if (!userId) {
-      return fail(403, {error: "Unauthorized"});
+      return fail(403, { error: "Unauthorized" });
     }
 
     // Get user from database
@@ -46,14 +46,14 @@ export const actions: Actions = {
 
     // Check if user is admin
     if (!user || user.type !== "admin") {
-      return fail(403, {error: "Admin access required"});
+      return fail(403, { error: "Admin access required" });
     }
 
     const formData = await request.formData();
     const unverifiedUserId = formData.get("userId")?.toString();
 
     if (!unverifiedUserId) {
-      return fail(400, {error: "User ID is required"});
+      return fail(400, { error: "User ID is required" });
     }
 
     try {
@@ -63,7 +63,7 @@ export const actions: Actions = {
       });
 
       if (!unverifiedUser) {
-        return fail(404, {error: "User not found"});
+        return fail(404, { error: "User not found" });
       }
 
       // Transfer to verified users table
@@ -75,6 +75,7 @@ export const actions: Actions = {
           email: unverifiedUser.email,
           password: unverifiedUser.password,
           type: "user",
+          createdAt: unverifiedUser.createdAt,
         })
         .returning();
 
@@ -89,7 +90,7 @@ export const actions: Actions = {
       };
     } catch (error) {
       console.error("Error verifying user:", error);
-      return fail(500, {error: "An error occurred during verification"});
+      return fail(500, { error: "An error occurred during verification" });
     }
   },
 };

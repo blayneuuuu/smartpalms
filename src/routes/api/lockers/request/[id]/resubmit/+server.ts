@@ -1,11 +1,11 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {lockerRequests} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { lockerRequests } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
-export const POST: RequestHandler = async ({params, locals}) => {
+export const POST: RequestHandler = async ({ params, locals }) => {
   if (!locals.user) {
     throw error(401, "Unauthorized");
   }
@@ -46,7 +46,7 @@ export const POST: RequestHandler = async ({params, locals}) => {
       })
       .where(eq(lockerRequests.id, requestId));
 
-    return json({success: true});
+    return json({ success: true });
   } catch (err) {
     console.error("Error resubmitting request:", err);
     throw error(500, "Failed to resubmit request");

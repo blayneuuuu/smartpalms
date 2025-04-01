@@ -16,7 +16,7 @@ This document explains the core state management concepts and implementation pat
 
 ```typescript
 // src/lib/stores/base.ts
-import {writable, type Writable} from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 
 export interface StoreState<T> {
   data: T | null;
@@ -34,15 +34,15 @@ export function createStore<T>(initialData: T | null = null) {
   const store = writable(state);
 
   function setLoading(loading: boolean) {
-    store.update((state) => ({...state, loading}));
+    store.update((state) => ({ ...state, loading }));
   }
 
   function setError(error: Error | null) {
-    store.update((state) => ({...state, error}));
+    store.update((state) => ({ ...state, error }));
   }
 
   function setData(data: T | null) {
-    store.update((state) => ({...state, data}));
+    store.update((state) => ({ ...state, data }));
   }
 
   return {
@@ -88,9 +88,9 @@ export interface StoreActions<T> {
 
 ```typescript
 // src/lib/stores/locker.ts
-import {derived} from "svelte/store";
-import {createStore, type StoreState} from "./base";
-import type {Locker, StoreActions} from "./types";
+import { derived } from "svelte/store";
+import { createStore, type StoreState } from "./base";
+import type { Locker, StoreActions } from "./types";
 
 function createLockerStore() {
   const store = createStore<Locker[]>([]);
@@ -104,7 +104,7 @@ function createLockerStore() {
         store.setData(data);
       } catch (err) {
         store.setError(
-          err instanceof Error ? err : new Error("Failed to fetch lockers")
+          err instanceof Error ? err : new Error("Failed to fetch lockers"),
         );
       } finally {
         store.setLoading(false);
@@ -114,7 +114,7 @@ function createLockerStore() {
     async create(data) {
       const response = await fetch("/api/lockers", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
@@ -130,7 +130,7 @@ function createLockerStore() {
     async update(id, data) {
       const response = await fetch(`/api/lockers/${id}`, {
         method: "PUT",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
@@ -139,7 +139,7 @@ function createLockerStore() {
         ...state,
         data:
           state.data?.map((item) =>
-            item.id === id ? {...item, ...locker} : item
+            item.id === id ? { ...item, ...locker } : item,
           ) || [],
       }));
 
@@ -147,7 +147,7 @@ function createLockerStore() {
     },
 
     async remove(id) {
-      await fetch(`/api/lockers/${id}`, {method: "DELETE"});
+      await fetch(`/api/lockers/${id}`, { method: "DELETE" });
       store.update((state) => ({
         ...state,
         data: state.data?.filter((item) => item.id !== id) || [],
@@ -167,13 +167,13 @@ export const lockerStore = createLockerStore();
 export const availableLockers = derived(
   lockerStore,
   ($store) =>
-    $store.data?.filter((locker) => locker.status === "available") || []
+    $store.data?.filter((locker) => locker.status === "available") || [],
 );
 
 export const occupiedLockers = derived(
   lockerStore,
   ($store) =>
-    $store.data?.filter((locker) => locker.status === "occupied") || []
+    $store.data?.filter((locker) => locker.status === "occupied") || [],
 );
 ```
 
@@ -181,9 +181,9 @@ export const occupiedLockers = derived(
 
 ```typescript
 // src/lib/stores/request.ts
-import {derived} from "svelte/store";
-import {createStore} from "./base";
-import type {LockerRequest, StoreActions} from "./types";
+import { derived } from "svelte/store";
+import { createStore } from "./base";
+import type { LockerRequest, StoreActions } from "./types";
 
 function createRequestStore() {
   const store = createStore<LockerRequest[]>([]);
@@ -197,7 +197,7 @@ function createRequestStore() {
         store.setData(data);
       } catch (err) {
         store.setError(
-          err instanceof Error ? err : new Error("Failed to fetch requests")
+          err instanceof Error ? err : new Error("Failed to fetch requests"),
         );
       } finally {
         store.setLoading(false);
@@ -207,7 +207,7 @@ function createRequestStore() {
     async create(data) {
       const response = await fetch("/api/requests", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
@@ -223,7 +223,7 @@ function createRequestStore() {
     async update(id, data) {
       const response = await fetch(`/api/requests/${id}`, {
         method: "PUT",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
@@ -232,7 +232,7 @@ function createRequestStore() {
         ...state,
         data:
           state.data?.map((item) =>
-            item.id === id ? {...item, ...request} : item
+            item.id === id ? { ...item, ...request } : item,
           ) || [],
       }));
 
@@ -240,7 +240,7 @@ function createRequestStore() {
     },
 
     async remove(id) {
-      await fetch(`/api/requests/${id}`, {method: "DELETE"});
+      await fetch(`/api/requests/${id}`, { method: "DELETE" });
       store.update((state) => ({
         ...state,
         data: state.data?.filter((item) => item.id !== id) || [],
@@ -260,7 +260,7 @@ export const requestStore = createRequestStore();
 export const pendingRequests = derived(
   requestStore,
   ($store) =>
-    $store.data?.filter((request) => request.status === "pending") || []
+    $store.data?.filter((request) => request.status === "pending") || [],
 );
 ```
 
@@ -315,9 +315,9 @@ export const pendingRequests = derived(
 
 ```typescript
 // src/lib/stores/dashboard.ts
-import {derived} from "svelte/store";
-import {lockerStore, availableLockers, occupiedLockers} from "./locker";
-import {requestStore, pendingRequests} from "./request";
+import { derived } from "svelte/store";
+import { lockerStore, availableLockers, occupiedLockers } from "./locker";
+import { requestStore, pendingRequests } from "./request";
 
 export const dashboardStats = derived(
   [availableLockers, occupiedLockers, pendingRequests],
@@ -327,7 +327,7 @@ export const dashboardStats = derived(
     occupiedLockers: $occupied.length,
     pendingRequests: $pending.length,
     occupancyRate: $occupied.length / ($available.length + $occupied.length),
-  })
+  }),
 );
 ```
 
@@ -337,8 +337,8 @@ export const dashboardStats = derived(
 
 ```typescript
 // src/lib/stores/sync.ts
-import {lockerStore} from "./locker";
-import {requestStore} from "./request";
+import { lockerStore } from "./locker";
+import { requestStore } from "./request";
 
 interface WebSocketMessage {
   type: "locker" | "request";
@@ -368,7 +368,7 @@ export function initializeSync() {
 }
 
 function handleLockerUpdate(message: WebSocketMessage) {
-  const {action, data} = message;
+  const { action, data } = message;
 
   switch (action) {
     case "create":
@@ -382,7 +382,7 @@ function handleLockerUpdate(message: WebSocketMessage) {
         ...state,
         data:
           state.data?.map((item) =>
-            item.id === data.id ? {...item, ...data} : item
+            item.id === data.id ? { ...item, ...data } : item,
           ) || [],
       }));
       break;
@@ -396,7 +396,7 @@ function handleLockerUpdate(message: WebSocketMessage) {
 }
 
 function handleRequestUpdate(message: WebSocketMessage) {
-  const {action, data} = message;
+  const { action, data } = message;
 
   switch (action) {
     case "create":
@@ -410,7 +410,7 @@ function handleRequestUpdate(message: WebSocketMessage) {
         ...state,
         data:
           state.data?.map((item) =>
-            item.id === data.id ? {...item, ...data} : item
+            item.id === data.id ? { ...item, ...data } : item,
           ) || [],
       }));
       break;
@@ -430,12 +430,12 @@ function handleRequestUpdate(message: WebSocketMessage) {
 
 ```typescript
 // src/lib/stores/memo.ts
-import {derived, type Readable} from "svelte/store";
+import { derived, type Readable } from "svelte/store";
 
 export function memoize<T, U>(
   store: Readable<T>,
   selector: (value: T) => U,
-  isEqual: (a: U, b: U) => boolean = (a, b) => a === b
+  isEqual: (a: U, b: U) => boolean = (a, b) => a === b,
 ): Readable<U> {
   let previousValue: U;
 
@@ -458,10 +458,10 @@ const expensiveComputation = memoize(
         // Complex calculations
         return acc;
       },
-      {} as Record<string, number>
+      {} as Record<string, number>,
     );
   },
-  (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  (a, b) => JSON.stringify(a) === JSON.stringify(b),
 );
 ```
 
@@ -469,8 +469,8 @@ const expensiveComputation = memoize(
 
 ```typescript
 // src/lib/stores/persist.ts
-import {get} from "svelte/store";
-import type {Writable} from "svelte/store";
+import { get } from "svelte/store";
+import type { Writable } from "svelte/store";
 
 export function persist<T>(store: Writable<T>, key: string): Writable<T> {
   const storedValue = localStorage.getItem(key);
@@ -495,7 +495,7 @@ export const settings = persist(
     theme: "light",
     notifications: true,
   }),
-  "app_settings"
+  "app_settings",
 );
 ```
 

@@ -1,6 +1,6 @@
 export function formatDate(
   date: string | Date,
-  includeTime: boolean = false
+  includeTime: boolean = false,
 ): string {
   const d = new Date(date);
 

@@ -1,7 +1,7 @@
-import {json, type RequestHandler, error as svelteError} from "@sveltejs/kit";
-import {loginSchema} from "$lib/types";
-import {AuthService, LockerService} from "$lib/services/core";
-import type {EnhancedLockerData} from "$lib/types/responses";
+import { json, type RequestHandler, error as svelteError } from "@sveltejs/kit";
+import { loginSchema } from "$lib/types";
+import { AuthService, LockerService } from "$lib/services/core";
+import type { EnhancedLockerData } from "$lib/types/responses";
 
 /**
  * Authenticated Access Endpoint
@@ -20,20 +20,20 @@ import type {EnhancedLockerData} from "$lib/types/responses";
  * }
  */
 
-export const POST: RequestHandler = async ({request}) => {
+export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json();
     const result = loginSchema.safeParse(body);
 
     if (!result.success) {
-      const {errors} = result.error;
+      const { errors } = result.error;
       throw svelteError(400, errors[0].message);
     }
 
     // Use the AuthService to authenticate the user
     const user = await AuthService.authenticate(
       result.data.email,
-      result.data.password
+      result.data.password,
     );
 
     if (!user) {
@@ -45,7 +45,7 @@ export const POST: RequestHandler = async ({request}) => {
 
     // Transform to expected response format with enhanced data
     const enhancedLockers: EnhancedLockerData[] = rentedLockers.map(
-      ({locker, subscription, daysUntilExpiration}) => ({
+      ({ locker, subscription, daysUntilExpiration }) => ({
         id: locker.id,
         number: locker.number,
         size: locker.size,
@@ -56,7 +56,7 @@ export const POST: RequestHandler = async ({request}) => {
         },
         daysUntilExpiration,
         isExpiringSoon: daysUntilExpiration <= 3,
-      })
+      }),
     );
 
     return json({
@@ -72,14 +72,14 @@ export const POST: RequestHandler = async ({request}) => {
     console.error("Authenticated access API error:", err);
 
     // Check if it's a SvelteKit error
-    const svelteKitError = err as {status?: number; message?: string};
+    const svelteKitError = err as { status?: number; message?: string };
     if (svelteKitError && typeof svelteKitError.status === "number") {
       return json(
         {
           success: false,
           message: svelteKitError.message || "An error occurred",
         },
-        {status: svelteKitError.status}
+        { status: svelteKitError.status },
       );
     }
 
@@ -89,7 +89,7 @@ export const POST: RequestHandler = async ({request}) => {
         success: false,
         message: err instanceof Error ? err.message : "Internal server error",
       },
-      {status: 500}
+      { status: 500 },
     );
   }
 };

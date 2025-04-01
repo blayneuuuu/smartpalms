@@ -1,4 +1,4 @@
-import {db} from "$lib/server/db";
+import { db } from "$lib/server/db";
 import {
   lockers,
   accessHistory,
@@ -7,7 +7,7 @@ import {
   type AccessHistory,
   type Subscription,
 } from "$lib/server/db/schema";
-import {eq, and} from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 /**
  * LockerService provides functionality for managing lockers and their access
@@ -54,11 +54,11 @@ export class LockerService {
       .where(
         and(
           eq(subscriptions.userId, userId),
-          eq(subscriptions.status, "active")
-        )
+          eq(subscriptions.status, "active"),
+        ),
       );
 
-    return result.map(({locker, subscription}) => {
+    return result.map(({ locker, subscription }) => {
       // Calculate days until expiration
       const expiresAt = new Date(subscription.expiresAt);
       const today = new Date();
@@ -86,7 +86,7 @@ export class LockerService {
     accessType: "otp" | "subscription",
     status: "success" | "failed",
     userId?: string,
-    otp?: string
+    otp?: string,
   ): Promise<void> {
     await db.insert(accessHistory).values({
       id: crypto.randomUUID(),
@@ -105,14 +105,14 @@ export class LockerService {
    * @returns The locker if found and access is granted
    */
   public static async directAccess(
-    lockerId: string
-  ): Promise<{success: boolean; locker?: Locker}> {
+    lockerId: string,
+  ): Promise<{ success: boolean; locker?: Locker }> {
     const locker = await this.getLockerById(lockerId);
 
     if (!locker) {
       // Record failed access
       await this.recordAccess(lockerId, "otp", "failed");
-      return {success: false};
+      return { success: false };
     }
 
     // Record successful access
@@ -130,8 +130,8 @@ export class LockerService {
    * @returns The generated OTP and its expiry date
    */
   public static async generateOTP(
-    lockerId: string
-  ): Promise<{otp: string; expiryDate: string}> {
+    lockerId: string,
+  ): Promise<{ otp: string; expiryDate: string }> {
     const locker = await this.getLockerById(lockerId);
 
     if (!locker) {
@@ -145,9 +145,9 @@ export class LockerService {
     const expiryDate = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
     // Save OTP to the locker
-    await db.update(lockers).set({otp}).where(eq(lockers.id, lockerId));
+    await db.update(lockers).set({ otp }).where(eq(lockers.id, lockerId));
 
-    return {otp, expiryDate};
+    return { otp, expiryDate };
   }
 
   /**
@@ -156,7 +156,7 @@ export class LockerService {
    * @returns Array of access history entries
    */
   public static async getLockerAccessHistory(
-    lockerId: string
+    lockerId: string,
   ): Promise<AccessHistory[]> {
     return db
       .select()

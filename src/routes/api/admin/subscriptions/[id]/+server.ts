@@ -1,22 +1,22 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {subscriptions, lockers, transactions} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { subscriptions, lockers, transactions } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
 // DELETE a subscription
-export const DELETE: RequestHandler = async ({locals, params}) => {
+export const DELETE: RequestHandler = async ({ locals, params }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
     const subscriptionId = params.id;
     if (!subscriptionId) {
-      return json({message: "Subscription ID is required"}, {status: 400});
+      return json({ message: "Subscription ID is required" }, { status: 400 });
     }
 
     // Get subscription details
@@ -29,12 +29,12 @@ export const DELETE: RequestHandler = async ({locals, params}) => {
       .where(eq(subscriptions.id, subscriptionId));
 
     if (!existingSubscription) {
-      return json({message: "Subscription not found"}, {status: 404});
+      return json({ message: "Subscription not found" }, { status: 404 });
     }
 
     // Check if there are any transactions related to this subscription
     const relatedTransactions = await db
-      .select({id: transactions.id})
+      .select({ id: transactions.id })
       .from(transactions)
       .where(eq(transactions.subscriptionId, subscriptionId));
 
@@ -79,8 +79,8 @@ export const DELETE: RequestHandler = async ({locals, params}) => {
   } catch (error) {
     console.error("Error deleting subscription:", error);
     if (error instanceof Error) {
-      return json({message: error.message}, {status: 500});
+      return json({ message: error.message }, { status: 500 });
     }
-    return json({message: "Failed to delete subscription"}, {status: 500});
+    return json({ message: "Failed to delete subscription" }, { status: 500 });
   }
 };

@@ -1,19 +1,19 @@
-import {fail} from "@sveltejs/kit";
-import type {Actions} from "./$types";
-import {db} from "$lib/db/db";
-import {users, unverifiedUsers} from "$lib/db/schema";
-import {eq} from "drizzle-orm";
+import { fail } from "@sveltejs/kit";
+import type { Actions } from "./$types";
+import { db } from "$lib/db/db";
+import { users, unverifiedUsers } from "$lib/db/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export const actions: Actions = {
-  default: async ({request, cookies}) => {
+  default: async ({ request, cookies }) => {
     const formData = await request.formData();
     const email = formData.get("email")?.toString();
     const password = formData.get("password")?.toString();
 
     // Basic validation
     if (!email || !password) {
-      return fail(400, {error: "Email and password are required"});
+      return fail(400, { error: "Email and password are required" });
     }
 
     try {
@@ -35,14 +35,14 @@ export const actions: Actions = {
           });
         }
 
-        return fail(400, {error: "Invalid email or password"});
+        return fail(400, { error: "Invalid email or password" });
       }
 
       // Verify password
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (!passwordMatch) {
-        return fail(400, {error: "Invalid email or password"});
+        return fail(400, { error: "Invalid email or password" });
       }
 
       // Set session cookie
@@ -61,7 +61,7 @@ export const actions: Actions = {
       };
     } catch (error) {
       console.error("Login error:", error);
-      return fail(500, {error: "An error occurred during login"});
+      return fail(500, { error: "An error occurred during login" });
     }
   },
 } satisfies Actions;

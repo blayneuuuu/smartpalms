@@ -1,5 +1,5 @@
-import {redirect} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
+import { redirect } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
 
 /**
  * @deprecated Use /api/access/authenticated instead

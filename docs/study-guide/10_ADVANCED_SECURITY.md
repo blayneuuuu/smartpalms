@@ -16,17 +16,17 @@ This document explains the advanced security patterns and implementation strateg
 
 ```typescript
 // src/lib/server/auth/flow.ts
-import {error} from "@sveltejs/kit";
-import {verifyToken, type JWTPayload} from "./jwt";
-import {rateLimit} from "$lib/server/security";
-import {logger} from "$lib/utils/logger";
+import { error } from "@sveltejs/kit";
+import { verifyToken, type JWTPayload } from "./jwt";
+import { rateLimit } from "$lib/server/security";
+import { logger } from "$lib/utils/logger";
 
 interface AuthFlow {
   validateRequest: (request: Request) => Promise<JWTPayload>;
   enforceRateLimit: (key: string) => Promise<void>;
   validatePermissions: (
     userId: string,
-    requiredPermissions: string[]
+    requiredPermissions: string[],
   ) => Promise<void>;
 }
 
@@ -40,7 +40,7 @@ export const authFlow: AuthFlow = {
     try {
       return await verifyToken(token);
     } catch (err) {
-      logger.error("Token validation failed", {error: err});
+      logger.error("Token validation failed", { error: err });
       throw error(401, "Invalid authentication token");
     }
   },
@@ -56,7 +56,7 @@ export const authFlow: AuthFlow = {
     const userPermissions = await getUserPermissions(userId);
 
     const hasAllPermissions = requiredPermissions.every((permission) =>
-      userPermissions.includes(permission)
+      userPermissions.includes(permission),
     );
 
     if (!hasAllPermissions) {
@@ -70,16 +70,16 @@ export const authFlow: AuthFlow = {
 
 ```typescript
 // src/hooks.server.ts
-import {sequence} from "@sveltejs/kit/hooks";
-import {securityHeaders} from "$lib/server/security";
+import { sequence } from "@sveltejs/kit/hooks";
+import { securityHeaders } from "$lib/server/security";
 
-export const handle = sequence(async ({event, resolve}) => {
+export const handle = sequence(async ({ event, resolve }) => {
   const response = await resolve(event);
 
   // Add security headers
   response.headers.set(
     "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
+    "max-age=31536000; includeSubDomains",
   );
   response.headers.set(
     "Content-Security-Policy",
@@ -88,13 +88,13 @@ export const handle = sequence(async ({event, resolve}) => {
       "style-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: https:; " +
       "font-src 'self'; " +
-      "connect-src 'self' https://api.clerk.dev"
+      "connect-src 'self' https://api.clerk.dev",
   );
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=()"
+    "camera=(), microphone=(), geolocation=()",
   );
 
   return response;
@@ -107,9 +107,9 @@ export const handle = sequence(async ({event, resolve}) => {
 
 ```typescript
 // src/lib/server/security/controls.ts
-import {z} from "zod";
-import {sanitizeHtml} from "$lib/utils/sanitize";
-import {validateToken} from "$lib/utils/csrf";
+import { z } from "zod";
+import { sanitizeHtml } from "$lib/utils/sanitize";
+import { validateToken } from "$lib/utils/csrf";
 
 export const securityControls = {
   input: {
@@ -121,7 +121,7 @@ export const securityControls = {
         .min(12)
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/,
-          "Password must contain uppercase, lowercase, number, and special character"
+          "Password must contain uppercase, lowercase, number, and special character",
         ),
     }),
 
@@ -165,7 +165,7 @@ export const securityControls = {
     validateOwnership: async (
       userId: string,
       resourceId: string,
-      resourceType: string
+      resourceType: string,
     ) => {
       const resource = await getResource(resourceType, resourceId);
       if (resource.userId !== userId) {
@@ -182,9 +182,9 @@ export const securityControls = {
 
 ```typescript
 // tests/security/auth.test.ts
-import {describe, it, expect} from "vitest";
-import {authFlow} from "$lib/server/auth/flow";
-import {createTestRequest} from "$test/utils";
+import { describe, it, expect } from "vitest";
+import { authFlow } from "$lib/server/auth/flow";
+import { createTestRequest } from "$test/utils";
 
 describe("Authentication Security", () => {
   describe("Token Validation", () => {
@@ -192,7 +192,7 @@ describe("Authentication Security", () => {
       const request = createTestRequest();
 
       await expect(authFlow.validateRequest(request)).rejects.toThrow(
-        "Missing authentication token"
+        "Missing authentication token",
       );
     });
 
@@ -204,7 +204,7 @@ describe("Authentication Security", () => {
       });
 
       await expect(authFlow.validateRequest(request)).rejects.toThrow(
-        "Invalid authentication token"
+        "Invalid authentication token",
       );
     });
 
@@ -217,7 +217,7 @@ describe("Authentication Security", () => {
       });
 
       await expect(authFlow.validateRequest(request)).rejects.toThrow(
-        "Token expired"
+        "Token expired",
       );
     });
   });
@@ -233,7 +233,7 @@ describe("Authentication Security", () => {
 
       // Next request should fail
       await expect(authFlow.enforceRateLimit(key)).rejects.toThrow(
-        "Too many requests"
+        "Too many requests",
       );
     });
   });
@@ -262,13 +262,13 @@ describe("CSRF Protection", () => {
     const validToken = await generateCsrfToken();
 
     await expect(
-      securityControls.session.validateCsrfToken(validToken)
+      securityControls.session.validateCsrfToken(validToken),
     ).resolves.not.toThrow();
   });
 
   it("should reject invalid CSRF tokens", async () => {
     await expect(
-      securityControls.session.validateCsrfToken("invalid-token")
+      securityControls.session.validateCsrfToken("invalid-token"),
     ).rejects.toThrow("Invalid CSRF token");
   });
 });
@@ -280,8 +280,8 @@ describe("CSRF Protection", () => {
 
 ```typescript
 // src/lib/server/audit/index.ts
-import {db} from "$lib/server/db";
-import {logger} from "$lib/utils/logger";
+import { db } from "$lib/server/db";
+import { logger } from "$lib/utils/logger";
 
 interface AuditEvent {
   type: string;
@@ -301,7 +301,7 @@ export class AuditLogger {
         timestamp: new Date(),
       });
 
-      logger.info("Audit event logged", {event});
+      logger.info("Audit event logged", { event });
     } catch (error) {
       logger.error("Failed to log audit event", {
         error,
@@ -313,7 +313,7 @@ export class AuditLogger {
   async query(filters: Partial<AuditEvent>) {
     return db.query.auditLogs.findMany({
       where: filters,
-      orderBy: [{timestamp: "desc"}],
+      orderBy: [{ timestamp: "desc" }],
     });
   }
 }
@@ -339,7 +339,7 @@ async function handleLockerAssignment(lockerId: string, userId: string) {
 
 ```typescript
 // src/lib/server/privacy/index.ts
-import {createHash} from "crypto";
+import { createHash } from "crypto";
 
 interface PrivacyConfig {
   retentionPeriod: number; // days
@@ -350,7 +350,7 @@ export class PrivacyManager {
   constructor(private config: PrivacyConfig) {}
 
   maskSensitiveData(data: Record<string, any>) {
-    const masked = {...data};
+    const masked = { ...data };
 
     for (const field of this.config.sensitiveFields) {
       if (field in masked) {
@@ -402,8 +402,8 @@ export const privacy = new PrivacyManager({
 
 ```typescript
 // src/lib/server/security/monitor.ts
-import {logger} from "$lib/utils/logger";
-import {notify} from "$lib/utils/notifications";
+import { logger } from "$lib/utils/logger";
+import { notify } from "$lib/utils/notifications";
 
 interface SecurityEvent {
   type: string;
@@ -426,7 +426,7 @@ export class SecurityMonitor {
       await this.raiseSecurityEvent({
         type: "EXCESSIVE_FAILED_LOGINS",
         severity: "high",
-        details: {userId, ip, count},
+        details: { userId, ip, count },
       });
     }
   }
@@ -439,7 +439,7 @@ export class SecurityMonitor {
       await this.raiseSecurityEvent({
         type: "RATE_LIMIT_EXCEEDED",
         severity: "medium",
-        details: {ip, count},
+        details: { ip, count },
       });
     }
   }
@@ -451,14 +451,14 @@ export class SecurityMonitor {
       await this.raiseSecurityEvent({
         type: "SUSPICIOUS_IP_DETECTED",
         severity: "high",
-        details: {ip},
+        details: { ip },
       });
     }
   }
 
   private async raiseSecurityEvent(event: SecurityEvent) {
     // Log event
-    logger.error("Security event detected", {event});
+    logger.error("Security event detected", { event });
 
     // Notify security team
     await notify("security-team", {

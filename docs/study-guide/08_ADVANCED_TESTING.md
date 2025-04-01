@@ -16,11 +16,11 @@ This document explains the advanced testing strategies and implementation patter
 
 ```typescript
 // vitest.config.ts
-import {defineConfig} from "vitest/config";
-import {svelte} from "@sveltejs/vite-plugin-svelte";
+import { defineConfig } from "vitest/config";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 export default defineConfig({
-  plugins: [svelte({hot: !process.env.VITEST})],
+  plugins: [svelte({ hot: !process.env.VITEST })],
   test: {
     include: ["src/**/*.{test,spec}.{js,ts}"],
     environment: "jsdom",
@@ -41,9 +41,9 @@ export default defineConfig({
 
 // src/test/setup.ts
 import "@testing-library/jest-dom";
-import {cleanup} from "@testing-library/svelte";
-import {vi} from "vitest";
-import {db} from "$lib/server/db";
+import { cleanup } from "@testing-library/svelte";
+import { vi } from "vitest";
+import { db } from "$lib/server/db";
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -67,10 +67,10 @@ afterEach(async () => {
 
 ```typescript
 // src/test/utils.ts
-import type {ComponentType} from "svelte";
-import {render, type RenderResult} from "@testing-library/svelte";
-import {get} from "svelte/store";
-import type {Mock} from "vitest";
+import type { ComponentType } from "svelte";
+import { render, type RenderResult } from "@testing-library/svelte";
+import { get } from "svelte/store";
+import type { Mock } from "vitest";
 
 export function mockFetch(response: any) {
   (fetch as Mock).mockResolvedValueOnce({
@@ -84,14 +84,14 @@ export function mockFetchError(status: number, message: string) {
     ok: false,
     status,
     json: async () => ({
-      error: {message},
+      error: { message },
     }),
   });
 }
 
 export async function renderWithContext<T>(
   Component: ComponentType<T>,
-  props?: Partial<T>
+  props?: Partial<T>,
 ): Promise<RenderResult> {
   const result = render(Component, {
     props: props as T,
@@ -103,8 +103,8 @@ export async function renderWithContext<T>(
   return result;
 }
 
-export function getStoreValue<T>(store: {subscribe: Function}) {
-  return get(store as {subscribe: Function}) as T;
+export function getStoreValue<T>(store: { subscribe: Function }) {
+  return get(store as { subscribe: Function }) as T;
 }
 ```
 
@@ -114,11 +114,11 @@ export function getStoreValue<T>(store: {subscribe: Function}) {
 
 ```typescript
 // src/routes/api/lockers/+server.test.ts
-import {describe, it, expect, beforeEach} from "vitest";
-import {GET, POST} from "./+server";
-import {db} from "$lib/server/db";
-import {createTestContext} from "$test/context";
-import type {Locker} from "$lib/types";
+import { describe, it, expect, beforeEach } from "vitest";
+import { GET, POST } from "./+server";
+import { db } from "$lib/server/db";
+import { createTestContext } from "$test/context";
+import type { Locker } from "$lib/types";
 
 describe("Locker API", () => {
   const ctx = createTestContext();
@@ -173,7 +173,7 @@ describe("Locker API", () => {
       await db.insert(lockers).values(testLockers);
 
       // Act
-      const response = await GET(ctx.createRequest({status: "available"}));
+      const response = await GET(ctx.createRequest({ status: "available" }));
       const data = await response.json();
 
       // Assert
@@ -230,9 +230,9 @@ describe("Locker API", () => {
 
 ```typescript
 // src/lib/stores/locker.test.ts
-import {describe, it, expect, beforeEach} from "vitest";
-import {lockerStore} from "./locker";
-import {mockFetch, getStoreValue} from "$test/utils";
+import { describe, it, expect, beforeEach } from "vitest";
+import { lockerStore } from "./locker";
+import { mockFetch, getStoreValue } from "$test/utils";
 
 describe("Locker Store", () => {
   beforeEach(() => {
@@ -243,8 +243,8 @@ describe("Locker Store", () => {
     it("should fetch and store lockers", async () => {
       // Arrange
       const testLockers = [
-        {id: "1", number: "A1", status: "available"},
-        {id: "2", number: "A2", status: "occupied"},
+        { id: "1", number: "A1", status: "available" },
+        { id: "2", number: "A2", status: "occupied" },
       ];
       mockFetch(testLockers);
 
@@ -305,7 +305,7 @@ describe("Locker Store", () => {
 
 ```typescript
 // playwright.config.ts
-import type {PlaywrightTestConfig} from "@playwright/test";
+import type { PlaywrightTestConfig } from "@playwright/test";
 
 const config: PlaywrightTestConfig = {
   webServer: {
@@ -321,15 +321,15 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: "chromium",
-      use: {browserName: "chromium"},
+      use: { browserName: "chromium" },
     },
     {
       name: "firefox",
-      use: {browserName: "firefox"},
+      use: { browserName: "firefox" },
     },
     {
       name: "webkit",
-      use: {browserName: "webkit"},
+      use: { browserName: "webkit" },
     },
   ],
 };
@@ -341,71 +341,71 @@ export default config;
 
 ```typescript
 // tests/e2e/locker-request.test.ts
-import {test, expect} from "@playwright/test";
-import {createTestUser, loginAsUser} from "./helpers";
+import { test, expect } from "@playwright/test";
+import { createTestUser, loginAsUser } from "./helpers";
 
 test.describe("Locker Request Flow", () => {
-  test.beforeEach(async ({page}) => {
+  test.beforeEach(async ({ page }) => {
     const user = await createTestUser();
     await loginAsUser(page, user);
   });
 
-  test("should allow user to request a locker", async ({page}) => {
+  test("should allow user to request a locker", async ({ page }) => {
     // Navigate to lockers page
     await page.goto("/lockers");
 
     // Find available locker
     const lockerCard = page
       .locator('[data-testid="locker-card"]')
-      .filter({hasText: "Available"})
+      .filter({ hasText: "Available" })
       .first();
 
     // Click request button
-    await lockerCard.locator("button", {hasText: "Request"}).click();
+    await lockerCard.locator("button", { hasText: "Request" }).click();
 
     // Fill request form
     await page
       .locator('[data-testid="request-form"]')
       .locator('input[name="duration"]')
       .fill("7");
-    await page.locator("button", {hasText: "Submit"}).click();
+    await page.locator("button", { hasText: "Submit" }).click();
 
     // Verify success message
     await expect(page.locator('[role="alert"]')).toHaveText(
-      /Request submitted successfully/
+      /Request submitted successfully/,
     );
 
     // Verify request appears in user's requests
     await page.goto("/requests");
     await expect(page.locator('[data-testid="request-list"]')).toContainText(
-      "Pending"
+      "Pending",
     );
   });
 
-  test("should prevent duplicate requests", async ({page}) => {
+  test("should prevent duplicate requests", async ({ page }) => {
     // Navigate to lockers page
     await page.goto("/lockers");
 
     // Request same locker twice
     const lockerCard = page
       .locator('[data-testid="locker-card"]')
-      .filter({hasText: "Available"})
+      .filter({ hasText: "Available" })
       .first();
 
     // First request
-    await lockerCard.locator("button", {hasText: "Request"}).click();
+    await lockerCard.locator("button", { hasText: "Request" }).click();
     await page
       .locator('[data-testid="request-form"]')
       .locator('input[name="duration"]')
       .fill("7");
-    await page.locator("button", {hasText: "Submit"}).click();
+    await page.locator("button", { hasText: "Submit" }).click();
 
     // Try second request
-    await lockerCard.locator("button", {hasText: "Request"}).click();
+    await lockerCard.locator("button", { hasText: "Request" }).click();
 
     // Verify error message
     await expect(page.locator('[role="alert"]')).toHaveText(
-      /already have a pending request/
+      /already have a pending request/,
     );
   });
 });
@@ -417,14 +417,14 @@ test.describe("Locker Request Flow", () => {
 
 ```typescript
 // tests/performance/load.test.ts
-import {check} from "k6";
+import { check } from "k6";
 import http from "k6/http";
 
 export const options = {
   stages: [
-    {duration: "30s", target: 20}, // Ramp up
-    {duration: "1m", target: 20}, // Stay at peak
-    {duration: "30s", target: 0}, // Ramp down
+    { duration: "30s", target: 20 }, // Ramp up
+    { duration: "1m", target: 20 }, // Stay at peak
+    { duration: "30s", target: 0 }, // Ramp down
   ],
   thresholds: {
     http_req_duration: ["p(95)<500"], // 95% of requests should be below 500ms
@@ -456,15 +456,15 @@ export default function () {
 
 ```typescript
 // src/lib/components/LockerGrid.test.ts
-import {describe, it, expect} from "vitest";
-import {renderWithContext} from "$test/utils";
+import { describe, it, expect } from "vitest";
+import { renderWithContext } from "$test/utils";
 import LockerGrid from "./LockerGrid.svelte";
-import {performance} from "perf_hooks";
+import { performance } from "perf_hooks";
 
 describe("LockerGrid Performance", () => {
   it("should render large lists efficiently", async () => {
     // Arrange
-    const lockers = Array.from({length: 1000}, (_, i) => ({
+    const lockers = Array.from({ length: 1000 }, (_, i) => ({
       id: String(i),
       number: `A${i}`,
       status: "available",
@@ -472,7 +472,7 @@ describe("LockerGrid Performance", () => {
 
     // Act
     const start = performance.now();
-    const {container} = await renderWithContext(LockerGrid, {
+    const { container } = await renderWithContext(LockerGrid, {
       lockers,
     });
     const duration = performance.now() - start;
@@ -480,13 +480,13 @@ describe("LockerGrid Performance", () => {
     // Assert
     expect(duration).toBeLessThan(100); // Should render in under 100ms
     expect(
-      container.querySelectorAll('[data-testid="locker-card"]')
+      container.querySelectorAll('[data-testid="locker-card"]'),
     ).toHaveLength(1000);
   });
 
   it("should handle frequent updates efficiently", async () => {
     // Arrange
-    const {component} = await renderWithContext(LockerGrid, {
+    const { component } = await renderWithContext(LockerGrid, {
       lockers: [],
     });
 
@@ -494,7 +494,7 @@ describe("LockerGrid Performance", () => {
     const start = performance.now();
     for (let i = 0; i < 100; i++) {
       component.$set({
-        lockers: [{id: "1", number: "A1", status: "available"}],
+        lockers: [{ id: "1", number: "A1", status: "available" }],
       });
       await tick();
     }

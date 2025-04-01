@@ -1,4 +1,4 @@
-import type {RequestEvent} from "@sveltejs/kit";
+import type { RequestEvent } from "@sveltejs/kit";
 
 // Base API request type
 export type APIRequest = RequestEvent<

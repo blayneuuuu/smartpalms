@@ -1,18 +1,18 @@
-import {error} from "@sveltejs/kit";
-import {db} from "$lib/server/db";
-import {lockerRequests, lockers} from "$lib/server/db/schema";
-import type {RequestHandler} from "./$types";
-import type {NewLockerRequest} from "$lib/server/db/schema";
-import {nanoid} from "nanoid";
-import {eq, and} from "drizzle-orm";
+import { error } from "@sveltejs/kit";
+import { db } from "$lib/server/db";
+import { lockerRequests, lockers } from "$lib/server/db/schema";
+import type { RequestHandler } from "./$types";
+import type { NewLockerRequest } from "$lib/server/db/schema";
+import { nanoid } from "nanoid";
+import { eq, and } from "drizzle-orm";
 
-export const POST: RequestHandler = async ({locals, request}) => {
+export const POST: RequestHandler = async ({ locals, request }) => {
   if (!locals.user) {
     throw error(401, "Unauthorized");
   }
 
   const body = await request.json();
-  const {lockerId, subscriptionTypeId, proofOfPayment} = body;
+  const { lockerId, subscriptionTypeId, proofOfPayment } = body;
 
   if (!lockerId || !subscriptionTypeId || !proofOfPayment) {
     throw error(400, "Missing required fields");
@@ -37,8 +37,8 @@ export const POST: RequestHandler = async ({locals, request}) => {
       .where(
         and(
           eq(lockerRequests.lockerId, lockerId),
-          eq(lockerRequests.status, "pending")
-        )
+          eq(lockerRequests.status, "pending"),
+        ),
       )
       .get();
 
@@ -59,7 +59,7 @@ export const POST: RequestHandler = async ({locals, request}) => {
 
     await db.insert(lockerRequests).values(newRequest);
 
-    return new Response(JSON.stringify({success: true}), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 201,
       headers: {
         "Content-Type": "application/json",

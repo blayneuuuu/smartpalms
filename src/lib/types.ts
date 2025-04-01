@@ -1,4 +1,4 @@
-import {z} from "zod";
+import { z } from "zod";
 
 export interface ActionData {
   error?: string;
@@ -43,7 +43,7 @@ export const profileUpdateSchema = z
     {
       message: "Passwords don't match",
       path: ["confirmPassword"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -55,5 +55,5 @@ export const profileUpdateSchema = z
     {
       message: "Current password is required to change password",
       path: ["currentPassword"],
-    }
+    },
   );

@@ -1,5 +1,5 @@
-import {redirect} from "@sveltejs/kit";
-import type {RequestHandler} from "@sveltejs/kit";
+import { redirect } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
 
 /**
  * @deprecated Use /api/access/direct instead

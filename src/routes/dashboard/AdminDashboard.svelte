@@ -7,6 +7,7 @@
   import LockersTab from "./components/LockersTab.svelte";
   import UsersTab from "./components/UsersTab.svelte";
   import SubscriptionTypesTab from "./components/SubscriptionTypesTab.svelte";
+  import AccessHistoryTab from "./components/AccessHistoryTab.svelte";
   import { stats, loading, errors } from "$lib/stores/admin";
   import {
     fetchDashboardStats,
@@ -14,6 +15,7 @@
     fetchLockers,
     fetchUsers,
     fetchSubscriptionTypes,
+    fetchAccessHistory,
   } from "$lib/services/admin";
   
   // Import shared components
@@ -31,7 +33,7 @@
   let activeTab = $state("requests");
 
   // Create a type for tab IDs to ensure type safety
-  type TabId = "requests" | "lockers" | "users" | "subscription-types" | "subscriptions";
+  type TabId = "requests" | "lockers" | "users" | "subscription-types" | "access-history";
   
   // Store the last loaded time for each tab
   const tabLoadTimestamps = $state<Record<TabId, number>>({
@@ -39,7 +41,7 @@
     "lockers": 0,
     "users": 0,
     "subscription-types": 0,
-    "subscriptions": 0
+    "access-history": 0
   });
   
   // Set a cache timeout (5 minutes)
@@ -53,6 +55,7 @@
       fetchLockers(),
       fetchUsers(),
       fetchSubscriptionTypes(),
+      fetchAccessHistory(),
     ]).catch((err) => {
       console.error("Error fetching initial data:", err);
     });
@@ -84,9 +87,8 @@
         return fetchUsers();
       case "subscription-types":
         return fetchSubscriptionTypes();
-      case "subscriptions":
-        // No specific data loading for subscriptions tab as it loads its own data
-        return Promise.resolve();
+      case "access-history":
+        return fetchAccessHistory();
       default:
         return Promise.resolve();
     }
@@ -108,59 +110,6 @@
 
   function handleRetry() {
     fetchDashboardStats();
-  }
-
-  async function syncLockerOwnershipWithSubscription(lockerId: string, userId: string) {
-    // Check if locker exists
-    const locker = await db.query.lockers.findFirst({
-      where: eq(lockers.id, lockerId)
-    });
-    
-    if (!locker) return { success: false, message: 'Locker not found' };
-    
-    // Update locker ownership
-    await db.update(lockers)
-      .set({ userId: userId, isOccupied: !!userId })
-      .where(eq(lockers.id, lockerId));
-    
-    // If assigning to a user (not removing)
-    if (userId) {
-      // Check for existing subscription
-      const existingSubscription = await db.query.subscriptions.findFirst({
-        where: and(
-          eq(subscriptions.lockerId, lockerId),
-          eq(subscriptions.userId, userId),
-          eq(subscriptions.status, 'active')
-        )
-      });
-      
-      // If no active subscription exists, create one
-      if (!existingSubscription) {
-        // Set expiry 30 days from now by default
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 30);
-        
-        await db.insert(subscriptions).values({
-          id: crypto.randomUUID(),
-          userId: userId,
-          lockerId: lockerId,
-          status: 'active',
-          expiresAt: expiryDate.toISOString(),
-        });
-      }
-    } else {
-      // If removing user from locker, cancel any active subscriptions
-      await db.update(subscriptions)
-        .set({ status: 'cancelled' })
-        .where(
-          and(
-            eq(subscriptions.lockerId, lockerId),
-            eq(subscriptions.status, 'active')
-          )
-        );
-    }
-    
-    return { success: true };
   }
 </script>
 
@@ -193,15 +142,15 @@
         </div>
       </TabItem>
 
-      <TabItem title="Plans" id="subscription-types" class="text-xs sm:text-sm md:text-base hidden sm:block">
+      <TabItem title="Plans" id="subscription-types" class="text-xs sm:text-sm md:text-base">
         <div class="p-1 sm:p-2 md:p-4">
           <SubscriptionTypesTab />
         </div>
       </TabItem>
       
-      <TabItem title="Plans" id="subscription-types" class="text-xs sm:text-sm md:text-base sm:hidden">
+      <TabItem title="Access History" id="access-history" class="text-xs sm:text-sm md:text-base">
         <div class="p-1 sm:p-2 md:p-4">
-          <SubscriptionTypesTab />
+          <AccessHistoryTab />
         </div>
       </TabItem>
     </Tabs>

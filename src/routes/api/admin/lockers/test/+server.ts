@@ -1,12 +1,12 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "@sveltejs/kit";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
 
-export const GET: RequestHandler = async ({locals}) => {
+export const GET: RequestHandler = async ({ locals }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
@@ -17,6 +17,6 @@ export const GET: RequestHandler = async ({locals}) => {
     });
   } catch (error) {
     console.error("Error in test endpoint:", error);
-    return json({message: "Test endpoint error"}, {status: 500});
+    return json({ message: "Test endpoint error" }, { status: 500 });
   }
 };

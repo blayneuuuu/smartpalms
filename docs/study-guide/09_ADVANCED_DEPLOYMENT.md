@@ -275,11 +275,11 @@ resource "aws_ecs_service" "app" {
 
 ```typescript
 // src/lib/telemetry/index.ts
-import {NodeSDK} from "@opentelemetry/sdk-node";
-import {getNodeAutoInstrumentations} from "@opentelemetry/auto-instrumentations-node";
-import {OTLPTraceExporter} from "@opentelemetry/exporter-trace-otlp-http";
-import {Resource} from "@opentelemetry/resources";
-import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions";
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 
 const sdk = new NodeSDK({
   resource: new Resource({
@@ -312,7 +312,7 @@ sdk.start();
 
 ```typescript
 // src/lib/metrics/index.ts
-import {Registry, Counter, Histogram} from "prom-client";
+import { Registry, Counter, Histogram } from "prom-client";
 
 export const registry = new Registry();
 
@@ -333,8 +333,8 @@ export const httpRequestDuration = new Histogram({
 
 // Middleware
 export async function metricsMiddleware(
-  {request, url}: RequestEvent,
-  next: () => Promise<Response>
+  { request, url }: RequestEvent,
+  next: () => Promise<Response>,
 ) {
   const start = Date.now();
   const method = request.method;
@@ -350,7 +350,7 @@ export async function metricsMiddleware(
       status: response.status,
     });
 
-    httpRequestDuration.observe({method, path}, duration);
+    httpRequestDuration.observe({ method, path }, duration);
 
     return response;
   } catch (error) {
@@ -413,8 +413,8 @@ spec:
 
 ```typescript
 // src/lib/cache/index.ts
-import {Redis} from "ioredis";
-import {logger} from "$lib/utils/logger";
+import { Redis } from "ioredis";
+import { logger } from "$lib/utils/logger";
 
 const redis = new Redis(process.env.REDIS_URL!);
 
@@ -435,7 +435,7 @@ export class Cache {
       const data = await redis.get(this.getKey(key));
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      logger.error("Cache get error", {error, key});
+      logger.error("Cache get error", { error, key });
       return null;
     }
   }
@@ -443,7 +443,7 @@ export class Cache {
   async set(
     key: string,
     value: any,
-    ttl: number = this.config.ttl
+    ttl: number = this.config.ttl,
   ): Promise<void> {
     try {
       const data = JSON.stringify(value);
@@ -453,7 +453,7 @@ export class Cache {
         await redis.set(this.getKey(key), data);
       }
     } catch (error) {
-      logger.error("Cache set error", {error, key});
+      logger.error("Cache set error", { error, key });
     }
   }
 
@@ -461,7 +461,7 @@ export class Cache {
     try {
       await redis.del(this.getKey(key));
     } catch (error) {
-      logger.error("Cache delete error", {error, key});
+      logger.error("Cache delete error", { error, key });
     }
   }
 
@@ -472,7 +472,7 @@ export class Cache {
         await redis.del(...keys);
       }
     } catch (error) {
-      logger.error("Cache clear error", {error, pattern});
+      logger.error("Cache clear error", { error, pattern });
     }
   }
 }

@@ -7,6 +7,8 @@ import {
   transactions,
   loading,
   errors,
+  accessHistory,
+  type StoreKey,
 } from "$lib/stores/admin";
 import type {DashboardStats} from "$lib/stores/admin";
 
@@ -314,5 +316,24 @@ export async function deleteSubscriptionType(id: string) {
     console.error(`[deleteSubscriptionType] Exception caught:`, error);
     handleError("subscriptionTypes", error);
     throw error;
+  }
+}
+
+// Fetch access history
+export async function fetchAccessHistory() {
+  setLoading("accessHistory", true);
+  try {
+    const response = await fetch("/api/admin/access-history");
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to fetch access history");
+    }
+    const data = await response.json();
+    accessHistory.set(data.history);
+    errors.update((e) => ({...e, accessHistory: null}));
+  } catch (error) {
+    handleError("accessHistory", error);
+  } finally {
+    setLoading("accessHistory", false);
   }
 }

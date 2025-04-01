@@ -3,32 +3,31 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { readFileSync } from "fs";
 import { join } from "path";
+import dotenv from "dotenv";
 
-// Setup path for ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Load environment variables
+dotenv.config();
 
-// Load environment variables directly from file
-const envPath = join(__dirname, "..", ".env");
-const envContent = readFileSync(envPath, "utf8");
-const env = {};
+// Access environment variables
+const DATABASE_URL = process.env.DATABASE_URL;
+const DATABASE_AUTH_TOKEN = process.env.DATABASE_AUTH_TOKEN;
 
-envContent.split("\n").forEach((line) => {
-  const match = line.match(/^([^#][^=]+)=(.*)$/);
-  if (match) {
-    const key = match[1].trim();
-    const value = match[2].trim();
-    env[key] = value;
-  }
-});
+if (!DATABASE_URL) {
+  console.error("DATABASE_URL environment variable is not set");
+  process.exit(1);
+}
+
+console.log("Creating LibSQL client with URL:", DATABASE_URL);
 
 async function main() {
   const client = createClient({
-    url: env.DATABASE_URL,
-    authToken: env.DATABASE_AUTH_TOKEN,
+    url: DATABASE_URL,
+    authToken: DATABASE_AUTH_TOKEN,
   });
 
   try {
+    console.log("Starting unverified users migration...");
+
     // Create unverified_users table
     await client.execute(`
       CREATE TABLE IF NOT EXISTS unverified_users (

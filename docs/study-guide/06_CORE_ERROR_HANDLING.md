@@ -21,7 +21,7 @@ export class AppError extends Error {
     message: string,
     public code: string,
     public status: number = 500,
-    public details?: Record<string, any>
+    public details?: Record<string, any>,
   ) {
     super(message);
     this.name = "AppError";
@@ -71,7 +71,7 @@ export class AuthorizationError extends AppError {
 
 ```typescript
 // src/lib/errors/guards.ts
-import type {AppError} from "./base";
+import type { AppError } from "./base";
 
 export function isAppError(error: unknown): error is AppError {
   return error instanceof Error && "code" in error && "status" in error;
@@ -106,11 +106,11 @@ export function toAppError(error: unknown): AppError {
 
 ```typescript
 // src/lib/errors/domain.ts
-import {AppError} from "./base";
+import { AppError } from "./base";
 
 export class LockerNotAvailableError extends AppError {
   constructor(lockerId: string) {
-    super("Locker is not available", "LOCKER_NOT_AVAILABLE", 400, {lockerId});
+    super("Locker is not available", "LOCKER_NOT_AVAILABLE", 400, { lockerId });
     this.name = "LockerNotAvailableError";
   }
 }
@@ -121,7 +121,7 @@ export class DuplicateRequestError extends AppError {
       "User already has a pending request for this locker",
       "DUPLICATE_REQUEST",
       400,
-      {userId, lockerId}
+      { userId, lockerId },
     );
     this.name = "DuplicateRequestError";
   }
@@ -133,7 +133,7 @@ export class InvalidStatusTransitionError extends AppError {
       `Invalid status transition from ${currentStatus} to ${newStatus}`,
       "INVALID_STATUS_TRANSITION",
       400,
-      {currentStatus, newStatus, entityType}
+      { currentStatus, newStatus, entityType },
     );
     this.name = "InvalidStatusTransitionError";
   }
@@ -233,8 +233,8 @@ export class InvalidStatusTransitionError extends AppError {
 
 ```typescript
 // src/lib/stores/error.ts
-import {writable} from "svelte/store";
-import type {AppError} from "$lib/errors/base";
+import { writable } from "svelte/store";
+import type { AppError } from "$lib/errors/base";
 
 interface ErrorState {
   error: AppError | null;
@@ -242,7 +242,7 @@ interface ErrorState {
 }
 
 function createErrorStore() {
-  const {subscribe, set, update} = writable<ErrorState>({
+  const { subscribe, set, update } = writable<ErrorState>({
     error: null,
     timestamp: null,
   });
@@ -269,7 +269,7 @@ export const errorStore = createErrorStore();
 
 ```typescript
 // src/lib/utils/logger.ts
-import type {AppError} from "$lib/errors/base";
+import type { AppError } from "$lib/errors/base";
 
 interface LogEntry {
   level: "error" | "warn" | "info";
@@ -284,7 +284,7 @@ class Logger {
   log(
     level: LogEntry["level"],
     message: string,
-    details?: Record<string, any>
+    details?: Record<string, any>,
   ) {
     const entry: LogEntry = {
       level,
@@ -327,8 +327,8 @@ class Logger {
     localStorage.setItem(
       "error_logs",
       JSON.stringify(
-        logs.slice(-100) // Keep last 100 entries
-      )
+        logs.slice(-100), // Keep last 100 entries
+      ),
     );
   }
 
@@ -357,9 +357,9 @@ interface RetryOptions {
 
 export async function retry<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
-  const {maxAttempts = 3, delay = 1000, backoff = true} = options;
+  const { maxAttempts = 3, delay = 1000, backoff = true } = options;
 
   let lastError: unknown;
 
@@ -392,7 +392,7 @@ async function fetchWithRetry() {
       }
       return response.json();
     },
-    {maxAttempts: 3, delay: 1000, backoff: true}
+    { maxAttempts: 3, delay: 1000, backoff: true },
   );
 }
 ```
@@ -408,7 +408,7 @@ type FallbackStrategy<T> = {
 };
 
 export async function withFallback<T>(
-  strategy: FallbackStrategy<T>
+  strategy: FallbackStrategy<T>,
 ): Promise<T> {
   try {
     return await strategy.attempt();

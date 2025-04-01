@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
-import {db} from "./db";
-import {users} from "./db/schema";
-import {eq} from "drizzle-orm";
-import {redirect} from "@sveltejs/kit";
-import type {User} from "./db/schema";
+import { db } from "./db";
+import { users } from "./db/schema";
+import { eq } from "drizzle-orm";
+import { redirect } from "@sveltejs/kit";
+import type { User } from "./db/schema";
 
 const SALT_ROUNDS = 10;
 
@@ -13,7 +13,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(
   password: string,
-  hash: string
+  hash: string,
 ): Promise<boolean> {
   return await bcrypt.compare(password, hash);
 }
@@ -22,7 +22,7 @@ export async function createUser(
   name: string,
   email: string,
   password: string,
-  type: "admin" | "user" = "user"
+  type: "admin" | "user" = "user",
 ): Promise<User> {
   const hashedPassword = await hashPassword(password);
   const [user] = await db
@@ -40,7 +40,7 @@ export async function createUser(
 
 export async function verifyUser(
   email: string,
-  password: string
+  password: string,
 ): Promise<User | null> {
   const [user] = await db.select().from(users).where(eq(users.email, email));
   if (!user) return null;

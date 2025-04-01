@@ -1,10 +1,10 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "@sveltejs/kit";
-import type {ExternalAccessResponse} from "$lib/types/api";
-import {APIErrors, handleError} from "$lib/server/errors";
-import {validateRequest} from "$lib/server/middleware";
-import {z} from "zod";
-import {LockerService} from "$lib/services/core";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
+import type { ExternalAccessResponse } from "$lib/types/api";
+import { APIErrors, handleError } from "$lib/server/errors";
+import { validateRequest } from "$lib/server/middleware";
+import { z } from "zod";
+import { LockerService } from "$lib/services/core";
 
 /**
  * Direct Access Endpoint
@@ -26,7 +26,7 @@ const accessSchema = z.object({
 
 export const POST: RequestHandler = async (event) => {
   try {
-    const {locker_id} = await validateRequest(event, accessSchema);
+    const { locker_id } = await validateRequest(event, accessSchema);
 
     // Use the LockerService to handle direct access
     const result = await LockerService.directAccess(locker_id);

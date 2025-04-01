@@ -1,12 +1,12 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {transactions} from "$lib/server/db/schema";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { transactions } from "$lib/server/db/schema";
 
-export const POST: RequestHandler = async ({request}) => {
+export const POST: RequestHandler = async ({ request }) => {
   try {
-    const {userId, amount, subscriptionId, proofOfPayment} =
+    const { userId, amount, subscriptionId, proofOfPayment } =
       await request.json();
 
     if (!userId || !amount || !subscriptionId) {
@@ -27,7 +27,7 @@ export const POST: RequestHandler = async ({request}) => {
       })
       .returning();
 
-    return json({success: true, transaction: newTransaction[0]});
+    return json({ success: true, transaction: newTransaction[0] });
   } catch (err) {
     console.error("Error creating transaction:", err);
     if (err instanceof Error) {

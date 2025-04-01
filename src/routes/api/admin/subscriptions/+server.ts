@@ -1,18 +1,18 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {subscriptions, lockers, users} from "$lib/server/db/schema";
-import {eq, and} from "drizzle-orm";
-import {randomUUID} from "crypto";
-import type {Status} from "$lib/server/db/schema";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { subscriptions, lockers, users } from "$lib/server/db/schema";
+import { eq, and } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import type { Status } from "$lib/server/db/schema";
 
 // GET all subscriptions
-export const GET: RequestHandler = async ({locals}) => {
+export const GET: RequestHandler = async ({ locals }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
@@ -34,25 +34,25 @@ export const GET: RequestHandler = async ({locals}) => {
       .leftJoin(users, eq(subscriptions.userId, users.id))
       .orderBy(subscriptions.createdAt);
 
-    return json({subscriptions: allSubscriptions});
+    return json({ subscriptions: allSubscriptions });
   } catch (error) {
     console.error("Error fetching subscriptions:", error);
-    return json({message: "Failed to fetch subscriptions"}, {status: 500});
+    return json({ message: "Failed to fetch subscriptions" }, { status: 500 });
   }
 };
 
 // Create a new subscription
-export const POST: RequestHandler = async ({locals, request}) => {
+export const POST: RequestHandler = async ({ locals, request }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
     const body = await request.json();
-    const {userId, lockerId, expiresAt, status = "active"} = body;
+    const { userId, lockerId, expiresAt, status = "active" } = body;
 
     if (!userId || !lockerId || !expiresAt) {
       return json(
@@ -60,7 +60,7 @@ export const POST: RequestHandler = async ({locals, request}) => {
           message:
             "Missing required fields: userId, lockerId, and expiresAt are required",
         },
-        {status: 400}
+        { status: 400 },
       );
     }
 
@@ -71,7 +71,7 @@ export const POST: RequestHandler = async ({locals, request}) => {
       .where(eq(lockers.id, lockerId));
 
     if (!existingLocker) {
-      return json({message: "Locker not found"}, {status: 404});
+      return json({ message: "Locker not found" }, { status: 404 });
     }
 
     if (existingLocker.isOccupied) {
@@ -82,14 +82,14 @@ export const POST: RequestHandler = async ({locals, request}) => {
         .where(
           and(
             eq(subscriptions.lockerId, lockerId),
-            eq(subscriptions.status, "active")
-          )
+            eq(subscriptions.status, "active"),
+          ),
         );
 
       if (existingSubscription && existingSubscription.userId !== userId) {
         return json(
-          {message: "Locker is already occupied by another user"},
-          {status: 400}
+          { message: "Locker is already occupied by another user" },
+          { status: 400 },
         );
       }
     }
@@ -101,7 +101,7 @@ export const POST: RequestHandler = async ({locals, request}) => {
       .where(eq(users.id, userId));
 
     if (!existingUser) {
-      return json({message: "User not found"}, {status: 404});
+      return json({ message: "User not found" }, { status: 404 });
     }
 
     const subscriptionId = randomUUID();
@@ -147,8 +147,8 @@ export const POST: RequestHandler = async ({locals, request}) => {
   } catch (error) {
     console.error("Error creating subscription:", error);
     if (error instanceof Error) {
-      return json({message: error.message}, {status: 500});
+      return json({ message: error.message }, { status: 500 });
     }
-    return json({message: "Failed to create subscription"}, {status: 500});
+    return json({ message: "Failed to create subscription" }, { status: 500 });
   }
 };

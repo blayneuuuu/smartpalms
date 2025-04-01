@@ -16,11 +16,11 @@ This document explains the fundamental API concepts and implementation patterns 
 
 ```typescript
 // src/routes/api/lockers/+server.ts
-import type {RequestHandler} from "./$types";
-import {json} from "@sveltejs/kit";
-import {db} from "$lib/server/db";
+import type { RequestHandler } from "./$types";
+import { json } from "@sveltejs/kit";
+import { db } from "$lib/server/db";
 
-export const GET: RequestHandler = async ({url}) => {
+export const GET: RequestHandler = async ({ url }) => {
   const status = url.searchParams.get("status");
   const lockers = await db.query.smartLockers.findMany({
     where: status ? eq(smartLockers.status, status) : undefined,
@@ -42,11 +42,11 @@ export interface ApiResponse<T> {
 }
 
 // Usage in endpoint
-export const POST: RequestHandler = async ({request}) => {
+export const POST: RequestHandler = async ({ request }) => {
   try {
     const data = await request.json();
     const locker = await createLocker(data);
-    return json({data: locker});
+    return json({ data: locker });
   } catch (err) {
     return json(
       {
@@ -55,7 +55,7 @@ export const POST: RequestHandler = async ({request}) => {
           message: err.message,
         },
       },
-      {status: 400}
+      { status: 400 },
     );
   }
 };
@@ -83,29 +83,29 @@ export const POST: RequestHandler = async ({request}) => {
 
 ```typescript
 // Example of all CRUD operations for a resource
-export const GET: RequestHandler = async ({params}) => {
-  const {id} = params;
+export const GET: RequestHandler = async ({ params }) => {
+  const { id } = params;
   const locker = await getLocker(id);
   return json(locker);
 };
 
-export const POST: RequestHandler = async ({request}) => {
+export const POST: RequestHandler = async ({ request }) => {
   const data = await request.json();
   const locker = await createLocker(data);
-  return json(locker, {status: 201});
+  return json(locker, { status: 201 });
 };
 
-export const PUT: RequestHandler = async ({params, request}) => {
-  const {id} = params;
+export const PUT: RequestHandler = async ({ params, request }) => {
+  const { id } = params;
   const data = await request.json();
   const locker = await updateLocker(id, data);
   return json(locker);
 };
 
-export const DELETE: RequestHandler = async ({params}) => {
-  const {id} = params;
+export const DELETE: RequestHandler = async ({ params }) => {
+  const { id } = params;
   await deleteLocker(id);
-  return new Response(null, {status: 204});
+  return new Response(null, { status: 204 });
 };
 ```
 
@@ -115,7 +115,7 @@ export const DELETE: RequestHandler = async ({params}) => {
 
 ```typescript
 // src/lib/validation/locker.ts
-import {z} from "zod";
+import { z } from "zod";
 
 export const createLockerSchema = z.object({
   number: z.string().min(1).max(10),
@@ -124,13 +124,13 @@ export const createLockerSchema = z.object({
 });
 
 // Usage in endpoint
-export const POST: RequestHandler = async ({request}) => {
+export const POST: RequestHandler = async ({ request }) => {
   const data = await request.json();
 
   try {
     const validated = createLockerSchema.parse(data);
     const locker = await createLocker(validated);
-    return json(locker, {status: 201});
+    return json(locker, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return json(
@@ -141,7 +141,7 @@ export const POST: RequestHandler = async ({request}) => {
             details: err.errors,
           },
         },
-        {status: 400}
+        { status: 400 },
       );
     }
     throw err;
@@ -154,24 +154,24 @@ export const POST: RequestHandler = async ({request}) => {
 ```typescript
 // src/lib/api/response.ts
 export function createResponse<T>(data: T): ApiResponse<T> {
-  return {data};
+  return { data };
 }
 
 export function createErrorResponse(
   code: string,
   message: string,
-  status = 400
+  status = 400,
 ): Response {
   return json(
     {
-      error: {code, message},
+      error: { code, message },
     },
-    {status}
+    { status },
   );
 }
 
 // Usage
-export const GET: RequestHandler = async ({params}) => {
+export const GET: RequestHandler = async ({ params }) => {
   try {
     const locker = await getLocker(params.id);
     if (!locker) {
@@ -190,13 +190,13 @@ export const GET: RequestHandler = async ({params}) => {
 
 ```typescript
 // src/hooks.server.ts
-import {sequence} from "@sveltejs/kit/hooks";
-import {handleClerk} from "@clerk/sveltekit";
+import { sequence } from "@sveltejs/kit/hooks";
+import { handleClerk } from "@clerk/sveltekit";
 
-export const handle = sequence(handleClerk(), async ({event, resolve}) => {
+export const handle = sequence(handleClerk(), async ({ event, resolve }) => {
   // Protect API routes
   if (event.url.pathname.startsWith("/api")) {
-    const {userId} = event.locals.auth;
+    const { userId } = event.locals.auth;
     if (!userId) {
       return json(
         {
@@ -205,7 +205,7 @@ export const handle = sequence(handleClerk(), async ({event, resolve}) => {
             message: "Authentication required",
           },
         },
-        {status: 401}
+        { status: 401 },
       );
     }
   }
@@ -217,7 +217,7 @@ export const handle = sequence(handleClerk(), async ({event, resolve}) => {
 
 ```typescript
 // src/lib/middleware/logging.ts
-export async function logRequest({event, resolve}) {
+export async function logRequest({ event, resolve }) {
   const start = Date.now();
 
   try {
@@ -249,7 +249,7 @@ export async function logRequest({event, resolve}) {
 
 ```typescript
 // src/hooks.server.ts
-export const handleError = ({error, event}) => {
+export const handleError = ({ error, event }) => {
   console.error({
     path: event.url.pathname,
     error: error,
@@ -271,7 +271,7 @@ export class ApiError extends Error {
   constructor(
     public code: string,
     message: string,
-    public status: number = 400
+    public status: number = 400,
   ) {
     super(message);
     this.name = "ApiError";
@@ -285,7 +285,7 @@ export class NotFoundError extends ApiError {
 }
 
 // Usage
-export const GET: RequestHandler = async ({params}) => {
+export const GET: RequestHandler = async ({ params }) => {
   const locker = await getLocker(params.id);
   if (!locker) {
     throw new NotFoundError("Locker not found");

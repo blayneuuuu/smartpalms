@@ -1,6 +1,9 @@
-import {db} from "$lib/server/db";
-import {subscriptionTypes, type SubscriptionType} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { db } from "$lib/server/db";
+import {
+  subscriptionTypes,
+  type SubscriptionType,
+} from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * SubscriptionTypeService provides functionality for managing subscription types
@@ -84,7 +87,7 @@ export class SubscriptionTypeService {
       duration?: "1_day" | "3_days" | "7_days" | "30_days";
       amount?: number;
       isActive?: boolean;
-    }
+    },
   ): Promise<SubscriptionType | null> {
     // Check if the subscription type exists
     const subscriptionType = await this.getById(id);

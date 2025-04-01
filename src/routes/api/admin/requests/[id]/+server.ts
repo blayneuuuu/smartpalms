@@ -65,8 +65,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
         .where(
           and(
             eq(subscriptions.lockerId, lockerRequest.lockerId),
-            eq(subscriptions.status, "active")
-          )
+            eq(subscriptions.status, "active"),
+          ),
         );
 
       if (existingSubscription) {

@@ -1,8 +1,8 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "@sveltejs/kit";
-import {db} from "$lib/server/db";
-import {lockers} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
+import { db } from "$lib/server/db";
+import { lockers } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
 // Define the type for our locker status details
 type LockerStatusDetail = {
@@ -13,12 +13,12 @@ type LockerStatusDetail = {
   hasUser: boolean;
 };
 
-export const GET: RequestHandler = async ({locals}) => {
+export const GET: RequestHandler = async ({ locals }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
@@ -41,13 +41,13 @@ export const GET: RequestHandler = async ({locals}) => {
 
       // Log the current state
       console.log(
-        `Locker ${locker.number}: userId=${locker.userId}, isOccupied=${locker.isOccupied}, shouldBeOccupied=${shouldBeOccupied}`
+        `Locker ${locker.number}: userId=${locker.userId}, isOccupied=${locker.isOccupied}, shouldBeOccupied=${shouldBeOccupied}`,
       );
 
       // If the occupation status is incorrect, update it
       if (locker.isOccupied !== shouldBeOccupied) {
         console.log(
-          `Fixing locker ${locker.number} - setting isOccupied to ${shouldBeOccupied}`
+          `Fixing locker ${locker.number} - setting isOccupied to ${shouldBeOccupied}`,
         );
 
         // Update the locker
@@ -79,11 +79,11 @@ export const GET: RequestHandler = async ({locals}) => {
   } catch (error) {
     console.error("Error fixing locker occupation status:", error);
     if (error instanceof Error) {
-      return json({message: error.message, success: false}, {status: 500});
+      return json({ message: error.message, success: false }, { status: 500 });
     }
     return json(
-      {message: "Failed to fix locker occupation status", success: false},
-      {status: 500}
+      { message: "Failed to fix locker occupation status", success: false },
+      { status: 500 },
     );
   }
 };

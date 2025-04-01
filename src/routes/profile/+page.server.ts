@@ -1,19 +1,19 @@
-import {fail} from "@sveltejs/kit";
-import {requireUser} from "$lib/server/auth";
-import {db} from "$lib/server/db";
-import {users} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { fail } from "@sveltejs/kit";
+import { requireUser } from "$lib/server/auth";
+import { db } from "$lib/server/db";
+import { users } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import {profileUpdateSchema} from "$lib/types";
-import type {Actions, PageServerLoad} from "./$types";
+import { profileUpdateSchema } from "$lib/types";
+import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({locals}) => {
+export const load: PageServerLoad = async ({ locals }) => {
   const user = await requireUser(locals);
-  return {user};
+  return { user };
 };
 
 export const actions = {
-  default: async ({request, locals}) => {
+  default: async ({ request, locals }) => {
     const user = await requireUser(locals);
     const data = await request.formData();
     const formData = {
@@ -26,8 +26,8 @@ export const actions = {
 
     const result = profileUpdateSchema.safeParse(formData);
     if (!result.success) {
-      const {errors} = result.error;
-      return fail(400, {error: errors[0].message});
+      const { errors } = result.error;
+      return fail(400, { error: errors[0].message });
     }
 
     // Check if email is taken by another user
@@ -37,7 +37,7 @@ export const actions = {
         .from(users)
         .where(eq(users.email, formData.email));
       if (existingUser) {
-        return fail(400, {error: "Email is already taken"});
+        return fail(400, { error: "Email is already taken" });
       }
     }
 
@@ -49,11 +49,11 @@ export const actions = {
         .where(eq(users.id, user.id));
       const isValid = await bcrypt.compare(
         formData.currentPassword,
-        userWithPassword.password
+        userWithPassword.password,
       );
 
       if (!isValid) {
-        return fail(400, {error: "Current password is incorrect"});
+        return fail(400, { error: "Current password is incorrect" });
       }
 
       // Hash new password
@@ -81,6 +81,6 @@ export const actions = {
         .where(eq(users.id, user.id));
     }
 
-    return {success: "Profile updated successfully"};
+    return { success: "Profile updated successfully" };
   },
 } satisfies Actions;

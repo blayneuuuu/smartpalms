@@ -1,6 +1,6 @@
-import {db} from "$lib/server/db";
-import {subscriptions, lockers} from "$lib/server/db/schema";
-import {eq, and, lt, isNotNull} from "drizzle-orm";
+import { db } from "$lib/server/db";
+import { subscriptions, lockers } from "$lib/server/db/schema";
+import { eq, and, lt, isNotNull } from "drizzle-orm";
 
 /**
  * Service for handling subscription-related operations
@@ -12,14 +12,14 @@ export class SubscriptionService {
    * @returns Number of expired subscriptions that were updated
    */
   public static async checkAndUpdateExpiredSubscriptions(
-    userId?: string
+    userId?: string,
   ): Promise<number> {
     const now = new Date().toISOString();
 
     // Build the where clause
     let whereClause = and(
       eq(subscriptions.status, "active"),
-      lt(subscriptions.expiresAt, now)
+      lt(subscriptions.expiresAt, now),
     );
 
     // Add user filter if provided
@@ -37,7 +37,7 @@ export class SubscriptionService {
       .where(whereClause);
 
     console.log(
-      `Found ${expiredSubscriptions.length} expired subscriptions to update`
+      `Found ${expiredSubscriptions.length} expired subscriptions to update`,
     );
 
     // No expired subscriptions
@@ -50,7 +50,7 @@ export class SubscriptionService {
       // Update all expired subscriptions to 'expired' status
       await tx
         .update(subscriptions)
-        .set({status: "expired"})
+        .set({ status: "expired" })
         .where(whereClause);
 
       // For each expired subscription, update the corresponding locker
@@ -88,7 +88,7 @@ export class SubscriptionService {
       .from(lockers)
       .where(
         // Only consider lockers where OTP is not null
-        isNotNull(lockers.otp)
+        isNotNull(lockers.otp),
       );
 
     // Check how many OTPs need to be expired based on time
@@ -101,7 +101,7 @@ export class SubscriptionService {
 
     if (count > 0) {
       // Clear all OTPs
-      await db.update(lockers).set({otp: null}).where(isNotNull(lockers.otp));
+      await db.update(lockers).set({ otp: null }).where(isNotNull(lockers.otp));
     }
 
     return count;

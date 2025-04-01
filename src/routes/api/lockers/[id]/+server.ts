@@ -1,12 +1,12 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {lockers} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { lockers } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
 // Get single locker
-export const GET: RequestHandler = async ({params}) => {
+export const GET: RequestHandler = async ({ params }) => {
   try {
     const locker = await db
       .select()

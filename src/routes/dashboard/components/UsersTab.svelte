@@ -12,7 +12,7 @@
     Alert,
     Spinner,
   } from "flowbite-svelte";
-  import {formatDate} from "$lib/utils/date";
+  import {formatDate, formatTimestamp} from "$lib/utils/date";
   import {users, loading, errors} from "$lib/stores/admin";
   import { Dialog } from "bits-ui";
 
@@ -53,7 +53,7 @@
             <TableBodyCell class="hidden sm:table-cell">
               <span class="truncate max-w-[150px] md:max-w-none block">{user.email}</span>
             </TableBodyCell>
-            <TableBodyCell class="hidden md:table-cell">{formatDate(user.createdAt, true)}</TableBodyCell>
+            <TableBodyCell class="hidden md:table-cell">{formatTimestamp(user.createdAt)}</TableBodyCell>
             <TableBodyCell>
 
               <!-- Dialog  -->
@@ -86,7 +86,7 @@
           </div>
           <div>
             <p class="text-sm text-gray-500">Created At</p>
-            <p class="font-medium">{formatDate(selectedUser.createdAt, true)}</p>
+            <p class="font-medium">{formatTimestamp(selectedUser.createdAt)}</p>
           </div>
         </div>
       </div>

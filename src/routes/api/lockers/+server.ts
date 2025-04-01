@@ -1,8 +1,8 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {lockers} from "$lib/server/db/schema";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { lockers } from "$lib/server/db/schema";
 
 // Get all lockers
 export const GET: RequestHandler = async () => {
@@ -38,7 +38,7 @@ export const GET: RequestHandler = async () => {
     console.error("Error in /api/lockers:", err);
     throw error(
       500,
-      err instanceof Error ? err.message : "Failed to fetch lockers"
+      err instanceof Error ? err.message : "Failed to fetch lockers",
     );
   }
 };

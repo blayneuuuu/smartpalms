@@ -1,10 +1,10 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {subscriptionTypes} from "$lib/server/db/schema";
-import {eq, and} from "drizzle-orm";
-import {z} from "zod";
-import {lockerRequests} from "$lib/server/db/schema";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { subscriptionTypes } from "$lib/server/db/schema";
+import { eq, and } from "drizzle-orm";
+import { z } from "zod";
+import { lockerRequests } from "$lib/server/db/schema";
 
 const subscriptionTypeSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -20,29 +20,32 @@ const subscriptionTypeSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export const PUT: RequestHandler = async ({request, locals, params}) => {
+export const PUT: RequestHandler = async ({ request, locals, params }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
-    const {id} = params;
+    const { id } = params;
     if (!id) {
-      return json({message: "Subscription type ID is required"}, {status: 400});
+      return json(
+        { message: "Subscription type ID is required" },
+        { status: 400 },
+      );
     }
 
     const body = await request.json();
     const result = subscriptionTypeSchema.safeParse(body);
 
     if (!result.success) {
-      const {errors} = result.error;
-      return json({message: errors[0].message}, {status: 400});
+      const { errors } = result.error;
+      return json({ message: errors[0].message }, { status: 400 });
     }
 
-    const {name, duration, size, amount} = result.data;
+    const { name, duration, size, amount } = result.data;
 
     // Check if subscription type exists
     const [existingType] = await db
@@ -51,7 +54,7 @@ export const PUT: RequestHandler = async ({request, locals, params}) => {
       .where(eq(subscriptionTypes.id, id));
 
     if (!existingType) {
-      return json({message: "Subscription type not found"}, {status: 404});
+      return json({ message: "Subscription type not found" }, { status: 404 });
     }
 
     // Handle isActive status (use the provided value or keep the existing one)
@@ -69,8 +72,8 @@ export const PUT: RequestHandler = async ({request, locals, params}) => {
 
       if (nameExists) {
         return json(
-          {message: "Subscription type with this name already exists"},
-          {status: 400}
+          { message: "Subscription type with this name already exists" },
+          { status: 400 },
         );
       }
     }
@@ -88,25 +91,31 @@ export const PUT: RequestHandler = async ({request, locals, params}) => {
       .where(eq(subscriptionTypes.id, id))
       .returning();
 
-    return json({subscriptionType: updatedType});
+    return json({ subscriptionType: updatedType });
   } catch (err) {
     console.error("Error updating subscription type:", err);
-    return json({message: "Failed to update subscription type"}, {status: 500});
+    return json(
+      { message: "Failed to update subscription type" },
+      { status: 500 },
+    );
   }
 };
 
-export const DELETE: RequestHandler = async ({locals, params}) => {
+export const DELETE: RequestHandler = async ({ locals, params }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
-    const {id} = params;
+    const { id } = params;
     if (!id) {
-      return json({message: "Subscription type ID is required"}, {status: 400});
+      return json(
+        { message: "Subscription type ID is required" },
+        { status: 400 },
+      );
     }
 
     // Check if subscription type exists
@@ -116,7 +125,7 @@ export const DELETE: RequestHandler = async ({locals, params}) => {
       .where(eq(subscriptionTypes.id, id));
 
     if (!existingType) {
-      return json({message: "Subscription type not found"}, {status: 404});
+      return json({ message: "Subscription type not found" }, { status: 404 });
     }
 
     // Check if there are any pending requests using this subscription type
@@ -126,8 +135,8 @@ export const DELETE: RequestHandler = async ({locals, params}) => {
       .where(
         and(
           eq(lockerRequests.subscriptionTypeId, id),
-          eq(lockerRequests.status, "pending")
-        )
+          eq(lockerRequests.status, "pending"),
+        ),
       );
 
     if (pendingRequests.length > 0) {
@@ -136,7 +145,7 @@ export const DELETE: RequestHandler = async ({locals, params}) => {
           message: "Cannot delete subscription type with pending requests",
           pending: pendingRequests.length,
         },
-        {status: 400}
+        { status: 400 },
       );
     }
 
@@ -168,7 +177,7 @@ export const DELETE: RequestHandler = async ({locals, params}) => {
         message: "Failed to delete subscription type",
         error: err instanceof Error ? err.message : "Unknown error",
       },
-      {status: 500}
+      { status: 500 },
     );
   }
 };

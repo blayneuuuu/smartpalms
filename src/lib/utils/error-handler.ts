@@ -1,4 +1,4 @@
-import {json} from "@sveltejs/kit";
+import { json } from "@sveltejs/kit";
 
 /**
  * Standard error codes for consistent error responses
@@ -28,7 +28,7 @@ export function handleApiError(error: unknown): Response {
         success: false,
         error: getErrorMessage(error) || "An error occurred",
       },
-      {status: error.status}
+      { status: error.status },
     );
   }
 
@@ -63,7 +63,7 @@ export function handleApiError(error: unknown): Response {
         success: false,
         error: error.message,
       },
-      {status}
+      { status },
     );
   }
 
@@ -73,7 +73,7 @@ export function handleApiError(error: unknown): Response {
       success: false,
       error: "An unexpected error occurred",
     },
-    {status: ErrorCode.INTERNAL_SERVER_ERROR}
+    { status: ErrorCode.INTERNAL_SERVER_ERROR },
   );
 }
 
@@ -81,23 +81,23 @@ export function handleApiError(error: unknown): Response {
  * Type guard for errors with status property
  */
 function isErrorWithStatus(
-  error: unknown
-): error is {status: number; body?: unknown} {
+  error: unknown,
+): error is { status: number; body?: unknown } {
   return (
     typeof error === "object" &&
     error !== null &&
     "status" in error &&
-    typeof (error as {status: unknown}).status === "number"
+    typeof (error as { status: unknown }).status === "number"
   );
 }
 
 /**
  * Extract error message from an error with body
  */
-function getErrorMessage(error: {body?: unknown}): string {
+function getErrorMessage(error: { body?: unknown }): string {
   if (typeof error.body === "object" && error.body && error.body !== null) {
     if ("message" in error.body) {
-      return String((error.body as {message: unknown}).message);
+      return String((error.body as { message: unknown }).message);
     }
   }
   return String(error.body || "");

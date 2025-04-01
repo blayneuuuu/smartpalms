@@ -1,5 +1,5 @@
-import {fontFamily} from "tailwindcss/defaultTheme";
-import type {Config} from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
+import type { Config } from "tailwindcss";
 import plugin from "flowbite/plugin";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";

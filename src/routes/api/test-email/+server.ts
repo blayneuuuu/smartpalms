@@ -1,8 +1,8 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "@sveltejs/kit";
-import {setupMailer} from "$lib/services/EmailService";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
+import { setupMailer } from "$lib/services/EmailService";
 import nodemailer from "nodemailer";
-import {env} from "$env/dynamic/private";
+import { env } from "$env/dynamic/private";
 
 export const GET: RequestHandler = async () => {
   await setupMailer();
@@ -48,7 +48,7 @@ export const GET: RequestHandler = async () => {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       },
-      {status: 500}
+      { status: 500 },
     );
   }
 };

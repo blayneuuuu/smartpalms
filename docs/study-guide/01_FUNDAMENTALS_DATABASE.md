@@ -16,13 +16,13 @@ This document explains the fundamental database concepts and implementation patt
 
 ```typescript
 // Example of type-safe schema definition
-import {sqliteTable, text, integer} from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   fullName: text("full_name").notNull(),
-  createdAt: integer("created_at", {mode: "timestamp"}).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 ```
 
@@ -42,10 +42,10 @@ export const users = sqliteTable("users", {
 export const smartLockers = sqliteTable("smart_lockers", {
   id: text("id").primaryKey(),
   number: text("number").notNull().unique(),
-  status: text("status", {enum: ["available", "occupied", "maintenance"]})
+  status: text("status", { enum: ["available", "occupied", "maintenance"] })
     .notNull()
     .default("available"),
-  lastAccessed: integer("last_accessed", {mode: "timestamp"}),
+  lastAccessed: integer("last_accessed", { mode: "timestamp" }),
 });
 
 export const lockerAssignments = sqliteTable("locker_assignments", {
@@ -56,8 +56,8 @@ export const lockerAssignments = sqliteTable("locker_assignments", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
-  assignedAt: integer("assigned_at", {mode: "timestamp"}).notNull(),
-  expiresAt: integer("expires_at", {mode: "timestamp"}),
+  assignedAt: integer("assigned_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
 });
 ```
 
@@ -92,7 +92,7 @@ const locker = await db.query.smartLockers.findFirst({
 // Update
 await db
   .update(smartLockers)
-  .set({status: "maintenance"})
+  .set({ status: "maintenance" })
   .where(eq(smartLockers.id, lockerId));
 
 // Delete
@@ -116,12 +116,12 @@ const availableLockers = await db.query.smartLockers.findMany({
               eq(lockerAssignments.lockerId, smartLockers.id),
               gt(
                 lockerAssignments.assignedAt,
-                dayjs().subtract(1, "day").toDate()
-              )
-            )
-          )
-      )
-    )
+                dayjs().subtract(1, "day").toDate(),
+              ),
+            ),
+          ),
+      ),
+    ),
   ),
 });
 ```
@@ -135,12 +135,12 @@ const availableLockers = await db.query.smartLockers.findMany({
 export const smartLockers = sqliteTable("smart_lockers", {
   id: text("id").primaryKey(),
   number: text("number").notNull().unique(),
-  status: text("status", {enum: ["available", "occupied", "maintenance"]})
+  status: text("status", { enum: ["available", "occupied", "maintenance"] })
     .notNull()
     .default("available"),
   locationId: text("location_id")
     .notNull()
-    .references(() => locations.id, {onDelete: "restrict"}),
+    .references(() => locations.id, { onDelete: "restrict" }),
 });
 ```
 
@@ -151,7 +151,7 @@ export const smartLockers = sqliteTable("smart_lockers", {
 await db.transaction(async (tx) => {
   const [locker] = await tx
     .update(smartLockers)
-    .set({status: "occupied"})
+    .set({ status: "occupied" })
     .where(eq(smartLockers.id, lockerId))
     .returning();
 
@@ -180,9 +180,9 @@ export const smartLockers = sqliteTable(
     statusIdx: index("idx_locker_status").on(table.status),
     locationStatusIdx: index("idx_location_status").on(
       table.locationId,
-      table.status
+      table.status,
     ),
-  })
+  }),
 );
 ```
 
@@ -193,7 +193,7 @@ export const smartLockers = sqliteTable(
 const lockers = await db.query.smartLockers.findMany({
   where: and(
     eq(smartLockers.locationId, locationId),
-    eq(smartLockers.status, "available")
+    eq(smartLockers.status, "available"),
   ),
   columns: {
     id: true,

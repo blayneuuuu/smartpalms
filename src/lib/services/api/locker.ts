@@ -1,5 +1,5 @@
-import {apiGet, apiPost, apiPatch} from "./fetch";
-import type {LockerSize} from "$lib/server/db/schema";
+import { apiGet, apiPost, apiPatch } from "./fetch";
+import type { LockerSize } from "$lib/server/db/schema";
 
 /**
  * Type definitions for Locker data
@@ -56,35 +56,35 @@ export type SubscriptionType = {
  * Fetch all lockers
  */
 export function fetchLockers() {
-  return apiGet<{lockers: Locker[]}>("/api/admin/lockers");
+  return apiGet<{ lockers: Locker[] }>("/api/admin/lockers");
 }
 
 /**
  * Fetch locker by ID
  */
 export function fetchLocker(id: string) {
-  return apiGet<{locker: Locker}>(`/api/admin/lockers/${id}`);
+  return apiGet<{ locker: Locker }>(`/api/admin/lockers/${id}`);
 }
 
 /**
  * Create a new locker
  */
-export function createLocker(data: {number: string; size: LockerSize}) {
-  return apiPost<{locker: Locker}>("/api/admin/lockers", data);
+export function createLocker(data: { number: string; size: LockerSize }) {
+  return apiPost<{ locker: Locker }>("/api/admin/lockers", data);
 }
 
 /**
  * Update locker details
  */
-export function updateLocker(id: string, data: {userId?: string | null}) {
-  return apiPatch<{locker: Locker}>(`/api/admin/lockers/${id}`, data);
+export function updateLocker(id: string, data: { userId?: string | null }) {
+  return apiPatch<{ locker: Locker }>(`/api/admin/lockers/${id}`, data);
 }
 
 /**
  * Fetch pending requests
  */
 export function fetchRequests() {
-  return apiGet<{requests: LockerRequest[]}>("/api/admin/requests");
+  return apiGet<{ requests: LockerRequest[] }>("/api/admin/requests");
 }
 
 /**
@@ -93,9 +93,9 @@ export function fetchRequests() {
 export function processRequest(
   requestId: string,
   action: "approve" | "reject",
-  rejectionReason?: string
+  rejectionReason?: string,
 ) {
-  return apiPatch<{success: boolean}>(`/api/admin/requests/${requestId}`, {
+  return apiPatch<{ success: boolean }>(`/api/admin/requests/${requestId}`, {
     status: action,
     rejectionReason,
   });
@@ -105,8 +105,8 @@ export function processRequest(
  * Fetch all subscription types
  */
 export function fetchSubscriptionTypes() {
-  return apiGet<{subscriptionTypes: SubscriptionType[]}>(
-    "/api/admin/subscription-types"
+  return apiGet<{ subscriptionTypes: SubscriptionType[] }>(
+    "/api/admin/subscription-types",
   );
 }
 
@@ -118,9 +118,9 @@ export function createSubscriptionType(data: {
   duration: "1_day" | "3_days" | "7_days" | "30_days";
   amount: number;
 }) {
-  return apiPost<{subscriptionType: SubscriptionType}>(
+  return apiPost<{ subscriptionType: SubscriptionType }>(
     "/api/admin/subscription-types",
-    data
+    data,
   );
 }
 
@@ -134,11 +134,11 @@ export function updateSubscriptionType(
     duration?: "1_day" | "3_days" | "7_days" | "30_days";
     amount?: number;
     isActive?: boolean;
-  }
+  },
 ) {
-  return apiPatch<{subscriptionType: SubscriptionType}>(
+  return apiPatch<{ subscriptionType: SubscriptionType }>(
     `/api/admin/subscription-types/${id}`,
-    data
+    data,
   );
 }
 
@@ -146,8 +146,8 @@ export function updateSubscriptionType(
  * Generate OTP for locker access
  */
 export function generateOTP(lockerId: string) {
-  return apiPost<{otp: string; expiryDate: string}>(
+  return apiPost<{ otp: string; expiryDate: string }>(
     `/api/lockers/${lockerId}/otp`,
-    {}
+    {},
   );
 }

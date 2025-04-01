@@ -1,12 +1,12 @@
-import {json} from "@sveltejs/kit";
-import {error} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {lockers, accessHistory} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
-import {randomUUID} from "crypto";
+import { json } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { lockers, accessHistory } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
-export const GET: RequestHandler = async ({params}) => {
+export const GET: RequestHandler = async ({ params }) => {
   const otp = params.otp;
   if (!otp) {
     throw error(400, "OTP is required");
@@ -62,7 +62,7 @@ export const GET: RequestHandler = async ({params}) => {
 };
 
 // Using PATCH as it's more semantically correct for partial updates
-export const PATCH: RequestHandler = async ({params}) => {
+export const PATCH: RequestHandler = async ({ params }) => {
   const otp = params.otp;
   if (!otp) {
     throw error(400, "OTP is required");

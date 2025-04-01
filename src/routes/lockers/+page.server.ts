@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // routes/lockers/+page.server.ts
-import type {PageServerLoad} from "./$types";
-import {error} from "@sveltejs/kit";
-import {db} from "$lib/server/db";
+import type { PageServerLoad } from "./$types";
+import { error } from "@sveltejs/kit";
+import { db } from "$lib/server/db";
 import {
   lockers,
   subscriptionTypes,
   lockerRequests,
   type LockerSize,
 } from "$lib/server/db/schema";
-import {eq, and, sql, asc} from "drizzle-orm";
+import { eq, and, sql, asc } from "drizzle-orm";
 
-export const load: PageServerLoad = async ({locals}) => {
+export const load: PageServerLoad = async ({ locals }) => {
   try {
     console.log("Loading data from database...");
 
@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({locals}) => {
 
     // Map pending requests to locker IDs for easy lookup
     const lockersToPendingRequests = new Map(
-      pendingRequests.map((request) => [request.lockerId, request])
+      pendingRequests.map((request) => [request.lockerId, request]),
     );
 
     // Add availability and pending request status to each locker
@@ -71,7 +71,7 @@ export const load: PageServerLoad = async ({locals}) => {
     console.error("Error loading data:", err);
     throw error(
       500,
-      err instanceof Error ? err.message : "Failed to load data"
+      err instanceof Error ? err.message : "Failed to load data",
     );
   }
 };

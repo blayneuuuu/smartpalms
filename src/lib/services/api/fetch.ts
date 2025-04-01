@@ -20,9 +20,14 @@ type ApiResponse<T> = {
  */
 export async function apiFetch<T>(
   url: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {
-  const {method = "GET", body, headers = {}, credentials = "include"} = options;
+  const {
+    method = "GET",
+    body,
+    headers = {},
+    credentials = "include",
+  } = options;
 
   // Default headers
   const defaultHeaders: Record<string, string> = {
@@ -84,9 +89,9 @@ export async function apiFetch<T>(
  */
 export function apiGet<T>(
   url: string,
-  options: Omit<RequestOptions, "method"> = {}
+  options: Omit<RequestOptions, "method"> = {},
 ) {
-  return apiFetch<T>(url, {...options, method: "GET"});
+  return apiFetch<T>(url, { ...options, method: "GET" });
 }
 
 /**
@@ -95,9 +100,9 @@ export function apiGet<T>(
 export function apiPost<T>(
   url: string,
   body: unknown,
-  options: Omit<RequestOptions, "method" | "body"> = {}
+  options: Omit<RequestOptions, "method" | "body"> = {},
 ) {
-  return apiFetch<T>(url, {...options, method: "POST", body});
+  return apiFetch<T>(url, { ...options, method: "POST", body });
 }
 
 /**
@@ -106,9 +111,9 @@ export function apiPost<T>(
 export function apiPut<T>(
   url: string,
   body: unknown,
-  options: Omit<RequestOptions, "method" | "body"> = {}
+  options: Omit<RequestOptions, "method" | "body"> = {},
 ) {
-  return apiFetch<T>(url, {...options, method: "PUT", body});
+  return apiFetch<T>(url, { ...options, method: "PUT", body });
 }
 
 /**
@@ -117,9 +122,9 @@ export function apiPut<T>(
 export function apiPatch<T>(
   url: string,
   body: unknown,
-  options: Omit<RequestOptions, "method" | "body"> = {}
+  options: Omit<RequestOptions, "method" | "body"> = {},
 ) {
-  return apiFetch<T>(url, {...options, method: "PATCH", body});
+  return apiFetch<T>(url, { ...options, method: "PATCH", body });
 }
 
 /**
@@ -127,7 +132,7 @@ export function apiPatch<T>(
  */
 export function apiDelete<T>(
   url: string,
-  options: Omit<RequestOptions, "method"> = {}
+  options: Omit<RequestOptions, "method"> = {},
 ) {
-  return apiFetch<T>(url, {...options, method: "DELETE"});
+  return apiFetch<T>(url, { ...options, method: "DELETE" });
 }

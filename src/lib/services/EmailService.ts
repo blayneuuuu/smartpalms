@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
-import {env} from "$env/dynamic/private";
-import {dev} from "$app/environment";
+import { env } from "$env/dynamic/private";
+import { dev } from "$app/environment";
 
 // Create test account during development
 let testAccount: nodemailer.TestAccount | null = null;
@@ -53,7 +53,7 @@ export async function setupMailer() {
       }
     } else {
       console.log(
-        "Email credentials not properly configured. Email sending will be skipped."
+        "Email credentials not properly configured. Email sending will be skipped.",
       );
     }
     setupComplete = true;
@@ -66,7 +66,7 @@ export async function setupMailer() {
 export async function sendVerificationEmail(
   email: string,
   name: string,
-  token: string
+  token: string,
 ) {
   await setupMailer();
 
@@ -108,7 +108,7 @@ export async function sendVerificationEmail(
         console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
       }
 
-      return {success: true, info};
+      return { success: true, info };
     } else {
       // Log verification details for debugging in production
       console.log("Email sending skipped. Verification details:");
@@ -116,7 +116,7 @@ export async function sendVerificationEmail(
       console.log(`Verification link: ${verificationLink}`);
       console.log(`Recipient: ${email}`);
 
-      return {success: true, simulated: true};
+      return { success: true, simulated: true };
     }
   } catch (error) {
     console.error("Error sending verification email:", error);
@@ -126,7 +126,7 @@ export async function sendVerificationEmail(
       console.log("Continuing registration despite email failure");
       console.log(`Token: ${token}`);
       console.log(`Verification link: ${verificationLink}`);
-      return {success: true, simulated: true, error};
+      return { success: true, simulated: true, error };
     }
 
     throw error;

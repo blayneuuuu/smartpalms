@@ -1,9 +1,10 @@
 import crypto from "crypto";
-import {db} from "$lib/db/db";
-import {users, unverifiedUsers} from "$lib/db/schema";
-import {eq} from "drizzle-orm";
+import { db } from "$lib/db/db";
+import { users, unverifiedUsers } from "$lib/db/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
-import {sendVerificationEmail} from "./EmailService";
+import { sendVerificationEmail } from "./EmailService";
+import { sql } from "drizzle-orm";
 
 export class UserService {
   static async register(name: string, email: string, password: string) {
@@ -38,11 +39,14 @@ export class UserService {
       // Generate verification token
       const verificationToken = crypto.randomBytes(32).toString("hex");
 
-      // Set token expiry to 24 hours from now
+      // Set token expiry to 24 hours from now, using UTC time
       const tokenExpiry = new Date();
-      tokenExpiry.setHours(tokenExpiry.getHours() + 24);
+      // Set to 48 hours in the future to provide more time for verification
+      tokenExpiry.setUTCHours(tokenExpiry.getUTCHours() + 48);
 
-      // Insert into unverified users table
+      console.log(`Token will expire at: ${tokenExpiry.toISOString()}`);
+
+      // Insert into unverified users table using SQL CURRENT_TIMESTAMP
       await db
         .insert(unverifiedUsers)
         .values({
@@ -51,7 +55,8 @@ export class UserService {
           email,
           password: hashedPassword,
           verificationToken,
-          tokenExpiry: tokenExpiry,
+          tokenExpiry, // Date object for tokenExpiry
+          createdAt: sql`CURRENT_TIMESTAMP`, // Use SQL timestamp for consistency
         })
         .returning();
 
@@ -59,7 +64,7 @@ export class UserService {
       const emailResult = await sendVerificationEmail(
         email,
         name,
-        verificationToken
+        verificationToken,
       );
 
       let message =
@@ -103,24 +108,37 @@ export class UserService {
         };
       }
 
-      // Check if token is expired
-      const tokenExpiry = new Date(unverifiedUser.tokenExpiry);
-      if (tokenExpiry < new Date()) {
+      // Check if token is expired - tokenExpiry is already a Date object when retrieved from the database
+      const now = new Date();
+
+      console.log(`Token expiry time: ${unverifiedUser.tokenExpiry}`);
+      console.log(`Current time: ${now.toISOString()}`);
+
+      // Convert both to timestamps for numeric comparison
+      const expiryTimestamp = unverifiedUser.tokenExpiry.getTime();
+      const nowTimestamp = now.getTime();
+
+      if (expiryTimestamp < nowTimestamp) {
         return {
           success: false,
           message: "Verification token has expired",
         };
       }
 
-      // Transfer the user from unverified to verified users table
+      // Create a new user
+      const userId = crypto.randomUUID();
+
+      // Insert the new user with SQL CURRENT_TIMESTAMP for both timestamps
       const [newUser] = await db
         .insert(users)
         .values({
-          id: crypto.randomUUID(),
+          id: userId,
           name: unverifiedUser.name,
           email: unverifiedUser.email,
           password: unverifiedUser.password,
           type: "user",
+          createdAt: sql`CURRENT_TIMESTAMP`,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
         })
         .returning();
 
@@ -160,16 +178,18 @@ export class UserService {
       // Generate new verification token
       const verificationToken = crypto.randomBytes(32).toString("hex");
 
-      // Set token expiry to 24 hours from now
+      // Set token expiry to 48 hours from now, using UTC time
       const tokenExpiry = new Date();
-      tokenExpiry.setHours(tokenExpiry.getHours() + 24);
+      tokenExpiry.setUTCHours(tokenExpiry.getUTCHours() + 48);
+
+      console.log(`New token will expire at: ${tokenExpiry.toISOString()}`);
 
       // Update verification token and expiry
       await db
         .update(unverifiedUsers)
         .set({
           verificationToken,
-          tokenExpiry: tokenExpiry,
+          tokenExpiry, // Date object for tokenExpiry
         })
         .where(eq(unverifiedUsers.id, unverifiedUser.id));
 
@@ -177,7 +197,7 @@ export class UserService {
       const emailResult = await sendVerificationEmail(
         unverifiedUser.email,
         unverifiedUser.name,
-        verificationToken
+        verificationToken,
       );
 
       let message = "Verification email resent. Please check your inbox.";

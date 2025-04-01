@@ -1,15 +1,15 @@
-import {json} from "@sveltejs/kit";
-import type {RequestHandler} from "./$types";
-import {db} from "$lib/server/db";
-import {lockers, users, lockerRequests} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { lockers, users, lockerRequests } from "$lib/server/db/schema";
+import { eq } from "drizzle-orm";
 
-export const GET: RequestHandler = async ({locals}) => {
+export const GET: RequestHandler = async ({ locals }) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        {authenticated: false, message: "User is not an admin."},
-        {status: 403}
+        { authenticated: false, message: "User is not an admin." },
+        { status: 403 },
       );
     }
 
@@ -22,12 +22,12 @@ export const GET: RequestHandler = async ({locals}) => {
         number: l.number,
         isOccupied: l.isOccupied,
         userId: l.userId,
-      }))
+      })),
     );
 
     // Get occupied lockers count
     const occupiedLockers = totalLockers.filter(
-      (locker) => locker.isOccupied === true
+      (locker) => locker.isOccupied === true,
     );
     console.log("Debug - Occupied lockers count:", occupiedLockers.length);
     console.log(
@@ -37,7 +37,7 @@ export const GET: RequestHandler = async ({locals}) => {
         number: l.number,
         isOccupied: l.isOccupied,
         userId: l.userId,
-      }))
+      })),
     );
 
     // Get total users count (excluding admins)
@@ -61,6 +61,6 @@ export const GET: RequestHandler = async ({locals}) => {
     });
   } catch (error) {
     console.error("Error fetching admin stats:", error);
-    return json({message: "Failed to fetch admin stats"}, {status: 500});
+    return json({ message: "Failed to fetch admin stats" }, { status: 500 });
   }
 };

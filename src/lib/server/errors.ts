@@ -1,11 +1,11 @@
-import {error} from "@sveltejs/kit";
-import type {ErrorResponse} from "$lib/types/api";
+import { error } from "@sveltejs/kit";
+import type { ErrorResponse } from "$lib/types/api";
 
 export class APIError extends Error {
   constructor(
     public status: number,
     message: string,
-    public code: string
+    public code: string,
   ) {
     super(message);
     this.name = "APIError";
