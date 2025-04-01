@@ -146,3 +146,29 @@ npm run test
 - [Flowbite-Svelte](https://flowbite-svelte.com/)
 - [TailwindCSS](https://tailwindcss.com/)
 - [Drizzle ORM](https://orm.drizzle.team/)
+
+## Cron Jobs
+
+SmartPalms uses Vercel Cron Jobs to perform scheduled tasks:
+
+### Subscription Expiration Notifications
+
+SmartPalms runs two daily cron jobs to check for subscriptions that expire on the current day and send email notifications to affected users:
+
+1. **Primary check**: Runs at midnight (00:00)
+2. **Secondary check**: Runs at noon (12:00) as backup
+
+This dual-check system ensures users receive notifications even if one of the jobs fails to execute properly.
+
+Configuration:
+
+- Both jobs are defined in `vercel.json` with schedules of `0 0 * * *` and `0 12 * * *`
+- The jobs call the `/api/cron/check-expiring-subscriptions` endpoint
+- Authentication is handled automatically by Vercel's cron job system
+
+To test this functionality locally:
+
+1. Visit `/api/test/check-expiring-subscriptions` to see subscriptions expiring today (no emails are sent)
+2. Check your email configuration with `/test-email`
+
+For more information on Vercel Cron Jobs, see the [Vercel documentation](https://vercel.com/docs/cron-jobs).

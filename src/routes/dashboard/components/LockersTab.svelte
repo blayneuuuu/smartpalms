@@ -17,7 +17,7 @@
     Datepicker,
   } from "flowbite-svelte";
   import {lockers, loading, errors} from "$lib/stores/admin";
-  import {fetchLockers, fetchDashboardStats} from "$lib/services/admin";
+  import {fetchLockers, fetchDashboardStats, removeSubscription} from "$lib/services/admin";
   import type {LockerSize} from "$lib/server/db/schema";
   import {formatDate} from "$lib/utils/date";
 
@@ -50,6 +50,7 @@
   let loadingUsers = $state(false);
   let fixingOccupationStatus = $state(false);
   let fixResults = $state<any>(null);
+  let removingSubscription = $state(false);
   
   // New subscription state
   let subscriptionTypes = $state<any[]>([]);
@@ -72,6 +73,7 @@
     userId: string | null;
     userName: string | null;
     userEmail?: string | null;
+    subscriptionId?: string | null;
   }
 
   // Fetch users for owner selection
@@ -245,6 +247,29 @@
     }
   }
 
+  // Function to handle subscription removal
+  async function handleRemoveSubscription(locker: Locker) {
+    if (!locker.subscriptionId) {
+      alert("No active subscription found for this locker.");
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to remove the subscription for locker #${locker.number}? This will free up the locker.`)) {
+      return;
+    }
+    
+    removingSubscription = true;
+    try {
+      await removeSubscription(locker.subscriptionId);
+      alert("Subscription removed successfully. The locker is now available.");
+    } catch (err) {
+      console.error("Error removing subscription:", err);
+      alert(err instanceof Error ? err.message : "Failed to remove subscription");
+    } finally {
+      removingSubscription = false;
+    }
+  }
+
   $effect(() => {
     // Fetch all users and subscription types when component initializes
     fetchAllUsers();
@@ -409,6 +434,47 @@
     fetchUsers();
     fetchSubscriptionTypes();
   }
+  
+  // Helper function to calculate expiry date based on subscription type
+  function calculateExpiryDate(subscriptionTypeId: string) {
+    const selectedType = subscriptionTypes.find(type => type.id === subscriptionTypeId);
+    if (!selectedType) return;
+    
+    const today = new Date();
+    let daysToAdd = 0;
+    
+    // Calculate days to add based on duration
+    switch (selectedType.duration) {
+      case "1_day":
+        daysToAdd = 1;
+        break;
+      case "3_days":
+        daysToAdd = 3;
+        break;
+      case "7_days":
+        daysToAdd = 7;
+        break;
+      case "30_days":
+        daysToAdd = 30;
+        break;
+      default:
+        daysToAdd = 30; // Fallback
+    }
+    
+    // Calculate new expiry date
+    const expiryDate = new Date(today);
+    expiryDate.setDate(expiryDate.getDate() + daysToAdd);
+    
+    // Update the expiry date field
+    return expiryDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  }
+  
+  // Effect to update expiry date when subscription type changes
+  $effect(() => {
+    if (selectedSubscriptionTypeId) {
+      expiryDate = calculateExpiryDate(selectedSubscriptionTypeId) || expiryDate;
+    }
+  });
   
   // NEW FUNCTION: Handle edit locker submission
   async function handleEditLocker() {
@@ -576,14 +642,26 @@
             </TableBodyCell>
             <TableBodyCell>
               <div class="flex flex-col gap-1">
-                <Button 
-                  color="light" 
-                  size="xs" 
-                  class="text-[10px] sm:text-xs py-1 px-2 sm:py-1.5 sm:px-2.5"
-                  on:click={() => openEditDialog(locker)}
-                >
-                  Edit Locker
-                </Button>
+                {#if locker.userId}
+                  <Button 
+                    color="red" 
+                    size="xs" 
+                    class="text-[10px] sm:text-xs py-1 px-2 sm:py-1.5 sm:px-2.5"
+                    disabled={removingSubscription}
+                    on:click={() => handleRemoveSubscription(locker)}
+                  >
+                    {removingSubscription ? 'Removing...' : 'Remove Subscription'}
+                  </Button>
+                {:else}
+                  <Button 
+                    color="light" 
+                    size="xs" 
+                    class="text-[10px] sm:text-xs py-1 px-2 sm:py-1.5 sm:px-2.5"
+                    on:click={() => openEditDialog(locker)}
+                  >
+                    Edit Locker
+                  </Button>
+                {/if}
               </div>
             </TableBodyCell>
           </TableBodyRow>

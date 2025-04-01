@@ -1,6 +1,6 @@
-import { db } from "$lib/server/db";
-import { subscriptions, lockers } from "$lib/server/db/schema";
-import { eq, and, lt, isNotNull } from "drizzle-orm";
+import {db} from "$lib/server/db";
+import {subscriptions, lockers, users} from "$lib/server/db/schema";
+import {eq, and, lt, isNotNull, gte} from "drizzle-orm";
 
 /**
  * Service for handling subscription-related operations
@@ -12,14 +12,14 @@ export class SubscriptionService {
    * @returns Number of expired subscriptions that were updated
    */
   public static async checkAndUpdateExpiredSubscriptions(
-    userId?: string,
+    userId?: string
   ): Promise<number> {
     const now = new Date().toISOString();
 
     // Build the where clause
     let whereClause = and(
       eq(subscriptions.status, "active"),
-      lt(subscriptions.expiresAt, now),
+      lt(subscriptions.expiresAt, now)
     );
 
     // Add user filter if provided
@@ -37,7 +37,7 @@ export class SubscriptionService {
       .where(whereClause);
 
     console.log(
-      `Found ${expiredSubscriptions.length} expired subscriptions to update`,
+      `Found ${expiredSubscriptions.length} expired subscriptions to update`
     );
 
     // No expired subscriptions
@@ -50,7 +50,7 @@ export class SubscriptionService {
       // Update all expired subscriptions to 'expired' status
       await tx
         .update(subscriptions)
-        .set({ status: "expired" })
+        .set({status: "expired"})
         .where(whereClause);
 
       // For each expired subscription, update the corresponding locker
@@ -88,7 +88,7 @@ export class SubscriptionService {
       .from(lockers)
       .where(
         // Only consider lockers where OTP is not null
-        isNotNull(lockers.otp),
+        isNotNull(lockers.otp)
       );
 
     // Check how many OTPs need to be expired based on time
@@ -101,9 +101,70 @@ export class SubscriptionService {
 
     if (count > 0) {
       // Clear all OTPs
-      await db.update(lockers).set({ otp: null }).where(isNotNull(lockers.otp));
+      await db.update(lockers).set({otp: null}).where(isNotNull(lockers.otp));
     }
 
     return count;
+  }
+
+  /**
+   * Find subscriptions that will expire within the day
+   * @returns Array of subscriptions with user information
+   */
+  public static async findSubscriptionsExpiringToday(): Promise<
+    Array<{
+      subscriptionId: string;
+      userId: string;
+      userName: string;
+      userEmail: string;
+      lockerId: string;
+      lockerNumber: string;
+      expiresAt: string;
+    }>
+  > {
+    // Get today's date at the start of the day (midnight)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get tomorrow's date at the start of the day (midnight)
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Format dates for SQLite comparison
+    const todayStr = today.toISOString();
+    const tomorrowStr = tomorrow.toISOString();
+
+    console.log(
+      `Looking for subscriptions expiring between ${todayStr} and ${tomorrowStr}`
+    );
+
+    // Join users and lockers to get full information
+    const expiringSubscriptions = await db
+      .select({
+        subscriptionId: subscriptions.id,
+        userId: subscriptions.userId,
+        userName: users.name,
+        userEmail: users.email,
+        lockerId: subscriptions.lockerId,
+        lockerNumber: lockers.number,
+        expiresAt: subscriptions.expiresAt,
+      })
+      .from(subscriptions)
+      .innerJoin(users, eq(subscriptions.userId, users.id))
+      .innerJoin(lockers, eq(subscriptions.lockerId, lockers.id))
+      .where(
+        and(
+          eq(subscriptions.status, "active"),
+          // Expires on this day (between start of today and start of tomorrow)
+          gte(subscriptions.expiresAt, todayStr),
+          lt(subscriptions.expiresAt, tomorrowStr)
+        )
+      );
+
+    console.log(
+      `Found ${expiringSubscriptions.length} subscriptions expiring today`
+    );
+
+    return expiringSubscriptions;
   }
 }

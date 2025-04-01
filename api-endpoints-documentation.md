@@ -84,11 +84,6 @@ This document provides a comprehensive list of all API endpoints in the SmartPal
   - Request Body: `{ lockerId: string, subscriptionTypeId: string, proofOfPayment: string }`
   - Response: `{ success: boolean, request: Object }`
 
-- **POST** `/api/lockers/request/[id]/resubmit`
-  - Purpose: Resubmit a rejected request
-  - Path Parameter: `id` - The request ID
-  - Response: `{ success: boolean }`
-
 ## Authentication
 
 - **POST** `/api/auth/signout`

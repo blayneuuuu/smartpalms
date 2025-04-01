@@ -43,6 +43,10 @@
       await processRequest(selectedRequestId, "reject", rejectionReason);
       showRejectDialog = false;
       rejectionReason = "";
+      if (selectedRequest?.id === selectedRequestId) {
+        showDetailsDialog = false;
+        selectedRequest = null;
+      }
     } catch (err) {
       console.error("Error rejecting request:", err);
     } finally {
@@ -146,6 +150,9 @@
     <h3 class="mb-5 text-lg font-normal text-gray-500">
       Reject Request
     </h3>
+    <p class="text-sm text-red-500 mb-4">
+      Note: Rejecting a request will permanently delete it.
+    </p>
   </div>
 
   <div class="space-y-4">

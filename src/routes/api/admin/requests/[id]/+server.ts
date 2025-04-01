@@ -1,7 +1,7 @@
-import { json } from "@sveltejs/kit";
-import { error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { db } from "$lib/server/db";
+import {json} from "@sveltejs/kit";
+import {error} from "@sveltejs/kit";
+import type {RequestHandler} from "./$types";
+import {db} from "$lib/server/db";
 import {
   lockerRequests,
   lockers,
@@ -9,9 +9,9 @@ import {
   transactions,
   subscriptionTypes,
 } from "$lib/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import {eq, and} from "drizzle-orm";
 
-export const PUT: RequestHandler = async ({ params, request, locals }) => {
+export const PUT: RequestHandler = async ({params, request, locals}) => {
   if (!locals.user || locals.user.type !== "admin") {
     throw error(401, "Unauthorized");
   }
@@ -22,7 +22,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
   }
 
   try {
-    const { status, rejectionReason } = await request.json();
+    const {status} = await request.json();
 
     // Get the request details
     const lockerRequest = await db
@@ -65,8 +65,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
         .where(
           and(
             eq(subscriptions.lockerId, lockerRequest.lockerId),
-            eq(subscriptions.status, "active"),
-          ),
+            eq(subscriptions.status, "active")
+          )
         );
 
       if (existingSubscription) {
@@ -138,19 +138,11 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
       // Delete the request
       await db.delete(lockerRequests).where(eq(lockerRequests.id, requestId));
     } else if (status === "reject") {
-      // Update request status and add rejection reason
-      await db
-        .update(lockerRequests)
-        .set({
-          status: "rejected",
-          rejectionReason: rejectionReason || "No reason provided",
-          processedAt: new Date(),
-          processedBy: locals.user.id,
-        })
-        .where(eq(lockerRequests.id, requestId));
+      // Delete the request immediately on rejection
+      await db.delete(lockerRequests).where(eq(lockerRequests.id, requestId));
     }
 
-    return json({ success: true });
+    return json({success: true});
   } catch (err) {
     console.error("Error processing request:", err);
     if (err instanceof Error) {

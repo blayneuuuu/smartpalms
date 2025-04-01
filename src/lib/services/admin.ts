@@ -211,6 +211,7 @@ export async function processRequest(
 
     // Refresh data after successful action
     await Promise.all([fetchRequests(), fetchDashboardStats(), fetchLockers()]);
+    return {success: true, deleted: true};
   } catch (error) {
     handleError("requests", error);
     throw error;
@@ -335,5 +336,29 @@ export async function fetchAccessHistory() {
     handleError("accessHistory", error);
   } finally {
     setLoading("accessHistory", false);
+  }
+}
+
+// Remove subscription and make locker available
+export async function removeSubscription(subscriptionId: string) {
+  try {
+    const response = await fetch(`/api/admin/subscriptions/${subscriptionId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to remove subscription");
+    }
+
+    // Refresh data after successful action
+    await Promise.all([fetchLockers(), fetchDashboardStats()]);
+    return {success: true};
+  } catch (error) {
+    handleError("lockers", error);
+    throw error;
   }
 }

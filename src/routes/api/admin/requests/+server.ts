@@ -106,7 +106,6 @@ export const POST: RequestHandler = async ({locals, request}) => {
       }
 
       // Calculate subscription dates
-      const startDate = new Date();
       const endDate = new Date();
       switch (subscriptionType.duration) {
         case "1_day":
@@ -125,9 +124,9 @@ export const POST: RequestHandler = async ({locals, request}) => {
         id: randomUUID(),
         userId: lockerRequest.userId,
         lockerId: lockerRequest.lockerId,
-        startDate,
-        endDate,
         status: "active",
+        expiresAt: endDate.toISOString(),
+        createdAt: new Date(),
       });
 
       // Update locker status
@@ -146,16 +145,8 @@ export const POST: RequestHandler = async ({locals, request}) => {
         })
         .where(eq(lockerRequests.id, requestId));
     } else {
-      // Update request status for rejection
-      await db
-        .update(lockerRequests)
-        .set({
-          status: "rejected",
-          rejectionReason,
-          processedAt: new Date(),
-          processedBy: locals.user.id,
-        })
-        .where(eq(lockerRequests.id, requestId));
+      // Delete request on rejection
+      await db.delete(lockerRequests).where(eq(lockerRequests.id, requestId));
     }
 
     return json({success: true});

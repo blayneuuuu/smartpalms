@@ -1,6 +1,5 @@
 import {sql} from "drizzle-orm";
 import {sqliteTable, text, integer, index} from "drizzle-orm/sqlite-core";
-
 export type Status = "active" | "expired" | "cancelled";
 export type LockerSize = "small" | "medium" | "large";
 export type RequestStatus = "pending" | "approved" | "rejected";
@@ -15,7 +14,7 @@ export const users = sqliteTable(
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
     password: text("password").notNull(),
-    type: text("type", {enum: ["admin", "user"]})
+    type: text("type", { length: 10 }).$type<"admin" | "user">()
       .notNull()
       .default("user"),
     createdAt: integer("created_at", {mode: "timestamp"})
@@ -37,10 +36,10 @@ export const lockers = sqliteTable(
   {
     id: text("id").primaryKey(),
     number: text("number").notNull().unique(),
-    size: text("size", {enum: ["small", "medium", "large"]}).notNull(),
+    size: text("size", { length: 10 }).$type<"small" | "medium" | "large">().notNull(),
     isOccupied: integer("is_occupied", {mode: "boolean"})
       .notNull()
-      .default(false),
+      .default(0),
     userId: text("user_id").references(() => users.id),
     otp: text("otp"),
     createdAt: integer("created_at", {mode: "timestamp"})
@@ -50,6 +49,29 @@ export const lockers = sqliteTable(
   (table) => ({
     numberIdx: index("number_idx").on(table.number),
     userIdIdx: index("locker_user_id_idx").on(table.userId),
+    sizeIdx: index("size_idx").on(table.size),
+  })
+);
+
+// Subscription Types table
+export const subscriptionTypes = sqliteTable(
+  "subscription_types",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    duration: text("duration", { length: 10 }).$type<"1_day" | "3_days" | "7_days" | "30_days">()
+      .notNull(),
+    size: text("size", { length: 10 }).$type<"small" | "medium" | "large">()
+      .notNull()
+      .default("small"),
+    amount: integer("amount").notNull(), // Amount in cents (e.g., 5000 for 50 PHP)
+    isActive: integer("is_active", {mode: "boolean"}).notNull().default(1),
+    createdAt: integer("created_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`unixepoch()`),
+  },
+  (table) => ({
+    durationIdx: index("duration_idx").on(table.duration),
     sizeIdx: index("size_idx").on(table.size),
   })
 );
@@ -68,9 +90,7 @@ export const lockerRequests = sqliteTable(
     subscriptionTypeId: text("subscription_type_id")
       .notNull()
       .references(() => subscriptionTypes.id),
-    status: text("status", {
-      enum: ["pending", "approved", "rejected"],
-    })
+    status: text("status", { length: 10 }).$type<"pending" | "approved" | "rejected">()
       .notNull()
       .default("pending"),
     proofOfPayment: text("proof_of_payment", {length: 4294967295}),
@@ -96,9 +116,8 @@ export const subscriptions = sqliteTable(
   "subscriptions",
   {
     id: text("id").primaryKey(),
-    status: text("status", {
-      enum: ["active", "expired", "cancelled"],
-    }).notNull(),
+    status: text("status", { length: 10 }).$type<"active" | "expired" | "cancelled">()
+      .notNull(),
     userId: text("user_id")
       .notNull()
       .references(() => users.id),
@@ -127,9 +146,8 @@ export const transactions = sqliteTable(
       .notNull()
       .references(() => users.id),
     subscriptionId: text("subscription_id").references(() => subscriptions.id),
-    status: text("status", {
-      enum: ["success", "failed", "pending"],
-    }).notNull(),
+    status: text("status", { length: 10 }).$type<"success" | "failed" | "pending">()
+      .notNull(),
     proofOfPayment: text("proof_of_payment"), // Base64 image for proof of payment
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
@@ -139,30 +157,6 @@ export const transactions = sqliteTable(
     userIdIdx: index("trans_user_id_idx").on(table.userId),
     subscriptionIdIdx: index("subscription_id_idx").on(table.subscriptionId),
     statusIdx: index("trans_status_idx").on(table.status),
-  })
-);
-
-// Subscription Types table
-export const subscriptionTypes = sqliteTable(
-  "subscription_types",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    duration: text("duration", {
-      enum: ["1_day", "3_days", "7_days", "30_days"],
-    }).notNull(),
-    size: text("size", {enum: ["small", "medium", "large"]})
-      .notNull()
-      .default("small"),
-    amount: integer("amount").notNull(), // Amount in cents (e.g., 5000 for 50 PHP)
-    isActive: integer("is_active", {mode: "boolean"}).notNull().default(true),
-    createdAt: integer("created_at", {mode: "timestamp"})
-      .notNull()
-      .default(sql`unixepoch()`),
-  },
-  (table) => ({
-    durationIdx: index("duration_idx").on(table.duration),
-    sizeIdx: index("size_idx").on(table.size),
   })
 );
 
@@ -178,11 +172,10 @@ export const accessHistory = sqliteTable(
     accessedAt: integer("accessed_at", {mode: "timestamp"})
       .notNull()
       .default(sql`unixepoch()`),
-    accessType: text("access_type", {
-      enum: ["otp", "subscription"],
-    }).notNull(),
+    accessType: text("access_type", { length: 15 }).$type<"otp" | "subscription">()
+      .notNull(),
     otp: text("otp"),
-    status: text("status", {enum: ["success", "failed"]}).notNull(),
+    status: text("status", { length: 10 }).$type<"success" | "failed">().notNull(),
   },
   (table) => ({
     lockerIdIdx: index("access_locker_id_idx").on(table.lockerId),

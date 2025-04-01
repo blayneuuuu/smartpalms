@@ -18,6 +18,7 @@
   import {formatDate, formatTimestamp} from "$lib/utils/date";
   import {goto} from "$app/navigation";
   import {ClipboardSolid, ClipboardCheckSolid} from "flowbite-svelte-icons";
+  import {onDestroy} from "svelte";
   
   // Import shared components
   import DashboardLayout from "$lib/components/layouts/DashboardLayout.svelte";
@@ -36,6 +37,11 @@
   let error = $state<string | null>(null);
   let otpMap = $state<Record<string, {otp: string; expiryDate: string}>>({});
   let copiedOtps = $state<Record<string, boolean>>({});
+  let otpCooldowns = $state<Record<string, boolean>>({});
+  let cooldownTimers = $state<Record<string, ReturnType<typeof setTimeout>>>({});
+  let cooldownCounters = $state<Record<string, number>>({});
+  let countdownIntervals = $state<Record<string, ReturnType<typeof setInterval>>>({});
+  let lockerErrors = $state<Record<string, string>>({});
 
   type LockerData = {
     subscriptionsCount: number;
@@ -100,8 +106,21 @@
   }
 
   async function generateOTP(lockerId: string) {
+    // Check if OTP is already generated and in cooldown period
+    if (otpCooldowns[lockerId]) {
+      lockerErrors[lockerId] = "Please wait before generating another OTP";
+      lockerErrors = {...lockerErrors}; // Trigger reactivity
+      return;
+    }
+
     loading = true;
     error = null;
+    // Clear any previous error for this locker
+    if (lockerErrors[lockerId]) {
+      delete lockerErrors[lockerId];
+      lockerErrors = {...lockerErrors}; // Trigger reactivity
+    }
+
     try {
       const result = await lockerService.generateOTP(lockerId);
       if (!result.success) {
@@ -109,23 +128,45 @@
       }
       otpMap[lockerId] = result.data as {otp: string; expiryDate: string};
       otpMap = otpMap; // Trigger reactivity
+      
+      // Set cooldown
+      otpCooldowns[lockerId] = true;
+      cooldownCounters[lockerId] = 30; // Start at 30 seconds
+      otpCooldowns = otpCooldowns; // Trigger reactivity
+      cooldownCounters = cooldownCounters; // Trigger reactivity
+      
+      // Clear any existing timers
+      if (cooldownTimers[lockerId]) {
+        clearTimeout(cooldownTimers[lockerId]);
+      }
+      if (countdownIntervals[lockerId]) {
+        clearInterval(countdownIntervals[lockerId]);
+      }
+      
+      // Start a countdown interval that updates every second
+      countdownIntervals[lockerId] = setInterval(() => {
+        cooldownCounters[lockerId]--;
+        cooldownCounters = {...cooldownCounters}; // Trigger reactivity
+        
+        if (cooldownCounters[lockerId] <= 0) {
+          clearInterval(countdownIntervals[lockerId]);
+        }
+      }, 1000);
+      
+      // Start a 30-second cooldown timer
+      cooldownTimers[lockerId] = setTimeout(() => {
+        otpCooldowns[lockerId] = false;
+        otpCooldowns = {...otpCooldowns}; // Trigger reactivity
+        clearInterval(countdownIntervals[lockerId]);
+      }, 30000);
     } catch (err) {
       console.error("Error generating OTP:", err);
-      error = err instanceof Error ? err.message : "Failed to generate OTP";
+      const errorMsg = err instanceof Error ? err.message : "Failed to generate OTP";
+      error = errorMsg;
+      lockerErrors[lockerId] = errorMsg;
+      lockerErrors = {...lockerErrors}; // Trigger reactivity
     } finally {
       loading = false;
-    }
-  }
-
-  async function resubmitRequest(requestId: string) {
-    try {
-      const result = await apiPost(`/api/lockers/request/${requestId}/resubmit`, {});
-      if (!result.success) {
-        throw new Error(result.error || "Failed to resubmit request");
-      }
-      await fetchLockerData();
-    } catch (error) {
-      console.error("Error resubmitting request:", error);
     }
   }
 
@@ -184,6 +225,19 @@
       fetchLockerData();
       fetchAccessHistory();
     }
+  });
+
+  // Cleanup timers when component unmounts
+  onDestroy(() => {
+    // Clear all cooldown timers
+    Object.values(cooldownTimers).forEach(timer => {
+      clearTimeout(timer);
+    });
+    
+    // Clear all countdown intervals
+    Object.values(countdownIntervals).forEach(interval => {
+      clearInterval(interval);
+    });
   });
 </script>
 
@@ -285,6 +339,11 @@
 
                     {#if subscription.status === "active"}
                       <div class="mt-auto flex flex-col space-y-2">
+                        {#if lockerErrors[subscription.lockerId]}
+                          <Alert color="yellow" class="mb-2">
+                            <span class="font-medium">{lockerErrors[subscription.lockerId]}</span>
+                          </Alert>
+                        {/if}
                         {#if otpMap[subscription.lockerId] && !loading}
                           <Alert color="green" class="mb-2">
                             <div class="flex flex-col items-center">
@@ -301,20 +360,20 @@
                                   {/if}
                                 </Button>
                               </div>
-                              <span class="text-xs mt-1">
-                                Valid until: {formatDate(otpMap[subscription.lockerId].expiryDate, true)}
-                              </span>
                             </div>
                           </Alert>
                         {/if}
                         <Button
                           class="w-full"
                           color="blue"
+                          disabled={loading || otpCooldowns[subscription.lockerId]}
                           on:click={() => generateOTP(subscription.lockerId)}
                         >
                           {#if loading}
                             <Spinner class="mr-3" size="4" />
                             Loading...
+                          {:else if otpCooldowns[subscription.lockerId]}
+                            Wait ({cooldownCounters[subscription.lockerId] || 0}s)
                           {:else}
                             Generate Access OTP
                           {/if}
@@ -378,14 +437,6 @@
                     >
                       {request.status}
                     </Badge>
-                    {#if request.status === "rejected"}
-                      <Button
-                        size="sm"
-                        on:click={() => resubmitRequest(request.id)}
-                      >
-                        Resubmit
-                      </Button>
-                    {/if}
                   </div>
                 </div>
               </Card>

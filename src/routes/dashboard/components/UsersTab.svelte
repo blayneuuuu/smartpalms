@@ -43,7 +43,6 @@
       <TableHead>
         <TableHeadCell>Name</TableHeadCell>
         <TableHeadCell class="hidden sm:table-cell">Email</TableHeadCell>
-        <TableHeadCell class="hidden md:table-cell">Created At</TableHeadCell>
         <TableHeadCell>Actions</TableHeadCell>
       </TableHead>
       <TableBody>
@@ -53,7 +52,6 @@
             <TableBodyCell class="hidden sm:table-cell">
               <span class="truncate max-w-[150px] md:max-w-none block">{user.email}</span>
             </TableBodyCell>
-            <TableBodyCell class="hidden md:table-cell">{formatTimestamp(user.createdAt)}</TableBodyCell>
             <TableBodyCell>
 
               <!-- Dialog  -->

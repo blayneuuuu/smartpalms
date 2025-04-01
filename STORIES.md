@@ -19,7 +19,6 @@
 - As a user, I want to generate an OTP to access my locker
 - As a user, I want to submit a rental request with proof of payment
 - As a user, I want to view the status of my rental requests
-- As a user, I want to resubmit a rejected rental request
 - As a user, I want to cancel my subscription
 - As a user, I want to be able to see my lockers access history.
 

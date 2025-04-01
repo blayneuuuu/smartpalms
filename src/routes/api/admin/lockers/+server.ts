@@ -1,18 +1,18 @@
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { db } from "$lib/server/db";
-import { lockers, users, subscriptions } from "$lib/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import {json} from "@sveltejs/kit";
+import type {RequestHandler} from "./$types";
+import {db} from "$lib/server/db";
+import {lockers, users, subscriptions} from "$lib/server/db/schema";
+import {eq, and} from "drizzle-orm";
 
 const VALID_SIZES = ["small", "medium", "large"] as const;
 type LockerSize = (typeof VALID_SIZES)[number];
 
-export const GET: RequestHandler = async ({ locals }) => {
+export const GET: RequestHandler = async ({locals}) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        { authenticated: false, message: "User is not an admin." },
-        { status: 403 },
+        {authenticated: false, message: "User is not an admin."},
+        {status: 403}
       );
     }
 
@@ -25,6 +25,7 @@ export const GET: RequestHandler = async ({ locals }) => {
         userName: users.name,
         userEmail: users.email,
         expiresAt: subscriptions.expiresAt,
+        subscriptionId: subscriptions.id,
       })
       .from(lockers)
       .leftJoin(users, eq(lockers.userId, users.id))
@@ -32,38 +33,38 @@ export const GET: RequestHandler = async ({ locals }) => {
         subscriptions,
         and(
           eq(subscriptions.lockerId, lockers.id),
-          eq(subscriptions.status, "active"),
-        ),
+          eq(subscriptions.status, "active")
+        )
       )
       .orderBy(lockers.size, lockers.number);
 
-    return json({ lockers: allLockers });
+    return json({lockers: allLockers});
   } catch (error) {
     console.error("Error fetching lockers:", error);
-    return json({ message: "Failed to fetch lockers" }, { status: 500 });
+    return json({message: "Failed to fetch lockers"}, {status: 500});
   }
 };
 
-export const POST: RequestHandler = async ({ locals, request }) => {
+export const POST: RequestHandler = async ({locals, request}) => {
   try {
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        { authenticated: false, message: "User is not an admin." },
-        { status: 403 },
+        {authenticated: false, message: "User is not an admin."},
+        {status: 403}
       );
     }
 
     const body = await request.json();
-    const { number, size } = body;
+    const {number, size} = body;
 
-    console.log("Received locker creation request:", { number, size });
+    console.log("Received locker creation request:", {number, size});
 
     if (!number || typeof number !== "string") {
-      return json({ message: "Invalid locker number" }, { status: 400 });
+      return json({message: "Invalid locker number"}, {status: 400});
     }
 
     if (!size || !VALID_SIZES.includes(size as LockerSize)) {
-      return json({ message: "Invalid locker size" }, { status: 400 });
+      return json({message: "Invalid locker size"}, {status: 400});
     }
 
     // Check if locker number already exists
@@ -75,8 +76,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
     if (existingLocker) {
       console.log("Locker with this number already exists:", number);
       return json(
-        { message: "Locker with this number already exists" },
-        { status: 400 },
+        {message: "Locker with this number already exists"},
+        {status: 400}
       );
     }
 
@@ -94,12 +95,12 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 
     console.log("Locker created successfully:", result);
 
-    return json({ success: true, id });
+    return json({success: true, id});
   } catch (error) {
     console.error("Error creating locker:", error);
     if (error instanceof Error) {
-      return json({ message: error.message }, { status: 500 });
+      return json({message: error.message}, {status: 500});
     }
-    return json({ message: "Failed to create locker" }, { status: 500 });
+    return json({message: "Failed to create locker"}, {status: 500});
   }
 };
