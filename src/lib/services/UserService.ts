@@ -1,10 +1,10 @@
 import crypto from "crypto";
-import { db } from "$lib/db/db";
-import { users, unverifiedUsers } from "$lib/db/schema";
-import { eq } from "drizzle-orm";
+import {db} from "$lib/db/db";
+import {users, unverifiedUsers} from "$lib/db/schema";
+import {eq} from "drizzle-orm";
 import bcrypt from "bcrypt";
-import { sendVerificationEmail } from "./EmailService";
-import { sql } from "drizzle-orm";
+import {sendVerificationEmail} from "./EmailService";
+import {sql} from "drizzle-orm";
 
 export class UserService {
   static async register(name: string, email: string, password: string) {
@@ -46,7 +46,7 @@ export class UserService {
 
       console.log(`Token will expire at: ${tokenExpiry.toISOString()}`);
 
-      // Insert into unverified users table using SQL CURRENT_TIMESTAMP
+      // Insert into unverified users table using Unix timestamp
       await db
         .insert(unverifiedUsers)
         .values({
@@ -56,7 +56,7 @@ export class UserService {
           password: hashedPassword,
           verificationToken,
           tokenExpiry, // Date object for tokenExpiry
-          createdAt: sql`CURRENT_TIMESTAMP`, // Use SQL timestamp for consistency
+          createdAt: sql`unixepoch()`, // Use SQLite's unixepoch() function
         })
         .returning();
 
@@ -64,7 +64,7 @@ export class UserService {
       const emailResult = await sendVerificationEmail(
         email,
         name,
-        verificationToken,
+        verificationToken
       );
 
       let message =
@@ -128,7 +128,7 @@ export class UserService {
       // Create a new user
       const userId = crypto.randomUUID();
 
-      // Insert the new user with SQL CURRENT_TIMESTAMP for both timestamps
+      // Insert the new user with Unix timestamps
       const [newUser] = await db
         .insert(users)
         .values({
@@ -137,8 +137,8 @@ export class UserService {
           email: unverifiedUser.email,
           password: unverifiedUser.password,
           type: "user",
-          createdAt: sql`CURRENT_TIMESTAMP`,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
+          createdAt: sql`unixepoch()`, // SQLite's unixepoch() function returns Unix timestamp
+          updatedAt: sql`unixepoch()`, // SQLite's unixepoch() function returns Unix timestamp
         })
         .returning();
 
@@ -197,7 +197,7 @@ export class UserService {
       const emailResult = await sendVerificationEmail(
         unverifiedUser.email,
         unverifiedUser.name,
-        verificationToken,
+        verificationToken
       );
 
       let message = "Verification email resent. Please check your inbox.";

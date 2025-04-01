@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import {sql} from "drizzle-orm";
+import {sqliteTable, text, integer, index} from "drizzle-orm/sqlite-core";
 
 export type Status = "active" | "expired" | "cancelled";
 export type LockerSize = "small" | "medium" | "large";
@@ -15,20 +15,20 @@ export const users = sqliteTable(
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
     password: text("password").notNull(),
-    type: text("type", { enum: ["admin", "user"] })
+    type: text("type", {enum: ["admin", "user"]})
       .notNull()
       .default("user"),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .default(sql`unixepoch()`),
+    updatedAt: integer("updated_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
+      .default(sql`unixepoch()`),
   },
   (table) => ({
     emailIdx: index("email_idx").on(table.email),
     typeIdx: index("type_idx").on(table.type),
-  }),
+  })
 );
 
 // Lockers table
@@ -37,21 +37,21 @@ export const lockers = sqliteTable(
   {
     id: text("id").primaryKey(),
     number: text("number").notNull().unique(),
-    size: text("size", { enum: ["small", "medium", "large"] }).notNull(),
-    isOccupied: integer("is_occupied", { mode: "boolean" })
+    size: text("size", {enum: ["small", "medium", "large"]}).notNull(),
+    isOccupied: integer("is_occupied", {mode: "boolean"})
       .notNull()
       .default(false),
     userId: text("user_id").references(() => users.id),
     otp: text("otp"),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
+      .default(sql`unixepoch()`),
   },
   (table) => ({
     numberIdx: index("number_idx").on(table.number),
     userIdIdx: index("locker_user_id_idx").on(table.userId),
     sizeIdx: index("size_idx").on(table.size),
-  }),
+  })
 );
 
 // Locker Requests table
@@ -73,12 +73,12 @@ export const lockerRequests = sqliteTable(
     })
       .notNull()
       .default("pending"),
-    proofOfPayment: text("proof_of_payment", { length: 4294967295 }),
+    proofOfPayment: text("proof_of_payment", {length: 4294967295}),
     rejectionReason: text("rejection_reason"),
-    requestedAt: integer("requested_at", { mode: "timestamp" })
+    requestedAt: integer("requested_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-    processedAt: integer("processed_at", { mode: "timestamp" }),
+      .default(sql`unixepoch()`),
+    processedAt: integer("processed_at", {mode: "timestamp"}),
     processedBy: text("processed_by").references(() => users.id),
   },
   (table) => ({
@@ -86,9 +86,9 @@ export const lockerRequests = sqliteTable(
     lockerIdIdx: index("request_locker_id_idx").on(table.lockerId),
     statusIdx: index("request_status_idx").on(table.status),
     subscriptionTypeIdx: index("subscription_type_idx").on(
-      table.subscriptionTypeId,
+      table.subscriptionTypeId
     ),
-  }),
+  })
 );
 
 // Subscriptions table
@@ -104,17 +104,17 @@ export const subscriptions = sqliteTable(
       .references(() => users.id),
     lockerId: text("locker_id")
       .notNull()
-      .references(() => lockers.id, { onDelete: "cascade" }),
+      .references(() => lockers.id, {onDelete: "cascade"}),
     expiresAt: text("expires_at").notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
+      .default(sql`unixepoch()`),
   },
   (table) => ({
     userIdIdx: index("sub_user_id_idx").on(table.userId),
     lockerIdIdx: index("locker_id_idx").on(table.lockerId),
     statusIdx: index("status_idx").on(table.status),
-  }),
+  })
 );
 
 // Transactions table
@@ -131,15 +131,15 @@ export const transactions = sqliteTable(
       enum: ["success", "failed", "pending"],
     }).notNull(),
     proofOfPayment: text("proof_of_payment"), // Base64 image for proof of payment
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
+      .default(sql`unixepoch()`),
   },
   (table) => ({
     userIdIdx: index("trans_user_id_idx").on(table.userId),
     subscriptionIdIdx: index("subscription_id_idx").on(table.subscriptionId),
     statusIdx: index("trans_status_idx").on(table.status),
-  }),
+  })
 );
 
 // Subscription Types table
@@ -151,19 +151,19 @@ export const subscriptionTypes = sqliteTable(
     duration: text("duration", {
       enum: ["1_day", "3_days", "7_days", "30_days"],
     }).notNull(),
-    size: text("size", { enum: ["small", "medium", "large"] })
+    size: text("size", {enum: ["small", "medium", "large"]})
       .notNull()
       .default("small"),
     amount: integer("amount").notNull(), // Amount in cents (e.g., 5000 for 50 PHP)
-    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    isActive: integer("is_active", {mode: "boolean"}).notNull().default(true),
+    createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
+      .default(sql`unixepoch()`),
   },
   (table) => ({
     durationIdx: index("duration_idx").on(table.duration),
     sizeIdx: index("size_idx").on(table.size),
-  }),
+  })
 );
 
 // Access History table
@@ -175,20 +175,20 @@ export const accessHistory = sqliteTable(
       .notNull()
       .references(() => lockers.id),
     userId: text("user_id").references(() => users.id),
-    accessedAt: integer("accessed_at", { mode: "timestamp" })
+    accessedAt: integer("accessed_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
+      .default(sql`unixepoch()`),
     accessType: text("access_type", {
       enum: ["otp", "subscription"],
     }).notNull(),
     otp: text("otp"),
-    status: text("status", { enum: ["success", "failed"] }).notNull(),
+    status: text("status", {enum: ["success", "failed"]}).notNull(),
   },
   (table) => ({
     lockerIdIdx: index("access_locker_id_idx").on(table.lockerId),
     userIdIdx: index("access_user_id_idx").on(table.userId),
     accessedAtIdx: index("accessed_at_idx").on(table.accessedAt),
-  }),
+  })
 );
 
 // Types for your entities

@@ -2,8 +2,6 @@ import {json} from "@sveltejs/kit";
 import type {RequestHandler} from "./$types";
 import {db} from "$lib/server/db";
 import {users} from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
-import {sql} from "drizzle-orm";
 
 export const GET: RequestHandler = async ({locals}) => {
   try {
@@ -13,14 +11,6 @@ export const GET: RequestHandler = async ({locals}) => {
         {status: 403}
       );
     }
-
-    // Fix the invalid date issue for gregoryerrl.pro@gmail.com if it exists
-    await db
-      .update(users)
-      .set({
-        createdAt: sql`1712106949`, // Fixed timestamp for 2024-04-01 00:25:49
-      })
-      .where(eq(users.email, "gregoryerrl.pro@gmail.com"));
 
     const allUsers = await db
       .select({
@@ -45,13 +35,8 @@ export const GET: RequestHandler = async ({locals}) => {
       const timestamp = user.createdAt;
 
       try {
-        // Special handling for known problematic user
-        if (user.email === "gregoryerrl.pro@gmail.com") {
-          processedTimestamp = "2024-04-01T00:25:49.000Z";
-          console.log(`Using hardcoded timestamp for ${user.email}`);
-        }
         // Convert to string for output no matter what format we have
-        else if (timestamp instanceof Date) {
+        if (timestamp instanceof Date) {
           // Date objects - convert to ISO string for consistency
           processedTimestamp = timestamp.toISOString();
         } else if (typeof timestamp === "number") {
@@ -68,21 +53,19 @@ export const GET: RequestHandler = async ({locals}) => {
           // Try to handle various string formats
           try {
             // First attempt: Direct parsing
-            let dateObj = new Date(timestamp);
+            const timestampStr = String(timestamp);
+            let dateObj = new Date(timestampStr);
 
-            // Second attempt: Handle format like "2025-04-01 00:25:49"
-            if (
-              isNaN(dateObj.getTime()) &&
-              timestamp.includes &&
-              timestamp.includes(" ")
-            ) {
-              dateObj = new Date(timestamp.replace(" ", "T"));
+            // Second attempt: If first attempt failed and string contains a space
+            if (isNaN(dateObj.getTime()) && timestampStr.includes(" ")) {
+              // Try replacing space with T for ISO format
+              dateObj = new Date(timestampStr.replace(" ", "T"));
             }
 
             if (!isNaN(dateObj.getTime())) {
               processedTimestamp = dateObj.toISOString();
             } else {
-              processedTimestamp = String(timestamp);
+              processedTimestamp = timestampStr;
             }
           } catch {
             processedTimestamp = String(timestamp);
@@ -98,11 +81,8 @@ export const GET: RequestHandler = async ({locals}) => {
         );
       } catch (error) {
         console.error(`Error processing timestamp for ${user.email}:`, error);
-        // Fallback to original value or a placeholder
-        processedTimestamp =
-          user.email === "gregoryerrl.pro@gmail.com"
-            ? "2024-04-01T00:25:49.000Z"
-            : String(timestamp);
+        // Fallback to original value
+        processedTimestamp = String(timestamp);
       }
 
       return {
