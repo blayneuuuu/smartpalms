@@ -13,25 +13,7 @@
   } from "flowbite-svelte";
   import { accessHistory, loading, errors } from "$lib/stores/admin";
   import { fetchAccessHistory } from "$lib/services/admin";
-  
-  // Function to format SQLite timestamp
-  function formatSQLiteTimestamp(timestamp: number | string): string {
-    // If timestamp is a string, convert it to a number
-    const timestampNum = typeof timestamp === 'string' ? parseInt(timestamp, 10) : timestamp;
-    
-    // Check if the timestamp needs multiplication (SQLite stores timestamps in seconds)
-    const milliseconds = timestampNum < 10000000000 ? timestampNum * 1000 : timestampNum;
-    
-    const d = new Date(milliseconds);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    const seconds = String(d.getSeconds()).padStart(2, '0');
-    
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  }
+  import { formatTimestamp } from "$lib/utils/date";
   
   // Load data when the component is mounted
   $effect(() => {
@@ -66,7 +48,6 @@
     <Table striped={true}>
       <TableHead>
         <TableHeadCell>Locker #</TableHeadCell>
-        <TableHeadCell>User</TableHeadCell>
         <TableHeadCell>Access Type</TableHeadCell>
         <TableHeadCell>OTP</TableHeadCell>
         <TableHeadCell>Status</TableHeadCell>
@@ -76,16 +57,6 @@
         {#each $accessHistory as entry}
           <TableBodyRow>
             <TableBodyCell>{entry.lockerNumber}</TableBodyCell>
-            <TableBodyCell>
-              {#if entry.userName}
-                <div class="flex flex-col">
-                  <span class="font-medium">{entry.userName}</span>
-                  <span class="text-xs text-gray-500">{entry.userEmail}</span>
-                </div>
-              {:else}
-                <span class="text-gray-500">Unknown User</span>
-              {/if}
-            </TableBodyCell>
             <TableBodyCell>
               <Badge
                 color={entry.accessType === "otp" ? "blue" : "green"}
@@ -104,7 +75,7 @@
               </Badge>
             </TableBodyCell>
             <TableBodyCell>
-              {formatSQLiteTimestamp(entry.accessedAt)}
+              {formatTimestamp(entry.accessedAt)}
             </TableBodyCell>
           </TableBodyRow>
         {/each}
