@@ -22,7 +22,7 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
   }
 
   try {
-    const {status} = await request.json();
+    const {status, rejectionReason} = await request.json();
 
     // Get the request details
     const lockerRequest = await db
@@ -138,8 +138,16 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
       // Delete the request
       await db.delete(lockerRequests).where(eq(lockerRequests.id, requestId));
     } else if (status === "reject") {
-      // Delete the request immediately on rejection
-      await db.delete(lockerRequests).where(eq(lockerRequests.id, requestId));
+      // Update the request with rejection reason instead of deleting it
+      await db
+        .update(lockerRequests)
+        .set({
+          status: "rejected",
+          rejectionReason,
+          processedAt: new Date(),
+          processedBy: locals.user.id,
+        })
+        .where(eq(lockerRequests.id, requestId));
     }
 
     return json({success: true});

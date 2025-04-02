@@ -12,7 +12,7 @@ SmartPalms is a modern, responsive web application for managing smart lockers, b
 - **Locker Rental**: Browse available lockers and submit rental requests
 - **OTP Generation**: Generate one-time passwords to access lockers
 - **Subscription Management**: View and manage locker subscriptions
-- **Request Tracking**: Track rental request status and resubmit rejected requests
+- **Request Tracking**: Track rental request status
 - **Access History**: View complete locker access history
 
 ### Admin Features

@@ -150,9 +150,6 @@
     <h3 class="mb-5 text-lg font-normal text-gray-500">
       Reject Request
     </h3>
-    <p class="text-sm text-red-500 mb-4">
-      Note: Rejecting a request will permanently delete it.
-    </p>
   </div>
 
   <div class="space-y-4">
