@@ -2,6 +2,7 @@
   import { Alert, Button } from 'flowbite-svelte';
   import type { PageData } from './$types';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   
   export let data: PageData;
   
@@ -24,8 +25,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <p class="mb-4">Your account is now active and you can log in.</p>
-        <Button class="bg-black text-white rounded-full" on:click={goToLogin}>Continue to Login</Button>
+        <p class="mb-4">Your account is now active. You can continue to login or dashboard.</p>
+        
+        <form method="POST" use:enhance>
+          <Button type="submit" class="bg-black text-white rounded-full mr-2">Continue to Dashboard</Button>
+          <Button class="bg-gray-500 text-white rounded-full" on:click={goToLogin}>Go to Login</Button>
+        </form>
       </div>
     {:else}
       <Alert color="red" class="mb-4">

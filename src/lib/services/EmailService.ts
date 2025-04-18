@@ -77,8 +77,8 @@ export async function sendVerificationEmail(
       env.MAIL_FROM ||
       (dev && testAccount ? testAccount.user : "noreply@smartpalms.com"),
     to: email,
-    subject: "Verify your SmartPalms account",
-    text: `Hello ${name},\n\nPlease verify your email address by clicking on the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nThank you,\nSmartPalms Team`,
+    subject: "Verify your SMARTPALMS account",
+    text: `Hello ${name},\n\nPlease verify your email address by clicking on the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nThank you,\nSMARTPALMS Team`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #f8971d; padding: 20px; text-align: center; color: black;">
@@ -86,14 +86,14 @@ export async function sendVerificationEmail(
         </div>
         <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
           <p>Hello ${name},</p>
-          <p>Thank you for registering with SmartPalms. Please verify your email address by clicking the button below:</p>
+          <p>Thank you for registering with SMARTPALMS. Please verify your email address by clicking the button below:</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verificationLink}" style="background-color: #000000; color: white; padding: 12px 30px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: bold;">Verify Email</a>
           </div>
           <p>Or copy and paste this link in your browser:</p>
           <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 5px;">${verificationLink}</p>
           <p>This link will expire in 24 hours.</p>
-          <p>Thank you,<br>SmartPalms Team</p>
+          <p>Thank you,<br>SMARTPALMS Team</p>
         </div>
       </div>
     `,
@@ -165,8 +165,8 @@ export async function sendExpirationNotificationEmail(
       env.MAIL_FROM ||
       (dev && testAccount ? testAccount.user : "noreply@smartpalms.com"),
     to: email,
-    subject: "Your SmartPalms Locker Subscription Expires Today",
-    text: `Hello ${name},\n\nYour subscription for Locker #${lockerNumber} will expire today (${formattedDate} at ${formattedTime}).\n\nTo continue using your locker, please log in to your account and renew your subscription as soon as possible.\n\nThank you,\nSmartPalms Team`,
+    subject: "Your SMARTPALMS Locker Subscription Expires Today",
+    text: `Hello ${name},\n\nYour subscription for Locker #${lockerNumber} will expire today (${formattedDate} at ${formattedTime}).\n\nTo continue using your locker, please log in to your account and renew your subscription as soon as possible.\n\nThank you,\nSMARTPALMS Team`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #f8971d; padding: 20px; text-align: center; color: black;">
@@ -180,7 +180,7 @@ export async function sendExpirationNotificationEmail(
             <a href="${renewLink}" style="background-color: #000000; color: white; padding: 12px 30px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: bold;">Renew Subscription</a>
           </div>
           <p>If you no longer need the locker, please ensure that you've removed all your belongings before the subscription expires.</p>
-          <p>Thank you,<br>SmartPalms Team</p>
+          <p>Thank you,<br>SMARTPALMS Team</p>
         </div>
       </div>
     `,
@@ -207,6 +207,76 @@ export async function sendExpirationNotificationEmail(
     }
   } catch (error) {
     console.error("Error sending expiration notification email:", error);
+
+    // In production, don't fail if email sending fails
+    if (!dev) {
+      console.log("Continuing despite email failure");
+      return {success: true, simulated: true, error};
+    }
+
+    throw error;
+  }
+}
+
+/**
+ * Send a password reset email with a token link
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  token: string,
+  resetLink: string
+) {
+  await setupMailer();
+
+  const mailOptions = {
+    from:
+      env.MAIL_FROM ||
+      (dev && testAccount ? testAccount.user : "noreply@smartpalms.com"),
+    to: email,
+    subject: "Reset Your SMARTPALMS Password",
+    text: `Hello ${name},\n\nYou requested to reset your SMARTPALMS password. Please click the link below to reset your password:\n\n${resetLink}\n\nThis link will expire in 1 hour.\n\nIf you did not request this reset, please ignore this email.\n\nThank you,\nSMARTPALMS Team`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #f8971d; padding: 20px; text-align: center; color: black;">
+          <h1>Password Reset</h1>
+        </div>
+        <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
+          <p>Hello ${name},</p>
+          <p>You requested to reset your SMARTPALMS password. Please click the button below to reset your password:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #000000; color: white; padding: 12px 30px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: bold;">Reset Password</a>
+          </div>
+          <p>Or copy and paste this link in your browser:</p>
+          <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 5px;">${resetLink}</p>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you did not request this reset, please ignore this email.</p>
+          <p>Thank you,<br>SMARTPALMS Team</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    // If transporter is available, send email
+    if (transporter) {
+      const info = await transporter.sendMail(mailOptions);
+
+      if (dev && testAccount) {
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+      }
+
+      return {success: true, info};
+    } else {
+      // Log details for debugging in production
+      console.log("Email sending skipped. Password reset details:");
+      console.log(`Recipient: ${email}`);
+      console.log(`Reset Link: ${resetLink}`);
+
+      return {success: true, simulated: true};
+    }
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
 
     // In production, don't fail if email sending fails
     if (!dev) {

@@ -8,7 +8,7 @@ import {
   subscriptionTypes,
   subscriptions,
 } from "$lib/server/db/schema";
-import {eq} from "drizzle-orm";
+import {eq, and} from "drizzle-orm";
 import {randomUUID} from "crypto";
 
 export const GET: RequestHandler = async ({locals}) => {
@@ -92,6 +92,24 @@ export const POST: RequestHandler = async ({locals, request}) => {
 
     if (locker.isOccupied) {
       return json({message: "Locker is already occupied"}, {status: 400});
+    }
+
+    // Check if locker is already assigned to an active subscription
+    const activeSubscriptions = await db
+      .select()
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.lockerId, lockerRequest.lockerId),
+          eq(subscriptions.status, "active")
+        )
+      );
+
+    if (activeSubscriptions.length > 0) {
+      return json(
+        {message: "Locker already has an active subscription"},
+        {status: 400}
+      );
     }
 
     if (action === "approve") {

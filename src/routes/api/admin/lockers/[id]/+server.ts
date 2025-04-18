@@ -1,31 +1,31 @@
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { db } from "$lib/server/db";
+import {json} from "@sveltejs/kit";
+import type {RequestHandler} from "./$types";
+import {db} from "$lib/server/db";
 import {
   lockers,
   users,
   subscriptions,
   subscriptionTypes,
 } from "$lib/server/db/schema";
-import { eq, and, ne } from "drizzle-orm";
-import { z } from "zod";
-import { randomUUID } from "crypto";
+import {eq, and, ne} from "drizzle-orm";
+import {z} from "zod";
+import {randomUUID} from "crypto";
 
 // PUT handler for updating locker properties
-export const PUT: RequestHandler = async ({ locals, params, request }) => {
+export const PUT: RequestHandler = async ({locals, params, request}) => {
   try {
     console.log("Starting full locker update request");
 
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        { authenticated: false, message: "User is not an admin." },
-        { status: 403 },
+        {authenticated: false, message: "User is not an admin."},
+        {status: 403}
       );
     }
 
     const lockerId = params.id;
     if (!lockerId) {
-      return json({ message: "Locker ID is required" }, { status: 400 });
+      return json({message: "Locker ID is required"}, {status: 400});
     }
 
     const body = await request.json();
@@ -33,9 +33,9 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
     // Validate input with Zod
     const lockerUpdateSchema = z.object({
       number: z.string().min(1, "Locker number is required"),
-      size: z.enum(["small", "medium", "large"], {
+      size: z.enum(["small", "large"], {
         required_error: "Size is required",
-        invalid_type_error: "Size must be small, medium, or large",
+        invalid_type_error: "Size must be small or large",
       }),
       userId: z.string().nullable(),
       subscriptionTypeId: z.string().nullable().optional(),
@@ -49,11 +49,11 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
           message: "Invalid locker data",
           errors: validationResult.error.errors,
         },
-        { status: 400 },
+        {status: 400}
       );
     }
 
-    const { number, size, userId, subscriptionTypeId, expiresAt } =
+    const {number, size, userId, subscriptionTypeId, expiresAt} =
       validationResult.data;
     console.log("Full locker update request:", {
       lockerId,
@@ -72,7 +72,7 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
 
     if (!existingLocker) {
       console.log("Locker not found:", lockerId);
-      return json({ message: "Locker not found" }, { status: 404 });
+      return json({message: "Locker not found"}, {status: 404});
     }
 
     // Check if number is already used by another locker
@@ -84,8 +84,8 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
 
       if (duplicateNumber) {
         return json(
-          { message: `Locker number ${number} is already in use` },
-          { status: 400 },
+          {message: `Locker number ${number} is already in use`},
+          {status: 400}
         );
       }
     }
@@ -120,13 +120,13 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
 
           if (!subType) {
             throw new Error(
-              `Subscription type not found: ${subscriptionTypeId}`,
+              `Subscription type not found: ${subscriptionTypeId}`
             );
           }
 
           if (subType.size !== size) {
             throw new Error(
-              `Subscription type size (${subType.size}) doesn't match locker size (${size})`,
+              `Subscription type size (${subType.size}) doesn't match locker size (${size})`
             );
           }
 
@@ -137,8 +137,8 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
             .where(
               and(
                 eq(subscriptions.lockerId, lockerId),
-                eq(subscriptions.status, "active"),
-              ),
+                eq(subscriptions.status, "active")
+              )
             );
 
           if (existingSubscription) {
@@ -153,7 +153,7 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
               .where(eq(subscriptions.id, existingSubscription.id));
 
             console.log(
-              `Updated existing subscription: ${existingSubscription.id}`,
+              `Updated existing subscription: ${existingSubscription.id}`
             );
           } else {
             // Create new subscription
@@ -187,15 +187,15 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
             .where(
               and(
                 eq(subscriptions.lockerId, lockerId),
-                eq(subscriptions.status, "active"),
-              ),
+                eq(subscriptions.status, "active")
+              )
             );
 
           // Update all active subscriptions to cancelled
           for (const sub of activeSubscriptions) {
             await tx
               .update(subscriptions)
-              .set({ status: "cancelled" })
+              .set({status: "cancelled"})
               .where(eq(subscriptions.id, sub.id));
 
             console.log(`Cancelled subscription: ${sub.id}`);
@@ -230,33 +230,33 @@ export const PUT: RequestHandler = async ({ locals, params, request }) => {
   } catch (error) {
     console.error("Error updating locker:", error);
     if (error instanceof Error) {
-      return json({ message: error.message }, { status: 500 });
+      return json({message: error.message}, {status: 500});
     }
-    return json({ message: "Failed to update locker" }, { status: 500 });
+    return json({message: "Failed to update locker"}, {status: 500});
   }
 };
 
 // PATCH update locker ownership
-export const PATCH: RequestHandler = async ({ locals, params, request }) => {
+export const PATCH: RequestHandler = async ({locals, params, request}) => {
   try {
     console.log("Starting locker ownership update request");
 
     if (!locals.user || locals.user.type !== "admin") {
       return json(
-        { authenticated: false, message: "User is not an admin." },
-        { status: 403 },
+        {authenticated: false, message: "User is not an admin."},
+        {status: 403}
       );
     }
 
     const lockerId = params.id;
     if (!lockerId) {
-      return json({ message: "Locker ID is required" }, { status: 400 });
+      return json({message: "Locker ID is required"}, {status: 400});
     }
 
     const body = await request.json();
-    const { userId } = body;
+    const {userId} = body;
 
-    console.log("Update locker request:", { lockerId, userId });
+    console.log("Update locker request:", {lockerId, userId});
 
     // Check if locker exists
     const [existingLocker] = await db
@@ -266,7 +266,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
     if (!existingLocker) {
       console.log("Locker not found:", lockerId);
-      return json({ message: "Locker not found" }, { status: 404 });
+      return json({message: "Locker not found"}, {status: 404});
     }
 
     console.log("Existing locker:", existingLocker);
@@ -282,21 +282,21 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
         .where(
           and(
             eq(subscriptions.lockerId, lockerId),
-            eq(subscriptions.status, "active"),
-          ),
+            eq(subscriptions.status, "active")
+          )
         );
 
       if (activeSubscription) {
         console.log(
           "Cannot remove ownership - active subscription exists:",
-          activeSubscription,
+          activeSubscription
         );
         return json(
           {
             message:
               "Cannot remove ownership: active subscription exists. Delete the subscription first.",
           },
-          { status: 400 },
+          {status: 400}
         );
       }
 
@@ -319,7 +319,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
       if (!existingUser) {
         console.log("User not found:", userId);
-        return json({ message: "User not found" }, { status: 404 });
+        return json({message: "User not found"}, {status: 404});
       }
 
       console.log("Updating locker ownership to user:", existingUser.name);
@@ -351,11 +351,8 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
   } catch (error) {
     console.error("Error updating locker ownership:", error);
     if (error instanceof Error) {
-      return json({ message: error.message }, { status: 500 });
+      return json({message: error.message}, {status: 500});
     }
-    return json(
-      { message: "Failed to update locker ownership" },
-      { status: 500 },
-    );
+    return json({message: "Failed to update locker ownership"}, {status: 500});
   }
 };

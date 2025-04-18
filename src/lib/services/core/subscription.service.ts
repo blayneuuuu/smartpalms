@@ -1,6 +1,7 @@
 import {db} from "$lib/server/db";
 import {subscriptions, lockers, users} from "$lib/server/db/schema";
 import {eq, and, lt, isNotNull, gte} from "drizzle-orm";
+import {UserService} from "$lib/services/core/user.service";
 
 /**
  * Service for handling subscription-related operations
@@ -32,6 +33,7 @@ export class SubscriptionService {
       .select({
         id: subscriptions.id,
         lockerId: subscriptions.lockerId,
+        userId: subscriptions.userId, // Add userId for status updates
       })
       .from(subscriptions)
       .where(whereClause);
@@ -64,6 +66,36 @@ export class SubscriptionService {
           .where(eq(lockers.id, sub.lockerId));
       }
     });
+
+    // Track unique users with expired subscriptions for status updates
+    const affectedUserIds = new Set<string>();
+    expiredSubscriptions.forEach((sub) => affectedUserIds.add(sub.userId));
+
+    console.log(`Updating statuses for ${affectedUserIds.size} affected users`);
+
+    // Update user statuses based on their remaining subscriptions
+    const statusUpdatePromises = Array.from(affectedUserIds).map(
+      async (userId) => {
+        const result =
+          await UserService.updateUserStatusBasedOnSubscriptions(userId);
+        console.log(
+          `User ${userId} status update after subscription expiry: ${
+            result.success
+              ? `Successfully updated to ${result.status}`
+              : `Failed: ${result.error}`
+          }`
+        );
+        return result.success;
+      }
+    );
+
+    const statusUpdateResults = await Promise.all(statusUpdatePromises);
+    const successfulStatusUpdates = statusUpdateResults.filter(
+      (success) => success
+    ).length;
+    console.log(
+      `Successfully updated ${successfulStatusUpdates} user statuses`
+    );
 
     return expiredSubscriptions.length;
   }
@@ -166,5 +198,48 @@ export class SubscriptionService {
     );
 
     return expiringSubscriptions;
+  }
+
+  /**
+   * Create a new subscription
+   * @param data Subscription data
+   * @returns Created subscription ID
+   */
+  public static async createSubscription(data: {
+    userId: string;
+    lockerId: string;
+    expiresAt: string;
+  }): Promise<string> {
+    try {
+      // Create subscription
+      const [subscription] = await db
+        .insert(subscriptions)
+        .values({
+          id: crypto.randomUUID(),
+          userId: data.userId,
+          lockerId: data.lockerId,
+          status: "active",
+          expiresAt: data.expiresAt,
+          createdAt: new Date(),
+        })
+        .returning();
+
+      // Update locker status
+      await db
+        .update(lockers)
+        .set({
+          userId: data.userId,
+          isOccupied: true,
+        })
+        .where(eq(lockers.id, data.lockerId));
+
+      // Update user status to reflect the new subscription
+      await UserService.updateUserStatusBasedOnSubscriptions(data.userId);
+
+      return subscription.id;
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      throw error;
+    }
   }
 }

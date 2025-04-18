@@ -1,10 +1,16 @@
 import {sql} from "drizzle-orm";
 import {sqliteTable, text, integer, index} from "drizzle-orm/sqlite-core";
 export type Status = "active" | "expired" | "cancelled";
-export type LockerSize = "small" | "medium" | "large";
+export type LockerSize = "small" | "large";
 export type RequestStatus = "pending" | "approved" | "rejected";
-export type SubscriptionDuration = "1_day" | "7_days" | "30_days";
+export type SubscriptionDuration = "1_day" | "3_days" | "7_days" | "30_days";
 export type UserType = "admin" | "user";
+export type UserStatus =
+  | "inactive"
+  | "subscribed"
+  | "for_renewal"
+  | "suspended"
+  | "blocked";
 
 // Users table
 export const users = sqliteTable(
@@ -14,19 +20,45 @@ export const users = sqliteTable(
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
     password: text("password").notNull(),
-    type: text("type", { length: 10 }).$type<"admin" | "user">()
+    type: text("type", {length: 10})
+      .$type<"admin" | "user">()
       .notNull()
       .default("user"),
+    status: text("status", {length: 15})
+      .$type<UserStatus>()
+      .notNull()
+      .default("inactive"),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
+      .default(sql`(strftime('%s', 'now'))`),
     updatedAt: integer("updated_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
+      .default(sql`(strftime('%s', 'now'))`),
   },
   (table) => ({
     emailIdx: index("email_idx").on(table.email),
     typeIdx: index("type_idx").on(table.type),
+    statusIdx: index("user_status_idx").on(table.status),
+  })
+);
+
+// Unverified Users table - for email verification workflow
+export const unverifiedUsers = sqliteTable(
+  "unverified_users",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    password: text("password").notNull(),
+    verificationToken: text("verification_token").notNull(),
+    tokenExpiry: integer("token_expiry", {mode: "timestamp"}).notNull(),
+    createdAt: integer("created_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+  },
+  (table) => ({
+    emailIdx: index("unverified_email_idx").on(table.email),
+    tokenIdx: index("verification_token_idx").on(table.verificationToken),
   })
 );
 
@@ -36,20 +68,20 @@ export const lockers = sqliteTable(
   {
     id: text("id").primaryKey(),
     number: text("number").notNull().unique(),
-    size: text("size", { length: 10 }).$type<"small" | "medium" | "large">().notNull(),
+    size: text("size", {length: 10}).$type<"small" | "large">().notNull(),
     isOccupied: integer("is_occupied", {mode: "boolean"})
       .notNull()
-      .default(0),
+      .default(sql`0`),
     userId: text("user_id").references(() => users.id),
     otp: text("otp"),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
+      .default(sql`(strftime('%s', 'now'))`),
   },
   (table) => ({
-    numberIdx: index("number_idx").on(table.number),
+    numberIdx: index("locker_number_idx").on(table.number),
     userIdIdx: index("locker_user_id_idx").on(table.userId),
-    sizeIdx: index("size_idx").on(table.size),
+    sizeIdx: index("locker_size_idx").on(table.size),
   })
 );
 
@@ -59,20 +91,24 @@ export const subscriptionTypes = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    duration: text("duration", { length: 10 }).$type<"1_day" | "3_days" | "7_days" | "30_days">()
+    duration: text("duration", {length: 10})
+      .$type<"1_day" | "3_days" | "7_days" | "30_days">()
       .notNull(),
-    size: text("size", { length: 10 }).$type<"small" | "medium" | "large">()
+    size: text("size", {length: 10})
+      .$type<"small" | "large">()
       .notNull()
       .default("small"),
     amount: integer("amount").notNull(), // Amount in cents (e.g., 5000 for 50 PHP)
-    isActive: integer("is_active", {mode: "boolean"}).notNull().default(1),
+    isActive: integer("is_active", {mode: "boolean"})
+      .notNull()
+      .default(sql`1`),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
+      .default(sql`(strftime('%s', 'now'))`),
   },
   (table) => ({
-    durationIdx: index("duration_idx").on(table.duration),
-    sizeIdx: index("size_idx").on(table.size),
+    durationIdx: index("sub_type_duration_idx").on(table.duration),
+    sizeIdx: index("sub_type_size_idx").on(table.size),
   })
 );
 
@@ -90,14 +126,15 @@ export const lockerRequests = sqliteTable(
     subscriptionTypeId: text("subscription_type_id")
       .notNull()
       .references(() => subscriptionTypes.id),
-    status: text("status", { length: 10 }).$type<"pending" | "approved" | "rejected">()
+    status: text("status", {length: 10})
+      .$type<"pending" | "approved" | "rejected">()
       .notNull()
       .default("pending"),
     proofOfPayment: text("proof_of_payment", {length: 4294967295}),
     rejectionReason: text("rejection_reason"),
     requestedAt: integer("requested_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
+      .default(sql`(strftime('%s', 'now'))`),
     processedAt: integer("processed_at", {mode: "timestamp"}),
     processedBy: text("processed_by").references(() => users.id),
   },
@@ -116,7 +153,8 @@ export const subscriptions = sqliteTable(
   "subscriptions",
   {
     id: text("id").primaryKey(),
-    status: text("status", { length: 10 }).$type<"active" | "expired" | "cancelled">()
+    status: text("status", {length: 10})
+      .$type<"active" | "expired" | "cancelled">()
       .notNull(),
     userId: text("user_id")
       .notNull()
@@ -127,7 +165,7 @@ export const subscriptions = sqliteTable(
     expiresAt: text("expires_at").notNull(),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
+      .default(sql`(strftime('%s', 'now'))`),
   },
   (table) => ({
     userIdIdx: index("sub_user_id_idx").on(table.userId),
@@ -146,12 +184,13 @@ export const transactions = sqliteTable(
       .notNull()
       .references(() => users.id),
     subscriptionId: text("subscription_id").references(() => subscriptions.id),
-    status: text("status", { length: 10 }).$type<"success" | "failed" | "pending">()
+    status: text("status", {length: 10})
+      .$type<"success" | "failed" | "pending">()
       .notNull(),
     proofOfPayment: text("proof_of_payment"), // Base64 image for proof of payment
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
+      .default(sql`(strftime('%s', 'now'))`),
   },
   (table) => ({
     userIdIdx: index("trans_user_id_idx").on(table.userId),
@@ -171,11 +210,14 @@ export const accessHistory = sqliteTable(
     userId: text("user_id").references(() => users.id),
     accessedAt: integer("accessed_at", {mode: "timestamp"})
       .notNull()
-      .default(sql`unixepoch()`),
-    accessType: text("access_type", { length: 15 }).$type<"otp" | "subscription">()
+      .default(sql`(strftime('%s', 'now'))`),
+    accessType: text("access_type", {length: 15})
+      .$type<"otp" | "subscription">()
       .notNull(),
     otp: text("otp"),
-    status: text("status", { length: 10 }).$type<"success" | "failed">().notNull(),
+    status: text("status", {length: 10})
+      .$type<"success" | "failed">()
+      .notNull(),
   },
   (table) => ({
     lockerIdIdx: index("access_locker_id_idx").on(table.lockerId),
@@ -184,9 +226,39 @@ export const accessHistory = sqliteTable(
   })
 );
 
+// Messages table for user-admin communication
+export const messages = sqliteTable(
+  "messages",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    lockerId: text("locker_id").references(() => lockers.id),
+    content: text("content", {length: 1000}).notNull(),
+    isRead: integer("is_read", {mode: "boolean"})
+      .notNull()
+      .default(sql`0`),
+    createdAt: integer("created_at", {mode: "timestamp"})
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+    // For admin replies - we'll store the parent message ID as text without a formal FK constraint
+    parentId: text("parent_id"),
+  },
+  (table) => ({
+    userIdIdx: index("message_user_id_idx").on(table.userId),
+    lockerIdIdx: index("message_locker_id_idx").on(table.lockerId),
+    createdAtIdx: index("message_created_at_idx").on(table.createdAt),
+    parentIdIdx: index("message_parent_id_idx").on(table.parentId),
+  })
+);
+
 // Types for your entities
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+export type UnverifiedUser = typeof unverifiedUsers.$inferSelect;
+export type NewUnverifiedUser = typeof unverifiedUsers.$inferInsert;
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
@@ -205,3 +277,6 @@ export type NewSubscriptionType = typeof subscriptionTypes.$inferInsert;
 
 export type AccessHistory = typeof accessHistory.$inferSelect;
 export type NewAccessHistory = typeof accessHistory.$inferInsert;
+
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;

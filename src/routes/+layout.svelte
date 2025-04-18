@@ -25,6 +25,8 @@
 				<NavUl {hidden} class="md:flex md:ml-auto" ulClass="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
 					<NavLi href="/about" activeClass="text-black" nonActiveClass="text-black hover:text-gray-700"
 						class={$page.url.pathname === '/about' ? 'active' : ''}>ABOUT US</NavLi>
+					<NavLi href="/SMARTPALMS-USER-MANUAL.pdf" target="_blank" rel="noopener noreferrer" 
+						activeClass="text-black" nonActiveClass="text-black hover:text-gray-700">USER MANUAL</NavLi>
 					<NavLi href="/" activeClass="text-black" nonActiveClass="text-black font-black hover:text-gray-700"
 						class={$page.url.pathname === '/' ? 'active' : ''}>LOG IN</NavLi>
 					

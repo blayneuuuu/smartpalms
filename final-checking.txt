@@ -1,0 +1,112 @@
+# SmartPalms Final Checking Guide
+
+This document outlines the steps to check the codebase before pushing changes to GitHub.
+
+## 1. TypeScript Linter Issues to Fix
+
+- **User Service TypeScript Errors**
+  - [x] Identified the issue: type mismatch between resetTokenExpiry (timestamp) and currentTimestamp (number)
+  - [ ] Fix type errors related to resetTokenExpiry handling in UserService
+  - [ ] Update comparison between resetTokenExpiry (Date) and currentTimestamp (number)
+  - [ ] Consider using number for all timestamp handling instead of Date objects
+
+- **Route Type Declarations**
+  - [x] Identified the issue: missing type declarations
+  - [ ] Add proper type declarations to the forgot-password route files
+  - [ ] Add proper type declarations to the reset-password route files
+  - [ ] Create ./$types.ts files for the new routes if necessary
+
+- **Migration Type Errors**
+  - [x] Verified better-sqlite3 types are missing: "Package not installed"
+  - [x] Install @types/better-sqlite3 package: `npm install -D @types/better-sqlite3`
+  - [x] Fix the unused parameter warning in the down migration function
+
+- **Other Linter Errors**
+  - [ ] Fix drizzle ORM type issues in transaction API
+  - [ ] Add proper type declarations for html2pdf.js
+  - [ ] Address empty interface declaration in app.d.ts
+
+## 2. Testing Password Reset Functionality
+
+- **Forgot Password Flow**
+  - [ ] Test sending reset email request for existing user
+  - [ ] Test sending reset email request for non-existent user
+  - [ ] Verify generic response is sent regardless of email existence (security)
+  - [ ] Check email arrives with proper reset link
+
+- **Reset Password Flow**
+  - [ ] Test opening reset password page with valid token
+  - [ ] Test opening reset password page with invalid token
+  - [ ] Test opening reset password page with expired token
+  - [ ] Test setting new password with valid inputs
+  - [ ] Test password validation (min length, matching confirm password)
+  - [ ] Verify login works with new password
+
+## 3. Testing Profile Management Functionality
+
+- **Profile Settings Tab**
+  - [ ] Test updating user name
+  - [ ] Test updating email address
+  - [ ] Test changing password with correct current password
+  - [ ] Test changing password with incorrect current password
+  - [ ] Verify error handling and success messages
+
+- **Subscription History Tab**
+  - [ ] Test display with users having subscriptions
+  - [ ] Test display with users having no subscriptions
+  - [ ] Verify proper date formatting
+  - [ ] Verify color-coded badge status indicators
+  - [ ] Check responsive layout for mobile view
+
+## 4. General Application Checks
+
+- **Database Migration**
+  - [x] Run and test migrations: `npm run migrate`
+  - [x] Verify new columns are added to the users table
+  - [x] Test migration with existing data
+  - [x] Create backup of database before deploying
+
+- **Cross-Browser Testing**
+  - [ ] Test in Chrome
+  - [ ] Test in Firefox
+  - [ ] Test in Safari
+  - [ ] Test in Edge (if available)
+
+- **Mobile Responsiveness**
+  - [ ] Test on various screen sizes using browser dev tools
+  - [ ] Verify form inputs and buttons are usable on mobile
+  - [ ] Check tabbed interface works well on small screens
+
+- **Security Review**
+  - [ ] Ensure password reset tokens are properly invalidated after use
+  - [ ] Verify token expiration works correctly
+  - [ ] Check generic error messages don't leak sensitive information
+  - [ ] Ensure passwords are properly hashed
+
+## 5. Code Quality Review
+
+- **Code Structure**
+  - [ ] Check for duplicate code that could be refactored
+  - [ ] Verify consistent naming conventions
+  - [ ] Ensure proper separation of concerns
+
+- **Documentation**
+  - [ ] Update README with new features
+  - [ ] Document database changes
+  - [ ] Add code comments for complex logic
+
+- **Performance**
+  - [ ] Check for potential N+1 query issues
+  - [ ] Verify proper indexing on new database fields
+  - [ ] Review any expensive operations
+
+## 6. Final Steps Before Push
+
+- [ ] Run a full build: `npm run build`
+- [ ] Fix any build errors
+- [ ] Run local server and test end-to-end: `npm run dev`
+- [ ] Verify all features work in production mode: `npm run preview`
+- [ ] Run tests if available: `npm test`
+- [ ] Review git diff to ensure no sensitive data or debug code is included
+- [ ] Commit with descriptive message including issue references
+- [ ] Push to GitHub 

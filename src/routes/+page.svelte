@@ -1,9 +1,10 @@
 <script lang="ts">
 // hello 
-	import { Button, Input, Alert, Spinner } from 'flowbite-svelte';
+	import { Button, Input, Alert, Spinner, Checkbox } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	export let form: ActionData;
 
@@ -11,16 +12,40 @@
 	let password = '';
 	let passwordVisible = false;
 	let loading = false;
+	let rememberMe = false;
+	
+	// Get URL parameters
+	$: expired = $page.url.searchParams.get('expired') === '1';
+	$: loggedOut = $page.url.searchParams.get('logged_out') === '1';
+	$: returnUrl = $page.url.searchParams.get('returnUrl') || '';
 	
 	// If form has success and redirect property, navigate to the redirect URL
 	$: if (form?.success && form?.redirect) {
-		goto(form.redirect);
+		// Use returnUrl if available
+		if (returnUrl) {
+			goto(decodeURIComponent(returnUrl));
+		} else {
+			goto(form.redirect);
+		}
 	}
 </script>
 
 <div class="flex-grow flex items-center justify-center w-full z-10">
 	<div class="w-full max-w-md bg-orange-100 rounded-3xl shadow-md m-4 overflow-hidden">
 		<h1 class="text-xl sm:text-2xl text-center text-gray-900 pt-6">Log In</h1>
+		
+		{#if loggedOut}
+			<Alert color="green" class="mx-4 mt-4">
+				You have been successfully logged out.
+			</Alert>
+		{/if}
+		
+		{#if expired}
+			<Alert color="yellow" class="mx-4 mt-4">
+				Your session has expired. Please log in again.
+			</Alert>
+		{/if}
+		
 		{#if form?.error}
 			<Alert color="red" class="mx-4 mt-4">
 				{form.error}
@@ -80,7 +105,7 @@
 				</div>
 				<div class="flex items-center justify-between mt-2">
 					<div class="flex items-center">
-						<input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+						<Checkbox id="remember" name="remember" bind:checked={rememberMe} class="text-orange-600" />
 						<label for="remember" class="ml-2 block text-sm text-gray-900">Remember me</label>
 					</div>
 					<div class="text-sm">
@@ -88,6 +113,12 @@
 					</div>
 				</div>
 			</div>
+			
+			<!-- Hidden field to handle returnUrl -->
+			{#if returnUrl}
+				<input type="hidden" name="returnUrl" value={returnUrl} />
+			{/if}
+			
 			<Button type="submit" class="w-full bg-black text-white rounded-full" disabled={loading}>
 				{#if loading}
 					<Spinner class="mr-2" size="4" color="white" />

@@ -4,7 +4,7 @@ import {db} from "$lib/server/db";
 import {lockers, users, subscriptions} from "$lib/server/db/schema";
 import {eq, and} from "drizzle-orm";
 
-const VALID_SIZES = ["small", "medium", "large"] as const;
+const VALID_SIZES = ["small", "large"] as const;
 type LockerSize = (typeof VALID_SIZES)[number];
 
 export const GET: RequestHandler = async ({locals}) => {

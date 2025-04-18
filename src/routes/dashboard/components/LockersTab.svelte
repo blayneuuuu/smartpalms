@@ -62,7 +62,7 @@
   let sortColumn = $state("number");
   let sortDirection = $state<"asc" | "desc">("asc");
 
-  const lockerSizes: LockerSize[] = ["small", "medium", "large"];
+  const lockerSizes: LockerSize[] = ["small", "large"];
 
   // Define a type for locker
   type Locker = {
@@ -318,8 +318,8 @@
         comparison = a.number.localeCompare(b.number);
       }
     } else if (sortColumn === "size") {
-      // Sort by size (small, medium, large)
-      const sizeOrder = { small: 1, medium: 2, large: 3 };
+      // Sort by size (small, large)
+      const sizeOrder = { small: 1, large: 2 };
       comparison = (sizeOrder[a.size] || 0) - (sizeOrder[b.size] || 0);
     } else if (sortColumn === "status") {
       // Sort by occupied status
@@ -532,6 +532,69 @@
       updatingLocker = false;
     }
   }
+
+  // Add these state variables
+  let fixingDatabase = $state(false);
+  let seedingTypes = $state(false);
+  
+  // Add these functions
+  async function fixDatabaseTables() {
+    fixingDatabase = true;
+    try {
+      const response = await fetch("/api/admin/fix-database");
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to fix database");
+      }
+      
+      const data = await response.json();
+      console.log("Database fix result:", data);
+      
+      alert(
+        data.results.oldTablesFound > 0
+          ? `Fixed ${data.results.oldTablesFound} database tables.`
+          : "No database issues found."
+      );
+      
+      // Refresh data
+      await fetchSubscriptionTypes();
+    } catch (err) {
+      console.error("Error fixing database:", err);
+      alert(err instanceof Error ? err.message : "Failed to fix database");
+    } finally {
+      fixingDatabase = false;
+    }
+  }
+  
+  async function seedSubscriptionTypes() {
+    seedingTypes = true;
+    try {
+      const response = await fetch("/api/admin/subscription-types/seed");
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to seed subscription types");
+      }
+      
+      const data = await response.json();
+      console.log("Subscription types seed result:", data);
+      
+      if (data.seeded) {
+        alert(`Successfully seeded ${data.count} subscription types.`);
+      } else {
+        alert(`${data.count} subscription types already exist.`);
+      }
+      
+      // Refresh data
+      await fetchSubscriptionTypes();
+    } catch (err) {
+      console.error("Error seeding subscription types:", err);
+      alert(err instanceof Error ? err.message : "Failed to seed subscription types");
+    } finally {
+      seedingTypes = false;
+    }
+  }
 </script>
 
 {#if $errors.lockers}
@@ -540,28 +603,34 @@
   </Alert>
 {/if}
 
-<div class="flex justify-between mb-4">
-  <div>
-    <Button 
-      color="red" 
-      disabled={fixingOccupationStatus}
-      on:click={fixOccupationStatus}
-      class="mr-2"
-    >
-      {#if fixingOccupationStatus}
-        <Spinner class="mr-2" size="4" />
-      {/if}
-      Fix Occupation Status
+<div class="flex flex-wrap justify-between items-center mb-4">
+  <h2 class="text-xl font-semibold">Lockers Management</h2>
+  <div class="space-x-2 mt-2 md:mt-0">
+    <Button color="blue" size="sm" on:click={() => openCreateDialog()}>
+      Create Locker
     </Button>
-    
-    {#if fixResults}
-      <span class="text-sm text-gray-600 ml-2">
-        Fixed: {fixResults.updated}, Already correct: {fixResults.alreadyCorrect}
-      </span>
-    {/if}
+    <Button color="green" size="sm" on:click={fixOccupationStatus} disabled={fixingOccupationStatus}>
+      {#if fixingOccupationStatus}
+        <Spinner size="sm" class="mr-2" />Fixing...
+      {:else}
+        Fix Locker Status
+      {/if}
+    </Button>
+    <Button color="purple" size="sm" on:click={fixDatabaseTables} disabled={fixingDatabase}>
+      {#if fixingDatabase}
+        <Spinner size="sm" class="mr-2" />Fixing...
+      {:else}
+        Fix Database
+      {/if}
+    </Button>
+    <Button color="yellow" size="sm" on:click={seedSubscriptionTypes} disabled={seedingTypes}>
+      {#if seedingTypes}
+        <Spinner size="sm" class="mr-2" />Seeding...
+      {:else}
+        Seed Subscription Types
+      {/if}
+    </Button>
   </div>
-  
-  <Button color="green" on:click={openCreateDialog}>Create Locker</Button>
 </div>
 
 {#if $loading.lockers}
@@ -606,11 +675,7 @@
             <TableBodyCell>#{locker.number}</TableBodyCell>
             <TableBodyCell>
               <Badge
-                color={locker.size === "small"
-                  ? "blue"
-                  : locker.size === "medium"
-                  ? "yellow"
-                  : "red"}
+                color={locker.size === "small" ? "blue" : "red"}
               >
                 {locker.size}
               </Badge>

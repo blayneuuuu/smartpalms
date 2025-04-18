@@ -1,22 +1,23 @@
-import { fail } from "@sveltejs/kit";
-import type { Actions } from "./$types";
-import { UserService } from "$lib/services/UserService";
+import {fail} from "@sveltejs/kit";
+import type {Actions} from "./$types";
+import {UserService} from "$lib/services/UserService";
 
 export const actions: Actions = {
-  default: async ({ request }) => {
+  default: async ({request}) => {
     const formData = await request.formData();
     const name = formData.get("name")?.toString();
     const email = formData.get("email")?.toString();
     const password = formData.get("password")?.toString();
     const confirmPassword = formData.get("confirmPassword")?.toString();
+    const terms = formData.get("terms");
 
     // Form validation
     if (!name || !email || !password || !confirmPassword) {
-      return fail(400, { error: "All fields are required" });
+      return fail(400, {error: "All fields are required"});
     }
 
     if (password !== confirmPassword) {
-      return fail(400, { error: "Passwords do not match" });
+      return fail(400, {error: "Passwords do not match"});
     }
 
     if (password.length < 8) {
@@ -25,14 +26,21 @@ export const actions: Actions = {
       });
     }
 
+    // Validate terms acceptance
+    if (!terms) {
+      return fail(400, {
+        error: "You must accept the Terms and Conditions to proceed",
+      });
+    }
+
     // Register the user with email verification
     const result = await UserService.register(name, email, password);
 
     if (!result.success) {
-      return fail(400, { error: result.message });
+      return fail(400, {error: result.message});
     }
 
     // Redirect to confirmation page
-    return { success: true, message: result.message };
+    return {success: true, message: result.message};
   },
 };

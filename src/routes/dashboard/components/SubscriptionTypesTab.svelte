@@ -166,7 +166,7 @@
   }
 
   // Array of locker sizes for the dropdown
-  const lockerSizes = ["small", "medium", "large"];
+  const lockerSizes = ["small", "large"];
 </script>
 
 {#if $errors.subscriptionTypes}

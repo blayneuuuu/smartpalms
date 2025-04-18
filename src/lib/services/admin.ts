@@ -179,6 +179,7 @@ export async function fetchTransactions() {
     const data = await response.json();
     transactions.set(data.transactions);
     errors.update((e) => ({...e, transactions: null}));
+    return data;
   } catch (error) {
     handleError("transactions", error);
   } finally {

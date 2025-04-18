@@ -14,16 +14,21 @@
     TableHead,
     TableHeadCell,
     Heading,
+    Modal,
+    Label,
+    Textarea,
   } from "flowbite-svelte";
   import {formatDate, formatTimestamp} from "$lib/utils/date";
   import {goto} from "$app/navigation";
   import {ClipboardSolid, ClipboardCheckSolid} from "flowbite-svelte-icons";
-  import {onDestroy} from "svelte";
+  import {onDestroy, onMount} from "svelte";
+  import { notifications } from "$lib/stores/notification";
   
   // Import shared components
   import DashboardLayout from "$lib/components/layouts/DashboardLayout.svelte";
   import { apiGet, apiPost } from "$lib/services/api";
   import { lockerService } from "$lib/services/api";
+  import MessagesUserTab from "./components/MessagesUserTab.svelte";
 
   type UserData = {
     id: string;
@@ -87,6 +92,17 @@
   };
 
   let accessHistory = $state<AccessHistory[]>([]);
+  let unreadMessagesCount = $state(0);
+  let previousUnreadCount = $state(0);
+
+  // Message dialog state
+  let showMessageDialog = $state(false);
+  let selectedLockerId = $state<string | null>(null);
+  let selectedLockerNumber = $state<string | null>(null);
+  let messageContent = $state("");
+  let sendingMessage = $state(false);
+  let messageError = $state<string | null>(null);
+  let messageSuccess = $state(false);
 
   async function fetchLockerData() {
     loading = true;
@@ -193,6 +209,31 @@
     }
   }
 
+  async function fetchUnreadMessagesCount() {
+    try {
+      const response = await fetch("/api/messages/unread-count");
+      if (response.ok) {
+        const data = await response.json();
+        const newCount = data.count || 0;
+        
+        // Check if there are new messages
+        if (newCount > previousUnreadCount && previousUnreadCount !== 0) {
+          // Show notification for new messages
+          notifications.add({
+            message: `You have ${newCount - previousUnreadCount} new message${newCount - previousUnreadCount > 1 ? 's' : ''} from admin`,
+            type: 'info',
+            timeout: 5000,
+          });
+        }
+        
+        previousUnreadCount = unreadMessagesCount;
+        unreadMessagesCount = newCount;
+      }
+    } catch (error) {
+      console.error("Error fetching unread messages count:", error);
+    }
+  }
+
   // Sort subscriptions by status
   function getSortedLockers() {
     if (!lockerData.subscriptions) return [];
@@ -218,13 +259,23 @@
     }
   }
 
-  // Call fetchLockerData and fetchAccessHistory when the component mounts
-  $effect(() => {
-    if (userData.id) {
-      console.log("Fetching locker data for user:", userData.id);
-      fetchLockerData();
-      fetchAccessHistory();
-    }
+  // Set up a periodic check for unread messages (every 30 seconds)
+  let checkInterval: NodeJS.Timeout;
+
+  // Initialize data
+  onMount(() => {
+    // Initial data loading
+    fetchLockerData();
+    fetchAccessHistory();
+    fetchUnreadMessagesCount();
+    
+    // Check for unread messages every 30 seconds
+    checkInterval = setInterval(fetchUnreadMessagesCount, 30000);
+    
+    return () => {
+      // Clear interval on component destroy
+      clearInterval(checkInterval);
+    };
   });
 
   // Cleanup timers when component unmounts
@@ -239,6 +290,66 @@
       clearInterval(interval);
     });
   });
+
+  // Message dialog handlers
+  function openMessageDialog(lockerId: string, lockerNumber: string) {
+    selectedLockerId = lockerId;
+    selectedLockerNumber = lockerNumber;
+    messageContent = '';
+    messageError = null;
+    messageSuccess = false;
+    showMessageDialog = true;
+  }
+  
+  function closeMessageDialog() {
+    showMessageDialog = false;
+    selectedLockerId = null;
+    selectedLockerNumber = null;
+    messageContent = '';
+    messageError = null;
+  }
+  
+  // Send message about locker
+  async function sendMessage() {
+    if (!selectedLockerId || !messageContent.trim()) {
+      messageError = 'Please enter a message';
+      return;
+    }
+    
+    sendingMessage = true;
+    messageError = null;
+    
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: messageContent.trim(),
+          lockerId: selectedLockerId
+        })
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to send message');
+      }
+      
+      messageSuccess = true;
+      
+      // Close dialog after 2 seconds
+      setTimeout(() => {
+        closeMessageDialog();
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Error sending message:', err);
+      messageError = err instanceof Error ? err.message : 'Failed to send message';
+    } finally {
+      sendingMessage = false;
+    }
+  }
 </script>
 
 <DashboardLayout title="User Dashboard" userName={userData.name} userType="user">
@@ -378,6 +489,14 @@
                             Generate Access OTP
                           {/if}
                         </Button>
+                        
+                        <Button
+                          class="w-full"
+                          color="light"
+                          on:click={() => openMessageDialog(subscription.lockerId, subscription.lockerNumber)}
+                        >
+                          Contact Support
+                        </Button>
                       </div>
                     {/if}
                   </div>
@@ -501,6 +620,65 @@
           </div>
         {/if}
       </TabItem>
+      
+      <TabItem title={`Messages ${unreadMessagesCount > 0 ? `(${unreadMessagesCount})` : ''}`}>
+        <MessagesUserTab />
+      </TabItem>
     </Tabs>
   </div>
+
+  <!-- Sign out button -->
+  <Button color="red" on:click={handleSignOut} class="mt-8">Sign Out</Button>
 </DashboardLayout>
+
+<!-- Message Dialog -->
+<Modal bind:open={showMessageDialog} size="md" autoclose={false}>
+  <div class="text-center">
+    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+      Send Message About Locker #{selectedLockerNumber}
+    </h3>
+    <p class="mb-5 text-sm text-gray-500">
+      Administrators will respond to your inquiry as soon as possible.
+    </p>
+  </div>
+
+  {#if messageError}
+    <Alert color="red" class="mb-4">{messageError}</Alert>
+  {/if}
+
+  {#if messageSuccess}
+    <Alert color="green" class="mb-4">Message sent successfully!</Alert>
+  {/if}
+
+  <div class="grid gap-4 py-4">
+    <div class="grid gap-2">
+      <Label for="message">Your Message</Label>
+      <Textarea 
+        id="message" 
+        bind:value={messageContent} 
+        rows={4} 
+        placeholder="Type your message about this locker..."
+      />
+    </div>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <Button 
+      color="alternative" 
+      on:click={closeMessageDialog}
+    >
+      Cancel
+    </Button>
+    <Button 
+      color="blue" 
+      disabled={sendingMessage || !messageContent.trim()} 
+      on:click={sendMessage}
+    >
+      {#if sendingMessage}
+        Sending...
+      {:else}
+        Send Message
+      {/if}
+    </Button>
+  </div>
+</Modal>

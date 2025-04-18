@@ -1,7 +1,7 @@
 <!-- routes/lockers/+page.svelte -->
 <script lang="ts">
     import type { Locker } from '$lib/server/db/schema';
-    import { Button, Card, Label, Input, Alert, Modal, Select, Badge } from 'flowbite-svelte';
+    import { Button, Card, Label, Input, Alert, Modal, Select, Badge, Textarea } from 'flowbite-svelte';
 
     type LockerWithAvailability = Locker & {
         isAvailable: boolean;
@@ -28,6 +28,13 @@
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
     let showRentDialog: boolean = $state(false);
+    
+    // Message dialog state
+    let showMessageDialog: boolean = $state(false);
+    let messageContent: string = $state('');
+    let sendingMessage: boolean = $state(false);
+    let messageError: string | null = $state(null);
+    let messageSuccess: boolean = $state(false);
 
     // Group lockers by size - only small and large
     function getLockersBySize() {
@@ -53,6 +60,69 @@
         selectedSubscriptionType = '';
         proofOfPaymentBase64 = null;
         error = null;
+    }
+    
+    // Message dialog handlers
+    function openMessageDialog(locker: LockerWithAvailability) {
+        selectedLocker = locker;
+        messageContent = '';
+        messageError = null;
+        messageSuccess = false;
+        showMessageDialog = true;
+    }
+    
+    function closeMessageDialog() {
+        showMessageDialog = false;
+        selectedLocker = null;
+        messageContent = '';
+        messageError = null;
+    }
+    
+    // Send message about locker
+    async function sendMessage() {
+        if (!selectedLocker || !messageContent.trim()) {
+            messageError = 'Please enter a message';
+            return;
+        }
+        
+        sendingMessage = true;
+        messageError = null;
+        
+        try {
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    content: messageContent.trim(),
+                    lockerId: selectedLocker.id
+                }),
+            });
+            
+            if (!response.ok) {
+                const data = await response.json();
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                throw new Error(data.message || 'Failed to send message');
+            }
+            
+            messageSuccess = true;
+            
+            // Close dialog after 2 seconds
+            setTimeout(() => {
+                closeMessageDialog();
+            }, 2000);
+            
+        } catch (err) {
+            console.error('Error sending message:', err);
+            messageError = err instanceof Error ? err.message : 'Failed to send message';
+        } finally {
+            sendingMessage = false;
+        }
     }
 
     // File handling
@@ -165,9 +235,14 @@
                                             Occupied
                                         {/if}
                                     </Badge>
-                                    {#if locker.isAvailable && !locker.hasPendingRequest}
-                                        <Button color="light" on:click={() => openRentDialog(locker)}>Rent</Button>
-                                    {/if}
+                                    <div class="flex gap-2">
+                                        {#if locker.isAvailable && !locker.hasPendingRequest}
+                                            <Button color="light" on:click={() => openRentDialog(locker)}>Rent</Button>
+                                        {/if}
+                                        <Button color="light" on:click={() => openMessageDialog(locker)}>
+                                            Contact Support
+                                        </Button>
+                                    </div>
                                 </div>
                             </Card>
                         {/each}
@@ -195,9 +270,14 @@
                                             Occupied
                                         {/if}
                                     </Badge>
-                                    {#if locker.isAvailable && !locker.hasPendingRequest}
-                                        <Button color="light" on:click={() => openRentDialog(locker)}>Rent</Button>
-                                    {/if}
+                                    <div class="flex gap-2">
+                                        {#if locker.isAvailable && !locker.hasPendingRequest}
+                                            <Button color="light" on:click={() => openRentDialog(locker)}>Rent</Button>
+                                        {/if}
+                                        <Button color="light" on:click={() => openMessageDialog(locker)}>
+                                            Contact Support
+                                        </Button>
+                                    </div>
                                 </div>
                             </Card>
                         {/each}
@@ -251,8 +331,51 @@
 
     <div class="flex justify-end gap-4">
         <Button color="alternative" on:click={closeRentDialog}>Cancel</Button>
-        <Button color="blue" disabled={!selectedSubscriptionType || !proofOfPaymentBase64 || loading} on:click={handleSubmit}>
-            {#if loading}<span class="mr-2">Processing...</span>{:else}Submit Request{/if}
+        <Button color="blue" disabled={loading} on:click={handleSubmit}>
+            {#if loading}
+                Submitting...
+            {:else}
+                Submit Request
+            {/if}
+        </Button>
+    </div>
+</Modal>
+
+<!-- Message Dialog -->
+<Modal bind:open={showMessageDialog} size="md" autoclose>
+    <div class="text-center">
+        <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Send Message About Locker #{selectedLocker?.number}</h3>
+        <p class="mb-5 text-sm text-gray-500">Administrators will respond to your inquiry as soon as possible.</p>
+    </div>
+
+    {#if messageError}
+        <Alert color="red" class="mb-4">{messageError}</Alert>
+    {/if}
+
+    {#if messageSuccess}
+        <Alert color="green" class="mb-4">Message sent successfully!</Alert>
+    {/if}
+
+    <div class="grid gap-4 py-4">
+        <div class="grid gap-2">
+            <Label for="message">Your Message</Label>
+            <Textarea 
+                id="message" 
+                bind:value={messageContent} 
+                rows={4} 
+                placeholder="Type your message about this locker..."
+            />
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-4">
+        <Button color="alternative" on:click={closeMessageDialog}>Cancel</Button>
+        <Button color="blue" disabled={sendingMessage || !messageContent.trim()} on:click={sendMessage}>
+            {#if sendingMessage}
+                Sending...
+            {:else}
+                Send Message
+            {/if}
         </Button>
     </div>
 </Modal>

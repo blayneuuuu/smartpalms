@@ -5,6 +5,8 @@ import {eq} from "drizzle-orm";
 import bcrypt from "bcrypt";
 import {sendVerificationEmail} from "./EmailService";
 import {sql} from "drizzle-orm";
+import {setUserStatusToInactive} from "$lib/db/direct-client";
+import {sendPasswordResetEmail} from "./EmailService";
 
 export class UserService {
   static async register(name: string, email: string, password: string) {
@@ -198,6 +200,12 @@ export class UserService {
 
       console.log(`[VERIFY] Created new verified user with ID: ${newUser.id}`);
 
+      // Update the user's status to inactive using our direct client
+      const statusUpdateResult = await setUserStatusToInactive(userId);
+      console.log(
+        `[VERIFY] Updated user ${userId} status to 'inactive': ${statusUpdateResult ? "success" : "failed"}`
+      );
+
       // Delete the unverified user
       await db
         .delete(unverifiedUsers)
@@ -218,6 +226,22 @@ export class UserService {
         success: false,
         message: "An error occurred during email verification",
       };
+    }
+  }
+
+  // Helper method to ensure new users are set to inactive status
+  static async setUserToInactive(userId: string) {
+    try {
+      // Use Drizzle ORM syntax instead of raw SQL
+      await db
+        .update(users)
+        .set({status: "inactive"})
+        .where(eq(users.id, userId));
+
+      return true;
+    } catch (error) {
+      console.error("[STATUS] Error setting user to inactive:", error);
+      return false;
     }
   }
 
@@ -315,6 +339,135 @@ export class UserService {
       return {
         success: false,
         message: "An error occurred while resending verification email",
+      };
+    }
+  }
+
+  // Add new methods for password reset
+  static async requestPasswordReset(email: string) {
+    try {
+      console.log(
+        `[PWD_RESET_REQ] Starting password reset request for ${email}`
+      );
+
+      // Check if the email exists in the users table
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.email, email),
+      });
+
+      if (!existingUser) {
+        console.log(`[PWD_RESET_REQ] No user found with email ${email}`);
+        // For security reasons, still return success even if email doesn't exist
+        return {
+          success: true,
+          message:
+            "If your email exists in our system, you will receive a password reset link shortly.",
+        };
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString("hex");
+
+      // Set token expiry to 1 hour from now
+      const tokenExpiryTimestamp = Math.floor(Date.now() / 1000) + 60 * 60; // 1 hour
+
+      console.log(`[PWD_RESET_REQ] Token details for ${email}:`);
+      console.log(`- Reset Token: ${resetToken.substring(0, 10)}...`);
+      console.log(`- Token Expiry (Timestamp): ${tokenExpiryTimestamp}`);
+
+      // Store the reset token in the user record
+      await db
+        .update(users)
+        .set({
+          resetToken,
+          resetTokenExpiry: sql`${tokenExpiryTimestamp}`,
+          updatedAt: sql`unixepoch()`,
+        })
+        .where(eq(users.id, existingUser.id));
+
+      console.log(`[PWD_RESET_REQ] Updated user record with reset token`);
+
+      // Send password reset email
+      const resetLink = `${process.env.BASE_URL || "https://smartpalms.vercel.app"}/reset-password?token=${resetToken}`;
+
+      await sendPasswordResetEmail(
+        existingUser.email,
+        existingUser.name,
+        resetToken,
+        resetLink
+      );
+
+      return {
+        success: true,
+        message:
+          "If your email exists in our system, you will receive a password reset link shortly.",
+      };
+    } catch (error) {
+      console.error("[PWD_RESET_REQ] Error requesting password reset:", error);
+      return {
+        success: false,
+        message: "An error occurred while processing your request.",
+      };
+    }
+  }
+
+  static async resetPassword(token: string, newPassword: string) {
+    try {
+      console.log(
+        `[PWD_RESET] Starting password reset with token: ${token.substring(0, 10)}...`
+      );
+
+      // Find the user with the given token
+      const user = await db.query.users.findFirst({
+        where: eq(users.resetToken, token),
+      });
+
+      if (!user) {
+        console.log(
+          `[PWD_RESET] No user found with token: ${token.substring(0, 10)}...`
+        );
+        return {
+          success: false,
+          message: "Invalid or expired reset token",
+        };
+      }
+
+      // Check if token has expired
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      if (user.resetTokenExpiry && user.resetTokenExpiry < currentTimestamp) {
+        console.log(`[PWD_RESET] Token expired for user ${user.email}`);
+        return {
+          success: false,
+          message: "Password reset token has expired",
+        };
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update user password and clear reset token
+      await db
+        .update(users)
+        .set({
+          password: hashedPassword,
+          resetToken: null,
+          resetTokenExpiry: null,
+          updatedAt: sql`unixepoch()`,
+        })
+        .where(eq(users.id, user.id));
+
+      console.log(`[PWD_RESET] Password reset successful for ${user.email}`);
+
+      return {
+        success: true,
+        message:
+          "Password has been reset successfully. You can now login with your new password.",
+      };
+    } catch (error) {
+      console.error("[PWD_RESET] Error resetting password:", error);
+      return {
+        success: false,
+        message: "An error occurred while resetting your password",
       };
     }
   }

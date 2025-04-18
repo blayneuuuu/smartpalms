@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Input, Label, Alert, Spinner } from 'flowbite-svelte';
+	import { Button, Input, Label, Alert, Spinner, Checkbox } from 'flowbite-svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
 
@@ -13,6 +13,7 @@
 	let confirmPasswordVisible = false;
 	let registrationSuccess = false;
 	let loading = false;
+	let agreeToTerms = false;
 </script>
 
 <div class="flex-grow flex items-center justify-center w-full z-10">
@@ -139,7 +140,15 @@
 						</button>
 					</div>
 				</div>
-				<Button type="submit" class="w-full bg-black text-white rounded-full" disabled={loading}>
+
+				<div class="flex items-start">
+					<Checkbox id="terms" name="terms" bind:checked={agreeToTerms} class="text-orange-600" required />
+					<label for="terms" class="ml-2 block text-sm text-gray-900">
+						I agree to the <a href="/terms" class="text-orange-600 hover:underline">Terms and Conditions</a>
+					</label>
+				</div>
+
+				<Button type="submit" class="w-full bg-black text-white rounded-full" disabled={loading || !agreeToTerms}>
 					{#if loading}
 						<Spinner class="mr-2" size="4" color="white" />
 						Creating Account...

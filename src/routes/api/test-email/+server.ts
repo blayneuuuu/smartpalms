@@ -1,8 +1,8 @@
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "@sveltejs/kit";
-import { setupMailer } from "$lib/services/EmailService";
+import {json} from "@sveltejs/kit";
+import type {RequestHandler} from "@sveltejs/kit";
+import {setupMailer} from "$lib/services/EmailService";
 import nodemailer from "nodemailer";
-import { env } from "$env/dynamic/private";
+import {env} from "$env/dynamic/private";
 
 export const GET: RequestHandler = async () => {
   await setupMailer();
@@ -21,16 +21,17 @@ export const GET: RequestHandler = async () => {
     const info = await transporter.sendMail({
       from: env.MAIL_FROM || "noreply@smartpalms.com",
       to: env.MAILUSER, // Send to the same email
-      subject: "SmartPalms Email Test",
-      text: "This is a test email from SmartPalms application.",
+      subject: "SMARTPALMS Email Test",
+      text: `Hello,\n\nThis is a test email from SMARTPALMS. If you received this, your email integration is working correctly.\n\nRegards,\nSMARTPALMS Team`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background-color: #f8971d; padding: 20px; text-align: center; color: black;">
-            <h1>Email Test</h1>
+          <div style="background-color: #000000; padding: 20px 0; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0;">SMARTPALMS</h1>
           </div>
           <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
-            <p>This is a test email from the SmartPalms application.</p>
-            <p>If you received this email, your email configuration is working correctly!</p>
+            <p>Hello,</p>
+            <p>This is a test email from SMARTPALMS. If you received this, your email integration is working correctly.</p>
+            <p>Regards,<br>SMARTPALMS Team</p>
           </div>
         </div>
       `,
@@ -48,7 +49,7 @@ export const GET: RequestHandler = async () => {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 },
+      {status: 500}
     );
   }
 };

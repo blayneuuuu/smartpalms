@@ -8,6 +8,8 @@
   import UsersTab from "./components/UsersTab.svelte";
   import SubscriptionTypesTab from "./components/SubscriptionTypesTab.svelte";
   import AccessHistoryTab from "./components/AccessHistoryTab.svelte";
+  import SalesTab from "./components/SalesTab.svelte";
+  import MessagesTab from "./components/MessagesTab.svelte";
   import { stats, loading, errors } from "$lib/stores/admin";
   import {
     fetchDashboardStats,
@@ -16,7 +18,10 @@
     fetchUsers,
     fetchSubscriptionTypes,
     fetchAccessHistory,
+    fetchTransactions,
   } from "$lib/services/admin";
+  import { onMount } from "svelte";
+  import { notifications } from "$lib/stores/notification";
   
   // Import shared components
   import DashboardLayout from "$lib/components/layouts/DashboardLayout.svelte";
@@ -33,7 +38,7 @@
   let activeTab = $state("requests");
 
   // Create a type for tab IDs to ensure type safety
-  type TabId = "requests" | "lockers" | "users" | "subscription-types" | "access-history";
+  type TabId = "requests" | "lockers" | "users" | "subscription-types" | "access-history" | "sales" | "messages";
   
   // Store the last loaded time for each tab
   const tabLoadTimestamps = $state<Record<TabId, number>>({
@@ -41,11 +46,43 @@
     "lockers": 0,
     "users": 0,
     "subscription-types": 0,
-    "access-history": 0
+    "access-history": 0,
+    "sales": 0,
+    "messages": 0
   });
   
   // Set a cache timeout (5 minutes)
   const CACHE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+  // Unread messages count
+  let unreadMessagesCount = $state(0);
+  let previousUnreadCount = $state(0);
+
+  // Fetch unread messages count periodically
+  async function fetchUnreadMessagesCount() {
+    try {
+      const response = await fetch("/api/admin/messages/unread-count");
+      if (response.ok) {
+        const data = await response.json();
+        const newCount = data.count || 0;
+        
+        // Check if there are new messages
+        if (newCount > previousUnreadCount && previousUnreadCount !== 0) {
+          // Show notification for new messages
+          notifications.add({
+            message: `You have ${newCount - previousUnreadCount} new message${newCount - previousUnreadCount > 1 ? 's' : ''}`,
+            type: 'info',
+            timeout: 5000,
+          });
+        }
+        
+        previousUnreadCount = unreadMessagesCount;
+        unreadMessagesCount = newCount;
+      }
+    } catch (error) {
+      console.error("Error fetching unread messages count:", error);
+    }
+  }
 
   // Initial data loading handler
   function loadInitialData() {
@@ -56,6 +93,7 @@
       fetchUsers(),
       fetchSubscriptionTypes(),
       fetchAccessHistory(),
+      fetchUnreadMessagesCount(),
     ]).catch((err) => {
       console.error("Error fetching initial data:", err);
     });
@@ -89,6 +127,10 @@
         return fetchSubscriptionTypes();
       case "access-history":
         return fetchAccessHistory();
+      case "sales":
+        return fetchTransactions?.() || Promise.resolve(); // Optional chaining in case not implemented
+      case "messages":
+        return fetchUnreadMessagesCount();
       default:
         return Promise.resolve();
     }
@@ -111,6 +153,19 @@
   function handleRetry() {
     fetchDashboardStats();
   }
+
+  // Set up a periodic check for unread messages (every 30 seconds)
+  let checkInterval: NodeJS.Timeout;
+  
+  onMount(() => {
+    // Check for unread messages every 30 seconds
+    checkInterval = setInterval(fetchUnreadMessagesCount, 30000);
+    
+    return () => {
+      // Clear interval on component destroy
+      clearInterval(checkInterval);
+    };
+  });
 </script>
 
 <DashboardLayout title="Admin Dashboard" userName={userData.name} userType="admin">
@@ -151,6 +206,18 @@
       <TabItem title="Access History" id="access-history" class="text-xs sm:text-sm md:text-base">
         <div class="p-1 sm:p-2 md:p-4">
           <AccessHistoryTab />
+        </div>
+      </TabItem>
+
+      <TabItem title="Sales Report" id="sales" class="text-xs sm:text-sm md:text-base">
+        <div class="p-1 sm:p-2 md:p-4">
+          <SalesTab />
+        </div>
+      </TabItem>
+
+      <TabItem title={`Messages ${unreadMessagesCount > 0 ? `(${unreadMessagesCount})` : ''}`} id="messages" class="text-xs sm:text-sm md:text-base">
+        <div class="p-1 sm:p-2 md:p-4">
+          <MessagesTab />
         </div>
       </TabItem>
     </Tabs>

@@ -17,6 +17,11 @@ export const users = sqliteTable(
     type: text("type", {enum: ["admin", "user"]})
       .notNull()
       .default("user"),
+    status: text("status", {
+      enum: ["inactive", "subscribed", "for_renewal", "suspended", "blocked"],
+    }).default("inactive"),
+    resetToken: text("reset_token"),
+    resetTokenExpiry: integer("reset_token_expiry", {mode: "timestamp"}),
     createdAt: integer("created_at", {mode: "timestamp"})
       .notNull()
       .default(sql`unixepoch()`),
@@ -27,6 +32,8 @@ export const users = sqliteTable(
   (table) => ({
     emailIdx: index("email_idx").on(table.email),
     typeIdx: index("type_idx").on(table.type),
+    statusIdx: index("user_status_idx").on(table.status),
+    resetTokenIdx: index("reset_token_idx").on(table.resetToken),
   })
 );
 
