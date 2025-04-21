@@ -628,7 +628,6 @@
   </div>
 
   <!-- Sign out button -->
-  <Button color="red" on:click={handleSignOut} class="mt-8">Sign Out</Button>
 </DashboardLayout>
 
 <!-- Message Dialog -->
