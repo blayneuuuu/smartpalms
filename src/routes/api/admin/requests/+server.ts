@@ -129,12 +129,20 @@ export const POST: RequestHandler = async ({locals, request}) => {
         case "1_day":
           endDate.setDate(endDate.getDate() + 1);
           break;
+        case "3_days":
+          endDate.setDate(endDate.getDate() + 3);
+          break;
         case "7_days":
           endDate.setDate(endDate.getDate() + 7);
           break;
         case "30_days":
           endDate.setDate(endDate.getDate() + 30);
           break;
+        default:
+          return json(
+            {message: "Invalid subscription duration"},
+            {status: 400}
+          );
       }
 
       // Create subscription

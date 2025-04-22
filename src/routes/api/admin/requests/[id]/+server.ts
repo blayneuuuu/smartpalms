@@ -89,6 +89,9 @@ export const PUT: RequestHandler = async ({params, request, locals}) => {
           case "1_day":
             daysToAdd = 1;
             break;
+          case "3_days":
+            daysToAdd = 3;
+            break;
           case "7_days":
             daysToAdd = 7;
             break;
